@@ -34,7 +34,7 @@ import com.datastax.cassandra.protocol.internal.response.Supported;
 
 import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V4;
 
-public class ProtocolV4Codecs implements FrameCodec.CodecGroup {
+public class ProtocolV4ClientCodecs implements FrameCodec.CodecGroup {
   @Override
   public void registerCodecs(Registry registry) {
     registry

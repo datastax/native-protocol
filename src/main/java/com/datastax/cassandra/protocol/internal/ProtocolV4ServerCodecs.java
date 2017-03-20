@@ -32,29 +32,29 @@ import com.datastax.cassandra.protocol.internal.response.Ready;
 import com.datastax.cassandra.protocol.internal.response.Result;
 import com.datastax.cassandra.protocol.internal.response.Supported;
 
-import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V3;
+import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V4;
 
-public class ProtocolV3Codecs implements FrameCodec.CodecGroup {
+public class ProtocolV4ServerCodecs implements FrameCodec.CodecGroup {
   @Override
   public void registerCodecs(Registry registry) {
     registry
-        .addEncoder(new AuthResponse.Codec(V3))
-        .addEncoder(new Batch.Codec(V3))
-        .addEncoder(new Execute.Codec(V3))
-        .addEncoder(new Options.Codec(V3))
-        .addEncoder(new Prepare.Codec(V3))
-        .addEncoder(new Query.Codec(V3))
-        .addEncoder(new Register.Codec(V3))
-        .addEncoder(new Startup.Codec(V3));
+        .addDecoder(new AuthResponse.Codec(V4))
+        .addDecoder(new Batch.Codec(V4))
+        .addDecoder(new Execute.Codec(V4))
+        .addDecoder(new Options.Codec(V4))
+        .addDecoder(new Prepare.Codec(V4))
+        .addDecoder(new Query.Codec(V4))
+        .addDecoder(new Register.Codec(V4))
+        .addDecoder(new Startup.Codec(V4));
 
     registry
-        .addDecoder(new AuthChallenge.Codec(V3))
-        .addDecoder(new Authenticate.Codec(V3))
-        .addDecoder(new AuthSuccess.Codec(V3))
-        .addDecoder(new Error.Codec(V3))
-        .addDecoder(new Event.Codec(V3))
-        .addDecoder(new Ready.Codec(V3))
-        .addDecoder(new Result.Codec(V3))
-        .addDecoder(new Supported.Codec(V3));
+        .addEncoder(new AuthChallenge.Codec(V4))
+        .addEncoder(new Authenticate.Codec(V4))
+        .addEncoder(new AuthSuccess.Codec(V4))
+        .addEncoder(new Error.Codec(V4))
+        .addEncoder(new Event.Codec(V4))
+        .addEncoder(new Ready.Codec(V4))
+        .addEncoder(new Result.Codec(V4))
+        .addEncoder(new Supported.Codec(V4));
   }
 }

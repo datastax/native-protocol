@@ -24,6 +24,27 @@ import java.util.Map;
 import java.util.UUID;
 
 public class FrameCodec<B> {
+
+  /**
+   * Builds a new instance with the default codecs for a client (encoding requests, decoding
+   * responses).
+   */
+  public static <B> FrameCodec<B> defaultClient(
+      PrimitiveCodec<B> primitiveCodec, Compressor<B> compressor) {
+    return new FrameCodec<>(
+        primitiveCodec, compressor, new ProtocolV3ClientCodecs(), new ProtocolV4ClientCodecs());
+  }
+
+  /**
+   * Builds a new instance with the default codecs for a server (decoding requests, encoding
+   * responses).
+   */
+  public static <B> FrameCodec<B> defaultServer(
+      PrimitiveCodec<B> primitiveCodec, Compressor<B> compressor) {
+    return new FrameCodec<>(
+        primitiveCodec, compressor, new ProtocolV3ServerCodecs(), new ProtocolV4ServerCodecs());
+  }
+
   private final PrimitiveCodec<B> primitiveCodec;
   private final Compressor<B> compressor;
   private final IntIntMap<Message.Codec> encoders;
@@ -61,11 +82,6 @@ public class FrameCodec<B> {
     }
     this.encoders = encodersBuilder.build();
     this.decoders = decodersBuilder.build();
-  }
-
-  /** Builds a new instance with the default codecs. */
-  public FrameCodec(PrimitiveCodec<B> primitiveCodec, Compressor<B> compressor) {
-    this(primitiveCodec, compressor, new ProtocolV3Codecs(), new ProtocolV4Codecs());
   }
 
   public B encode(Frame frame) {
