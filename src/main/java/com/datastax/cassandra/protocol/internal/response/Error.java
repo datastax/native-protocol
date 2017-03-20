@@ -42,7 +42,7 @@ public class Error extends Message {
   public final String message;
 
   public Error(int code, String message) {
-    super(ProtocolConstants.Opcode.ERROR);
+    super(true, ProtocolConstants.Opcode.ERROR);
     this.code = code;
     this.message = message;
   }

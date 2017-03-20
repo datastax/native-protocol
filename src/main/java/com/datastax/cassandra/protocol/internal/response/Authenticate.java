@@ -23,7 +23,7 @@ public class Authenticate extends Message {
   public final String authenticator;
 
   public Authenticate(String authenticator) {
-    super(ProtocolConstants.Opcode.AUTHENTICATE);
+    super(true, ProtocolConstants.Opcode.AUTHENTICATE);
     this.authenticator = authenticator;
   }
 

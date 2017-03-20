@@ -16,11 +16,13 @@
 package com.datastax.cassandra.protocol.internal;
 
 public abstract class Message {
+  public final boolean isResponse;
 
   /** @see ProtocolConstants.Opcode */
   public final int opcode;
 
-  protected Message(int opcode) {
+  protected Message(boolean isResponse, int opcode) {
+    this.isResponse = isResponse;
     this.opcode = opcode;
   }
 

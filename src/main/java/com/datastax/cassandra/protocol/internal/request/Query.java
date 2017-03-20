@@ -26,7 +26,7 @@ public class Query extends Message {
   public final QueryOptions options;
 
   public Query(String query, QueryOptions options) {
-    super(ProtocolConstants.Opcode.QUERY);
+    super(false, ProtocolConstants.Opcode.QUERY);
     this.query = query;
     this.options = options;
   }

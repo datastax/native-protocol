@@ -26,7 +26,7 @@ public class Supported extends Message {
   public final Map<String, List<String>> options;
 
   public Supported(Map<String, List<String>> options) {
-    super(ProtocolConstants.Opcode.SUPPORTED);
+    super(true, ProtocolConstants.Opcode.SUPPORTED);
     this.options = options;
   }
 

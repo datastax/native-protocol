@@ -27,7 +27,7 @@ public class Register extends Message {
   public final List<String> eventTypes;
 
   public Register(List<String> eventTypes) {
-    super(ProtocolConstants.Opcode.REGISTER);
+    super(false, ProtocolConstants.Opcode.REGISTER);
     this.eventTypes = eventTypes;
   }
 

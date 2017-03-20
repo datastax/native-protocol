@@ -90,7 +90,7 @@ public class FrameCodec<B> {
     int opcode = request.opcode;
     Message.Codec encoder = encoders.get(protocolVersion, opcode);
     ProtocolErrors.check(
-        encoder != null, "Unsupported request opcode: %s in protocol %d", opcode, protocolVersion);
+        encoder != null, "Unsupported opcode %s in protocol v%d", opcode, protocolVersion);
 
     EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     if (compressor != null && opcode != ProtocolConstants.Opcode.STARTUP) {
@@ -99,8 +99,11 @@ public class FrameCodec<B> {
     if (frame.tracing) {
       flags.add(Flag.TRACING);
     }
-    if (!frame.customPayload.isEmpty()) {
+    if (protocolVersion >= ProtocolConstants.Version.V4 && !frame.customPayload.isEmpty()) {
       flags.add(Flag.CUSTOM_PAYLOAD);
+    }
+    if (protocolVersion >= ProtocolConstants.Version.V4 && !frame.warnings.isEmpty()) {
+      flags.add(Flag.WARNING);
     }
 
     int headerSize = headerEncodedSize();
@@ -111,8 +114,10 @@ public class FrameCodec<B> {
         messageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
       }
       B dest = primitiveCodec.allocate(headerSize + messageSize);
-      encodeHeader(dest, frame, flags, messageSize);
-      encodeCustomPayload(dest, frame.customPayload);
+      encodeHeader(frame, flags, messageSize, dest);
+      encodeTracingId(frame.tracingId, dest);
+      encodeCustomPayload(frame.customPayload, dest);
+      encodeWarnings(frame.warnings, dest);
       encoder.encode(dest, request, primitiveCodec);
       return dest;
     } else {
@@ -123,7 +128,9 @@ public class FrameCodec<B> {
         uncompressedMessageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
       }
       B uncompressedMessage = primitiveCodec.allocate(uncompressedMessageSize);
-      encodeCustomPayload(uncompressedMessage, frame.customPayload);
+      encodeTracingId(frame.tracingId, uncompressedMessage);
+      encodeCustomPayload(frame.customPayload, uncompressedMessage);
+      encodeWarnings(frame.warnings, uncompressedMessage);
       encoder.encode(uncompressedMessage, request, primitiveCodec);
 
       // 2) Compress and measure size, discard uncompressed buffer
@@ -134,7 +141,7 @@ public class FrameCodec<B> {
 
       // 3) Encode final frame
       B header = primitiveCodec.allocate(headerSize);
-      encodeHeader(header, frame, flags, messageSize);
+      encodeHeader(frame, flags, messageSize, header);
       return primitiveCodec.concat(header, compressedMessage);
     }
   }
@@ -143,26 +150,40 @@ public class FrameCodec<B> {
     return 9;
   }
 
-  private void encodeHeader(B dest, Frame frame, EnumSet<Flag> flags, int messageSize) {
-    primitiveCodec.writeByte((byte) frame.protocolVersion, dest);
+  private void encodeHeader(Frame frame, EnumSet<Flag> flags, int messageSize, B dest) {
+    int versionAndDirection = frame.protocolVersion;
+    if (frame.message.isResponse) {
+      versionAndDirection |= 0b1000_0000;
+    }
+    primitiveCodec.writeByte((byte) versionAndDirection, dest);
     primitiveCodec.writeByte((byte) Flag.encode(flags), dest);
     primitiveCodec.writeUnsignedShort(frame.streamId, dest);
     primitiveCodec.writeByte((byte) frame.message.opcode, dest);
     primitiveCodec.writeInt(messageSize, dest);
   }
 
-  private void encodeCustomPayload(B dest, Map<String, ByteBuffer> customPayload) {
+  private void encodeTracingId(UUID tracingId, B dest) {
+    if (tracingId != null) {
+      primitiveCodec.writeUuid(tracingId, dest);
+    }
+  }
+
+  private void encodeCustomPayload(Map<String, ByteBuffer> customPayload, B dest) {
     if (!customPayload.isEmpty()) {
       primitiveCodec.writeBytesMap(customPayload, dest);
     }
   }
 
+  private void encodeWarnings(List<String> warnings, B dest) {
+    if (!warnings.isEmpty()) {
+      primitiveCodec.writeStringList(warnings, dest);
+    }
+  }
+
   public Frame decode(B source) {
     int directionAndVersion = primitiveCodec.readByte(source);
-    // first bit = direction, should be 1 for "incoming"
-    ProtocolErrors.check((directionAndVersion & 0x80) == 0x80, "Can only decode response frames");
-
-    int protocolVersion = directionAndVersion & 0x7F;
+    boolean isResponse = (directionAndVersion & 0b1000_0000) == 0b1000_0000;
+    int protocolVersion = directionAndVersion & 0b0111_1111;
     EnumSet<Flag> flags = Flag.decode(primitiveCodec.readByte(source));
     int streamId = readStreamId(source);
     int opcode = primitiveCodec.readByte(source);
@@ -179,7 +200,8 @@ public class FrameCodec<B> {
       source = compressor.decompress(source);
     }
 
-    UUID tracingId = (flags.contains(Flag.TRACING)) ? primitiveCodec.readUuid(source) : null;
+    boolean isTracing = flags.contains(Flag.TRACING);
+    UUID tracingId = (isResponse && isTracing) ? primitiveCodec.readUuid(source) : null;
 
     Map<String, ByteBuffer> customPayload =
         (flags.contains(Flag.CUSTOM_PAYLOAD))
@@ -187,14 +209,17 @@ public class FrameCodec<B> {
             : Collections.emptyMap();
 
     List<String> warnings =
-        (flags.contains(Flag.WARNING))
+        (isResponse && flags.contains(Flag.WARNING))
             ? primitiveCodec.readStringList(source)
             : Collections.emptyList();
 
     Message.Codec decoder = decoders.get(protocolVersion, opcode);
+    ProtocolErrors.check(
+        decoder != null, "Unsupported request opcode: %s in protocol %d", opcode, protocolVersion);
     Message response = decoder.decode(source, primitiveCodec);
 
-    return new Frame(protocolVersion, streamId, tracingId, customPayload, warnings, response);
+    return new Frame(
+        protocolVersion, streamId, isTracing, tracingId, customPayload, warnings, response);
   }
 
   private int readStreamId(B source) {

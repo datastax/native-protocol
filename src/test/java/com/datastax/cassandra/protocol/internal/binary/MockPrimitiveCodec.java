@@ -52,8 +52,7 @@ public class MockPrimitiveCodec extends PrimitiveCodec<MockBinaryString> {
 
   @Override
   public byte readByte(MockBinaryString source) {
-    Integer i = (Integer) pop(source, Element.Type.BYTE);
-    return i.byteValue();
+    return (byte) pop(source, Element.Type.BYTE);
   }
 
   @Override

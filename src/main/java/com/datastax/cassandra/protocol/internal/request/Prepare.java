@@ -24,7 +24,7 @@ public class Prepare extends Message {
   public final String cqlQuery;
 
   public Prepare(String cqlQuery) {
-    super(ProtocolConstants.Opcode.PREPARE);
+    super(false, ProtocolConstants.Opcode.PREPARE);
     this.cqlQuery = cqlQuery;
   }
 

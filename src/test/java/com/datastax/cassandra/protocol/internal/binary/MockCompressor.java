@@ -17,14 +17,28 @@ package com.datastax.cassandra.protocol.internal.binary;
 
 import com.datastax.cassandra.protocol.internal.Compressor;
 
-public abstract class MockCompressor implements Compressor<MockBinaryString> {
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class MockCompressor implements Compressor<MockBinaryString> {
+
+  public static final String START = "start compression";
+  public static final String END = "end compression";
+
   @Override
   public MockBinaryString compress(MockBinaryString uncompressed) {
-    throw new UnsupportedOperationException("this should be overridden in your test");
+    return new MockBinaryString().string(START).append(uncompressed).string(END);
   }
 
   @Override
   public MockBinaryString decompress(MockBinaryString compressed) {
-    throw new UnsupportedOperationException("this should be overridden in your test");
+    MockPrimitiveCodec decoder = MockPrimitiveCodec.INSTANCE;
+
+    assertThat(decoder.readString(compressed)).isEqualTo(START);
+
+    MockBinaryString.Element element = compressed.pollLast();
+    assertThat(element.type).isEqualTo(MockBinaryString.Element.Type.STRING);
+    assertThat(element.value).isEqualTo(END);
+
+    return compressed;
   }
 }

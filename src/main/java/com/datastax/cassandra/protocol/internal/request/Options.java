@@ -23,7 +23,7 @@ public class Options extends Message {
   public static final Options INSTANCE = new Options();
 
   private Options() {
-    super(ProtocolConstants.Opcode.OPTIONS);
+    super(false, ProtocolConstants.Opcode.OPTIONS);
   }
 
   @Override

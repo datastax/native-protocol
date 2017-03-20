@@ -24,7 +24,7 @@ public class AuthSuccess extends Message {
   public final ByteBuffer token;
 
   public AuthSuccess(ByteBuffer token) {
-    super(ProtocolConstants.Opcode.AUTH_SUCCESS);
+    super(true, ProtocolConstants.Opcode.AUTH_SUCCESS);
     this.token = token;
   }
 

@@ -18,6 +18,9 @@ package com.datastax.cassandra.protocol.internal;
 import java.util.ArrayList;
 import java.util.List;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestDataProviders {
   @DataProvider(name = "protocolV3OrAbove")
@@ -53,12 +56,75 @@ public class TestDataProviders {
     return fromList(l);
   }
 
-  private static Object[][] fromList(List<Object> l) {
+  public static Object[][] fromList(List<Object> l) {
     Object[][] result = new Object[l.size()][];
     for (int i = 0; i < l.size(); i++) {
       result[i] = new Object[1];
       result[i][0] = l.get(i);
     }
     return result;
+  }
+
+  public static Object[][] fromList(Object... l) {
+    Object[][] result = new Object[l.length][];
+    for (int i = 0; i < l.length; i++) {
+      result[i] = new Object[1];
+      result[i][0] = l[i];
+    }
+    return result;
+  }
+
+  // example: [ [a,b], [c,d] ], [ [1], [2] ], [ [true], [false] ]
+  // => [ [a,b,1,true], [a,b,1,false], [a,b,2,true], [a,b,2,false], ... ]
+  public static Object[][] combine(Object[][]... providers) {
+    int numberOfProviders = providers.length; // (ex: 3)
+
+    // ex: 2 * 2 * 2 combinations
+    int numberOfCombinations = 1;
+    for (Object[][] provider : providers) {
+      numberOfCombinations *= provider.length;
+    }
+
+    Object[][] result = new Object[numberOfCombinations][];
+    // The current index in each provider (ex: [2,1,2] => [c,d,1,false])
+    int[] indices = new int[numberOfProviders];
+
+    for (int c = 0; c < numberOfCombinations; c++) {
+      int combinationLength = 0;
+      for (int p = 0; p < numberOfProviders; p++) {
+        combinationLength += providers[p][indices[p]].length;
+      }
+      Object[] combination = new Object[combinationLength];
+      int destPos = 0;
+      for (int p = 0; p < numberOfProviders; p++) {
+        Object[] src = providers[p][indices[p]];
+        System.arraycopy(src, 0, combination, destPos, src.length);
+        destPos += src.length;
+      }
+      result[c] = combination;
+
+      // Update indices: try to increment from the right, if it overflows reset and move left
+      for (int p = providers.length - 1; p >= 0; p--) {
+        if (indices[p] < providers[p].length - 1) {
+          // ex: [0,0,0], p = 2 => [0,0,1]
+          indices[p] += 1;
+          break;
+        } else {
+          // ex: [0,0,1], p = 2 => [0,0,0], loop to increment to [0,1,0]
+          indices[p] = 0;
+        }
+      }
+    }
+    return result;
+  }
+
+  @Test
+  public void should_combine_providers() {
+    Object[][] provider1 = new Object[][] {new Object[] {"a", "b"}, new Object[] {"c", "d"}};
+    Object[][] provider2 = fromList(1, 2);
+    Object[][] provider3 = fromList(true, false);
+
+    Object[][] combined = combine(provider1, provider2, provider3);
+    assertThat(combined).hasSize(8);
   }
 }

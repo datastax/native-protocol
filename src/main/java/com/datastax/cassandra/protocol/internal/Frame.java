@@ -35,34 +35,8 @@ public class Frame {
   public Frame(
       int protocolVersion,
       int streamId,
-      UUID tracingId,
-      Map<String, ByteBuffer> customPayload,
-      List<String> warnings,
-      Message message) {
-    this(
-        protocolVersion,
-        streamId,
-        tracingId,
-        (tracingId != null),
-        customPayload,
-        warnings,
-        message);
-  }
-
-  public Frame(
-      int protocolVersion,
-      int streamId,
       boolean tracing,
-      Map<String, ByteBuffer> customPayload,
-      Message message) {
-    this(protocolVersion, streamId, null, tracing, customPayload, Collections.emptyList(), message);
-  }
-
-  private Frame(
-      int protocolVersion,
-      int streamId,
       UUID tracingId,
-      boolean tracing,
       Map<String, ByteBuffer> customPayload,
       List<String> warnings,
       Message message) {

@@ -25,7 +25,7 @@ public class AuthResponse extends Message {
   public final ByteBuffer token;
 
   public AuthResponse(ByteBuffer token) {
-    super(ProtocolConstants.Opcode.AUTH_RESPONSE);
+    super(false, ProtocolConstants.Opcode.AUTH_RESPONSE);
     this.token = token;
   }
 

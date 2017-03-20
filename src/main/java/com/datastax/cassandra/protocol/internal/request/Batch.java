@@ -48,7 +48,7 @@ public class Batch extends Message {
       int consistency,
       int serialConsistency,
       long defaultTimestamp) {
-    super(ProtocolConstants.Opcode.BATCH);
+    super(false, ProtocolConstants.Opcode.BATCH);
     this.type = type;
     this.queriesOrIds = queriesOrIds;
     this.values = values;

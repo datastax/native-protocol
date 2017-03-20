@@ -25,7 +25,7 @@ public class AuthChallenge extends Message {
   public final ByteBuffer token;
 
   public AuthChallenge(ByteBuffer token) {
-    super(ProtocolConstants.Opcode.AUTH_CHALLENGE);
+    super(true, ProtocolConstants.Opcode.AUTH_CHALLENGE);
     this.token = token;
   }
 

@@ -31,7 +31,7 @@ public class Startup extends Message {
   public final Map<String, String> options;
 
   public Startup(String compressionAlgorithm) {
-    super(ProtocolConstants.Opcode.STARTUP);
+    super(false, ProtocolConstants.Opcode.STARTUP);
     this.options = new HashMap<>();
     this.options.put(CQL_VERSION_KEY, CQL_VERSION);
     if (compressionAlgorithm != null) {

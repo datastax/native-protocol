@@ -32,7 +32,7 @@ public abstract class Result extends Message {
   public final int kind;
 
   protected Result(int kind) {
-    super(ProtocolConstants.Opcode.RESULT);
+    super(true, ProtocolConstants.Opcode.RESULT);
     this.kind = kind;
   }
 

@@ -23,7 +23,7 @@ public class MockBinaryString {
   private final LinkedList<Element> elements = new LinkedList<>();
 
   public MockBinaryString byte_(int value) {
-    append(Element.Type.BYTE, value);
+    append(Element.Type.BYTE, (byte) value);
     return this;
   }
 
@@ -80,6 +80,10 @@ public class MockBinaryString {
 
   Element pop() {
     return elements.pop();
+  }
+
+  Element pollLast() {
+    return elements.pollLast();
   }
 
   private void append(Element.Type type, Object value) {

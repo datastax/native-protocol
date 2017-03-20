@@ -22,7 +22,7 @@ import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 public class Ready extends Message {
 
   public Ready() {
-    super(ProtocolConstants.Opcode.READY);
+    super(true, ProtocolConstants.Opcode.READY);
   }
 
   public static class Codec extends Message.Codec {

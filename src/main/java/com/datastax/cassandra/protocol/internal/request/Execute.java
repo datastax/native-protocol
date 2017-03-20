@@ -27,7 +27,7 @@ public class Execute extends Message {
   public final QueryOptions options;
 
   public Execute(byte[] queryId, QueryOptions options) {
-    super(ProtocolConstants.Opcode.EXECUTE);
+    super(false, ProtocolConstants.Opcode.EXECUTE);
     this.queryId = queryId;
     this.options = options;
   }

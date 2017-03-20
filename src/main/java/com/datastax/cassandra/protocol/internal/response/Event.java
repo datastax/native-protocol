@@ -31,7 +31,7 @@ public abstract class Event extends Message {
   public final String type;
 
   protected Event(String type) {
-    super(ProtocolConstants.Opcode.EVENT);
+    super(true, ProtocolConstants.Opcode.EVENT);
     this.type = type;
   }
 
