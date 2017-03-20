@@ -41,10 +41,10 @@ public class ProtocolV3Codecs implements FrameCodec.CodecGroup {
         .addEncoder(new AuthResponse.Codec(V3))
         .addEncoder(new Batch.Codec(V3))
         .addEncoder(new Execute.Codec(V3))
-        .addDecoder(new Options.Codec(V3))
-        .addDecoder(new Prepare.Codec(V3))
-        .addDecoder(new Query.Codec(V3))
-        .addDecoder(new Register.Codec(V3))
+        .addEncoder(new Options.Codec(V3))
+        .addEncoder(new Prepare.Codec(V3))
+        .addEncoder(new Query.Codec(V3))
+        .addEncoder(new Register.Codec(V3))
         .addEncoder(new Startup.Codec(V3));
 
     registry
