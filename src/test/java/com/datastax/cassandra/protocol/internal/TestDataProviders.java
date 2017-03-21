@@ -86,7 +86,7 @@ public class TestDataProviders {
     }
 
     Object[][] result = new Object[numberOfCombinations][];
-    // The current index in each provider (ex: [2,1,2] => [c,d,1,false])
+    // The current index in each provider (ex: [1,0,1] => [c,d,1,false])
     int[] indices = new int[numberOfProviders];
 
     for (int c = 0; c < numberOfCombinations; c++) {
