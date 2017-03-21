@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.error;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Error;
 
@@ -39,12 +40,20 @@ public class FunctionFailure extends Error {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      FunctionFailure functionFailure = (FunctionFailure) message;
+      encoder.writeString(functionFailure.message, dest);
+      encoder.writeString(functionFailure.keyspace, dest);
+      encoder.writeString(functionFailure.function, dest);
+      encoder.writeString(functionFailure.argTypes, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      FunctionFailure functionFailure = (FunctionFailure) message;
+      return PrimitiveSizes.sizeOfString(functionFailure.message)
+          + PrimitiveSizes.sizeOfString(functionFailure.keyspace)
+          + PrimitiveSizes.sizeOfString(functionFailure.function)
+          + PrimitiveSizes.sizeOfString(functionFailure.argTypes);
     }
 
     @Override

@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 
 public class Authenticate extends Message {
@@ -34,12 +35,14 @@ public class Authenticate extends Message {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      Authenticate authenticate = (Authenticate) message;
+      encoder.writeString(authenticate.authenticator, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      Authenticate authenticate = (Authenticate) message;
+      return PrimitiveSizes.sizeOfString(authenticate.authenticator);
     }
 
     @Override

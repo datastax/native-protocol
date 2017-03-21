@@ -22,13 +22,15 @@ import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import com.datastax.cassandra.protocol.internal.response.Result;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
+import java.util.Arrays;
+import java.util.Collections;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
 
 public class PreparedTest extends MessageTest<Prepared> {
-
   private static final RawType BLOB_TYPE = RawType.PRIMITIVES.get(ProtocolConstants.DataType.BLOB);
+  private static final byte[] PREPARED_QUERY_ID = Bytes.getArray(Bytes.fromHexString("0xcafebabe"));
 
   public PreparedTest() {
     super(Prepared.class);
@@ -40,9 +42,22 @@ public class PreparedTest extends MessageTest<Prepared> {
   }
 
   @Test
-  public void should_decode_without_result_metadata_in_protocol_v3() {
-    Prepared prepared =
-        decode(
+  public void should_encode_and_decode_without_result_metadata_in_protocol_v3() {
+    RowsMetadata variablesMetadata =
+        new RowsMetadata(
+            Arrays.asList(
+                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+            null,
+            null);
+    RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), null, null);
+    Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
+    int protocolVersion = ProtocolConstants.Version.V3;
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResponseKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
@@ -56,34 +71,52 @@ public class PreparedTest extends MessageTest<Prepared> {
                 .string("column2")
                 .unsignedShort(ProtocolConstants.DataType.BLOB)
                 // Empty result metadata:
-                .int_(0x0000)
-                .int_(0),
-            ProtocolConstants.Version.V3);
+                .int_(0x0004)
+                .int_(0));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            4
+                + (2 + "cafebabe".length() / 2)
+                + (4
+                    + 4
+                    + (2 + "ks1".length())
+                    + (2 + "table1".length())
+                    + ((2 + "column1".length()) + 2)
+                    + ((2 + "column2".length()) + 2))
+                + (4 + 4));
 
-    assertThat(Bytes.toHexString(prepared.preparedQueryId)).isEqualTo("0xcafebabe");
-    assertThat(prepared.variablesMetadata)
-        .hasColumnCount(2)
+    Prepared decoded = decode(encoded, protocolVersion);
+
+    assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
+    assertThat(decoded.variablesMetadata)
         .hasNoPagingState()
-        .hasColumnSpecs(
-            new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-            new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE))
+        .hasColumnSpecs(variablesMetadata.columnSpecs)
         .hasNoPkIndices();
-    assertThat(prepared.resultMetadata)
-        .hasColumnCount(0)
-        .hasNoColumnSpecs()
-        .hasNoPagingState()
-        .hasNoPkIndices();
+    assertThat(decoded.resultMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
   }
 
   @Test
-  public void should_decode_with_result_metadata_in_protocol_v3() {
-    Prepared prepared =
-        decode(
+  public void should_encode_and_decode_with_result_metadata_in_protocol_v3() {
+    RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null);
+    RowsMetadata resultMetadata =
+        new RowsMetadata(
+            Arrays.asList(
+                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+            null,
+            null);
+    Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
+    int protocolVersion = ProtocolConstants.Version.V3;
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResponseKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with no variables:
-                .int_(0x0000)
+                .int_(0x0004)
                 .int_(0)
                 // Result metadata with 2 columns:
                 .int_(0x0001)
@@ -93,28 +126,45 @@ public class PreparedTest extends MessageTest<Prepared> {
                 .string("column1")
                 .unsignedShort(ProtocolConstants.DataType.BLOB)
                 .string("column2")
-                .unsignedShort(ProtocolConstants.DataType.BLOB),
-            ProtocolConstants.Version.V3);
+                .unsignedShort(ProtocolConstants.DataType.BLOB));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            4
+                + (2 + "cafebabe".length() / 2)
+                + (4 + 4)
+                + (4
+                    + 4
+                    + (2 + "ks1".length())
+                    + (2 + "table1".length())
+                    + ((2 + "column1".length()) + 2)
+                    + ((2 + "column2".length()) + 2)));
 
-    assertThat(Bytes.toHexString(prepared.preparedQueryId)).isEqualTo("0xcafebabe");
-    assertThat(prepared.variablesMetadata)
-        .hasColumnCount(0)
-        .hasNoColumnSpecs()
+    Prepared decoded = decode(encoded, protocolVersion);
+
+    assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
+    assertThat(decoded.variablesMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
+    assertThat(decoded.resultMetadata)
         .hasNoPagingState()
-        .hasNoPkIndices();
-    assertThat(prepared.resultMetadata)
-        .hasColumnCount(2)
-        .hasNoPagingState()
-        .hasColumnSpecs(
-            new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-            new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE))
+        .hasColumnSpecs(resultMetadata.columnSpecs)
         .hasNoPkIndices();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
   public void should_decode_without_result_metadata_in_protocol_v4_or_above(int protocolVersion) {
-    Prepared prepared =
-        decode(
+    RowsMetadata variablesMetadata =
+        new RowsMetadata(
+            Arrays.asList(
+                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+            null,
+            new int[] {0});
+    RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), null, null);
+    Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResponseKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
@@ -130,34 +180,55 @@ public class PreparedTest extends MessageTest<Prepared> {
                 .string("column2")
                 .unsignedShort(ProtocolConstants.DataType.BLOB)
                 // Empty result metadata:
-                .int_(0x0000)
-                .int_(0),
-            protocolVersion);
+                .int_(0x0004)
+                .int_(0));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            4
+                + (2 + "cafebabe".length() / 2)
+                + (4
+                    + 4
+                    + 4
+                    + 2
+                    + (2 + "ks1".length())
+                    + (2 + "table1".length())
+                    + ((2 + "column1".length()) + 2)
+                    + ((2 + "column2".length()) + 2))
+                + (4 + 4));
 
-    assertThat(Bytes.toHexString(prepared.preparedQueryId)).isEqualTo("0xcafebabe");
-    assertThat(prepared.variablesMetadata)
-        .hasColumnCount(2)
+    Prepared decoded = decode(encoded, protocolVersion);
+
+    assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
+    assertThat(decoded.variablesMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(
             new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
             new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE))
         .hasPkIndices(0);
-    assertThat(prepared.resultMetadata)
-        .hasColumnCount(0)
-        .hasNoColumnSpecs()
-        .hasNoPagingState()
-        .hasNoPkIndices();
+    assertThat(decoded.resultMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
   public void should_decode_with_result_metadata_in_protocol_v4_or_above(int protocolVersion) {
-    Prepared prepared =
-        decode(
+    RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null);
+    RowsMetadata resultMetadata =
+        new RowsMetadata(
+            Arrays.asList(
+                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+            null,
+            null);
+    Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResponseKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with no variables:
-                .int_(0x0000)
+                .int_(0x0004)
                 .int_(0)
                 .int_(0)
                 // Result metadata with 2 columns:
@@ -168,17 +239,24 @@ public class PreparedTest extends MessageTest<Prepared> {
                 .string("column1")
                 .unsignedShort(ProtocolConstants.DataType.BLOB)
                 .string("column2")
-                .unsignedShort(ProtocolConstants.DataType.BLOB),
-            protocolVersion);
+                .unsignedShort(ProtocolConstants.DataType.BLOB));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            4
+                + (2 + "cafebabe".length() / 2)
+                + (4 + 4 + 4)
+                + (4
+                    + 4
+                    + (2 + "ks1".length())
+                    + (2 + "table1".length())
+                    + ((2 + "column1".length()) + 2)
+                    + ((2 + "column2".length()) + 2)));
 
-    assertThat(Bytes.toHexString(prepared.preparedQueryId)).isEqualTo("0xcafebabe");
-    assertThat(prepared.variablesMetadata)
-        .hasColumnCount(0)
-        .hasNoColumnSpecs()
-        .hasNoPagingState()
-        .hasNoPkIndices();
-    assertThat(prepared.resultMetadata)
-        .hasColumnCount(2)
+    Prepared decoded = decode(encoded, protocolVersion);
+
+    assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
+    assertThat(decoded.variablesMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
+    assertThat(decoded.resultMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(
             new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),

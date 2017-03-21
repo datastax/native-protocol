@@ -38,7 +38,7 @@ public class QueryOptions {
           ProtocolConstants.ConsistencyLevel.SERIAL,
           Long.MIN_VALUE);
 
-  private final EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
+  private final EnumSet<QueryFlag> flags;
   /** @see ProtocolConstants.ConsistencyLevel */
   public final int consistency;
 
@@ -52,7 +52,8 @@ public class QueryOptions {
 
   public final long defaultTimestamp;
 
-  public QueryOptions(
+  private QueryOptions(
+      EnumSet<QueryFlag> flags,
       int consistency,
       List<ByteBuffer> positionalValues,
       Map<String, ByteBuffer> namedValues,
@@ -66,6 +67,7 @@ public class QueryOptions {
         positionalValues.isEmpty() || namedValues.isEmpty(),
         "Can't have both positional and named values");
 
+    this.flags = flags;
     this.consistency = consistency;
     this.positionalValues = positionalValues;
     this.namedValues = namedValues;
@@ -74,8 +76,45 @@ public class QueryOptions {
     this.pagingState = pagingState;
     this.serialConsistency = serialConsistency;
     this.defaultTimestamp = defaultTimestamp;
+  }
 
-    // Populate flags
+  public QueryOptions(
+      int consistency,
+      List<ByteBuffer> positionalValues,
+      Map<String, ByteBuffer> namedValues,
+      boolean skipMetadata,
+      int pageSize,
+      ByteBuffer pagingState,
+      int serialConsistency,
+      long defaultTimestamp) {
+    this(
+        computeFlags(
+            positionalValues,
+            namedValues,
+            skipMetadata,
+            pageSize,
+            pagingState,
+            serialConsistency,
+            defaultTimestamp),
+        consistency,
+        positionalValues,
+        namedValues,
+        skipMetadata,
+        pageSize,
+        pagingState,
+        serialConsistency,
+        defaultTimestamp);
+  }
+
+  private static EnumSet<QueryFlag> computeFlags(
+      List<ByteBuffer> positionalValues,
+      Map<String, ByteBuffer> namedValues,
+      boolean skipMetadata,
+      int pageSize,
+      ByteBuffer pagingState,
+      int serialConsistency,
+      long defaultTimestamp) {
+    EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
     if (!positionalValues.isEmpty()) {
       flags.add(QueryFlag.VALUES);
     }
@@ -98,11 +137,12 @@ public class QueryOptions {
     if (defaultTimestamp != Long.MIN_VALUE) {
       flags.add(QueryFlag.DEFAULT_TIMESTAMP);
     }
+    return flags;
   }
 
   public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
     encoder.writeUnsignedShort(consistency, dest);
-    encoder.writeByte((byte) QueryFlag.serialize(flags, protocolVersion), dest);
+    encoder.writeByte((byte) QueryFlag.encode(flags, protocolVersion), dest);
     if (flags.contains(QueryFlag.VALUES)) {
       if (flags.contains(QueryFlag.VALUE_NAMES)) {
         Values.writeNamedValues(namedValues, dest, encoder);
@@ -127,7 +167,7 @@ public class QueryOptions {
   public int encodedSize(int protocolVersion) {
     int size = 0;
     size += 2; // consistency level
-    size += QueryFlag.serializedSize(protocolVersion); // flags
+    size += QueryFlag.encodedSize(protocolVersion); // flags
     if (flags.contains(QueryFlag.VALUES)) {
       if (flags.contains(QueryFlag.VALUE_NAMES)) {
         size += Values.sizeOfNamedValues(namedValues);
@@ -150,22 +190,9 @@ public class QueryOptions {
     return size;
   }
 
-  @Override
-  public String toString() {
-    return String.format(
-        "[cl=%s, positionalVals=%s, namedVals=%s, skip=%b, psize=%d, state=%s, serialCl=%s]",
-        consistency,
-        positionalValues,
-        namedValues,
-        skipMetadata,
-        pageSize,
-        pagingState,
-        serialConsistency);
-  }
-
   public static <B> QueryOptions decode(B source, PrimitiveCodec<B> decoder, int protocolVersion) {
     int consistency = decoder.readUnsignedShort(source);
-    EnumSet flags = QueryFlag.deserialize(decoder.readByte(source), protocolVersion);
+    EnumSet<QueryFlag> flags = QueryFlag.decode(decoder.readByte(source), protocolVersion);
 
     List<ByteBuffer> positionalValues = Collections.emptyList();
     Map<String, ByteBuffer> namedValues = Collections.emptyMap();
@@ -189,6 +216,7 @@ public class QueryOptions {
         flags.contains(QueryFlag.DEFAULT_TIMESTAMP) ? decoder.readLong(source) : Long.MIN_VALUE;
 
     return new QueryOptions(
+        flags,
         consistency,
         positionalValues,
         namedValues,
@@ -197,5 +225,18 @@ public class QueryOptions {
         pagingState,
         serialConsistency,
         defaultTimestamp);
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+        "[cl=%s, positionalVals=%s, namedVals=%s, skip=%b, psize=%d, state=%s, serialCl=%s]",
+        consistency,
+        positionalValues,
+        namedValues,
+        skipMetadata,
+        pageSize,
+        pagingState,
+        serialConsistency);
   }
 }

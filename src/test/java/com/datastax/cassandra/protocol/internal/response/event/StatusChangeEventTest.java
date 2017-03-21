@@ -21,6 +21,7 @@ import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import com.datastax.cassandra.protocol.internal.response.Event;
+import java.net.InetSocketAddress;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
@@ -37,18 +38,30 @@ public class StatusChangeEventTest extends MessageTest<StatusChangeEvent> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode(int protocolVersion) {
-    StatusChangeEvent event =
-        decode(
+  public void should_encode_and_decode(int protocolVersion) {
+    StatusChangeEvent initial =
+        new StatusChangeEvent(
+            ProtocolConstants.StatusChangeType.UP, new InetSocketAddress("127.0.0.1", 9042));
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.STATUS_CHANGE)
                 .string(ProtocolConstants.StatusChangeType.UP)
-                .inet("1.2.3.4", 9042),
-            protocolVersion);
+                .inet("127.0.0.1", 9042));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (2 + ProtocolConstants.EventType.STATUS_CHANGE.length())
+                + (2 + ProtocolConstants.StatusChangeType.UP.length())
+                + (1 + 4 + 4));
 
-    assertThat(event.type).isEqualTo(ProtocolConstants.EventType.STATUS_CHANGE);
-    assertThat(event.changeType).isEqualTo(ProtocolConstants.StatusChangeType.UP);
-    assertThat(event.address.getHostName()).isEqualTo("1.2.3.4");
-    assertThat(event.address.getPort()).isEqualTo(9042);
+    StatusChangeEvent decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.EventType.STATUS_CHANGE);
+    assertThat(decoded.changeType).isEqualTo(ProtocolConstants.StatusChangeType.UP);
+    assertThat(decoded.address.getAddress().getHostAddress()).isEqualTo("127.0.0.1");
+    assertThat(decoded.address.getPort()).isEqualTo(9042);
   }
 }

@@ -44,6 +44,7 @@ public class SetKeyspaceTest extends MessageTest<SetKeyspace> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString().int_(ProtocolConstants.ResponseKind.SET_KEYSPACE).string("ks"));
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + (2 + "ks".length()));
 
     SetKeyspace decoded = decode(encoded, protocolVersion);
     assertThat(decoded.keyspace).isEqualTo("ks");

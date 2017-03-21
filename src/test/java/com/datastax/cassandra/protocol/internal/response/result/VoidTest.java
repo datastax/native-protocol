@@ -25,10 +25,10 @@ import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
 
-public class VoidTest
-    extends MessageTest<com.datastax.cassandra.protocol.internal.response.result.Void> {
+public class VoidTest extends MessageTest<Void> {
+
   protected VoidTest() {
-    super(com.datastax.cassandra.protocol.internal.response.result.Void.class);
+    super(Void.class);
   }
 
   @Override
@@ -41,6 +41,7 @@ public class VoidTest
     MockBinaryString encoded = encode(Void.INSTANCE, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString().int_(ProtocolConstants.ResponseKind.VOID));
+    assertThat(encodedSize(Void.INSTANCE, protocolVersion)).isEqualTo(4);
 
     Void decoded = decode(encoded, protocolVersion);
 

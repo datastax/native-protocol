@@ -108,6 +108,11 @@ public class MockPrimitiveCodec extends PrimitiveCodec<MockBinaryString> {
   }
 
   @Override
+  public void writeInet(InetSocketAddress address, MockBinaryString dest) {
+    dest.inet(address.getHostName(), address.getPort());
+  }
+
+  @Override
   public void writeLong(long l, MockBinaryString dest) {
     dest.long_(l);
   }

@@ -45,6 +45,7 @@ public class SupportedTest extends MessageTest<Supported> {
     MockBinaryString encoded = encode(initial, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString().unsignedShort(0));
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2);
 
     Supported decoded = decode(encoded, protocolVersion);
 
@@ -59,6 +60,13 @@ public class SupportedTest extends MessageTest<Supported> {
     Supported initial = new Supported(options);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            2
+                + (2 + "option1".length())
+                + (2 + (2 + "value11".length()) + (2 + "value12".length()))
+                + (2 + "option2".length())
+                + (2 + (2 + "value21".length())));
 
     assertThat(encoded)
         .isEqualTo(

@@ -15,6 +15,7 @@
  */
 package com.datastax.cassandra.protocol.internal;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
@@ -97,5 +98,12 @@ public class PrimitiveSizes {
       }
     }
     return utflen;
+  }
+
+  public static int sizeOfInet(InetSocketAddress address) {
+    byte[] raw = address.getAddress().getAddress(); // sic
+    return 1 // number of bytes in address
+        + raw.length // bytes of address
+        + 4; // port
   }
 }

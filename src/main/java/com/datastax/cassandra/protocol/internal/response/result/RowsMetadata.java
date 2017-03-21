@@ -16,58 +16,165 @@
 package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 
 public class RowsMetadata {
   private enum Flag {
-    // The order of that enum matters!!
-    GLOBAL_TABLES_SPEC,
-    HAS_MORE_PAGES,
-    NO_METADATA;
+    GLOBAL_TABLES_SPEC(0x0001),
+    HAS_MORE_PAGES(0x0002),
+    NO_METADATA(0x0004);
 
-    static EnumSet<Flag> deserialize(int flags) {
+    private final int mask;
+
+    Flag(int mask) {
+      this.mask = mask;
+    }
+
+    public static EnumSet<Flag> decode(int flags, int protocolVersion) {
       EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
-      Flag[] values = Flag.values();
-      for (int n = 0; n < values.length; n++) {
-        if ((flags & (1 << n)) != 0) set.add(values[n]);
+      for (Flag flag : Flag.values()) {
+        if ((flags & flag.mask) != 0) {
+          set.add(flag);
+        }
       }
       return set;
     }
 
-    static int serialize(EnumSet<Flag> flags) {
+    public static int encode(EnumSet<Flag> flags, int protocolVersion) {
       int i = 0;
-      for (Flag flag : flags) i |= 1 << flag.ordinal();
+      for (Flag flag : flags) {
+        i |= flag.mask;
+      }
       return i;
+    }
+
+    public static int encodedSize(int protocolVersion) {
+      return 4; // one [int]
     }
   }
 
-  public final int columnCount;
+  /**
+   * empty if and only if the SKIP_METADATA flag is present (there is no difference between skipping
+   * the column specs, and having the specs but no columns in them)
+   */
   public final List<ColumnSpec> columnSpecs;
+
   public final ByteBuffer pagingState;
   public final int[] pkIndices;
 
-  public RowsMetadata(
-      int columnCount, List<ColumnSpec> columnSpecs, ByteBuffer pagingState, int[] pkIndices) {
-    this.columnCount = columnCount;
+  private final EnumSet<Flag> flags;
+
+  private RowsMetadata(
+      EnumSet<Flag> flags, List<ColumnSpec> columnSpecs, ByteBuffer pagingState, int[] pkIndices) {
     this.columnSpecs = columnSpecs;
     this.pagingState = pagingState;
     this.pkIndices = pkIndices;
+    this.flags = flags;
   }
 
-  private static <B> RowsMetadata decode(
-      B source, PrimitiveCodec<B> decoder, boolean withPkIndices) {
-    EnumSet<Flag> flags = Flag.deserialize(decoder.readInt(source));
+  public RowsMetadata(List<ColumnSpec> columnSpecs, ByteBuffer pagingState, int[] pkIndices) {
+    this(computeFlags(columnSpecs, pagingState), columnSpecs, pagingState, pkIndices);
+  }
+
+  private static EnumSet<Flag> computeFlags(List<ColumnSpec> columnSpecs, ByteBuffer pagingState) {
+    EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+    if (pagingState != null) {
+      flags.add(Flag.HAS_MORE_PAGES);
+    }
+    if (columnSpecs.isEmpty()) {
+      flags.add(Flag.NO_METADATA);
+    } else if (haveSameTable(columnSpecs)) {
+      flags.add(Flag.GLOBAL_TABLES_SPEC);
+    }
+    return flags;
+  }
+
+  public <B> void encode(
+      B dest, PrimitiveCodec<B> encoder, boolean withPkIndices, int protocolVersion) {
+    encoder.writeInt(Flag.encode(flags, protocolVersion), dest);
+    encoder.writeInt(columnSpecs.size(), dest);
+    if (withPkIndices) {
+      if (pkIndices == null) {
+        encoder.writeInt(0, dest);
+      } else {
+        encoder.writeInt(pkIndices.length, dest);
+        for (int pkIndex : pkIndices) {
+          encoder.writeUnsignedShort(pkIndex, dest);
+        }
+      }
+    }
+    if (flags.contains(Flag.HAS_MORE_PAGES)) {
+      encoder.writeBytes(pagingState, dest);
+    }
+    if (!flags.contains(Flag.NO_METADATA)) {
+      assert !columnSpecs.isEmpty();
+      boolean globalTable = flags.contains(Flag.GLOBAL_TABLES_SPEC);
+      if (globalTable) {
+        ColumnSpec firstSpec = columnSpecs.get(0);
+        encoder.writeString(firstSpec.ksName, dest);
+        encoder.writeString(firstSpec.tableName, dest);
+      }
+      for (ColumnSpec spec : columnSpecs) {
+        if (!globalTable) {
+          encoder.writeString(spec.ksName, dest);
+          encoder.writeString(spec.tableName, dest);
+        }
+        encoder.writeString(spec.name, dest);
+        spec.type.encode(dest, encoder, protocolVersion);
+      }
+    }
+  }
+
+  public int encodedSize(boolean withPkIndices, int protocolVersion) {
+    int size = Flag.encodedSize(protocolVersion);
+    size += 4; // column count
+    if (withPkIndices) {
+      size += 4;
+      if (pkIndices != null) {
+        size += pkIndices.length * 2;
+      }
+    }
+    if (flags.contains(Flag.HAS_MORE_PAGES)) {
+      size += PrimitiveSizes.sizeOfBytes(pagingState);
+    }
+    if (!flags.contains(Flag.NO_METADATA)) {
+      assert !columnSpecs.isEmpty();
+      boolean globalTable = flags.contains(Flag.GLOBAL_TABLES_SPEC);
+      if (globalTable) {
+        ColumnSpec firstSpec = columnSpecs.get(0);
+        size += PrimitiveSizes.sizeOfString(firstSpec.ksName);
+        size += PrimitiveSizes.sizeOfString(firstSpec.tableName);
+      }
+      for (ColumnSpec spec : columnSpecs) {
+        if (!globalTable) {
+          size += PrimitiveSizes.sizeOfString(spec.ksName);
+          size += PrimitiveSizes.sizeOfString(spec.tableName);
+        }
+        size += PrimitiveSizes.sizeOfString(spec.name);
+        size += spec.type.encodedSize(protocolVersion);
+      }
+    }
+    return size;
+  }
+
+  public static <B> RowsMetadata decode(
+      B source, PrimitiveCodec<B> decoder, boolean withPkIndices, int protocolVersion) {
+    EnumSet<Flag> flags = Flag.decode(decoder.readInt(source), protocolVersion);
     int columnCount = decoder.readInt(source);
 
     int[] pkIndices = null;
     int pkCount;
     if (withPkIndices && (pkCount = decoder.readInt(source)) > 0) {
       pkIndices = new int[pkCount];
-      for (int i = 0; i < pkCount; i++) pkIndices[i] = decoder.readUnsignedShort(source);
+      for (int i = 0; i < pkCount; i++) {
+        pkIndices[i] = decoder.readUnsignedShort(source);
+      }
     }
 
     ByteBuffer state = (flags.contains(Flag.HAS_MORE_PAGES)) ? decoder.readBytes(source) : null;
@@ -89,21 +196,28 @@ public class RowsMetadata {
         String ksName = globalTablesSpec ? globalKsName : decoder.readString(source);
         String cfName = globalTablesSpec ? globalCfName : decoder.readString(source);
         String name = decoder.readString(source);
-        RawType type = RawType.decode(source, decoder);
+        RawType type = RawType.decode(source, decoder, protocolVersion);
         tmpSpecs.add(new ColumnSpec(ksName, cfName, name, type));
       }
       columnSpecs = Collections.unmodifiableList(tmpSpecs);
     }
-    return new RowsMetadata(columnCount, columnSpecs, state, pkIndices);
+    return new RowsMetadata(flags, columnSpecs, state, pkIndices);
   }
 
-  public static <B> RowsMetadata decodeWithoutPkIndices(
-      B source, PrimitiveCodec<B> decoder, int protocolVersion) {
-    return decode(source, decoder, false);
-  }
-
-  public static <B> RowsMetadata decodeWithPkIndices(
-      B source, PrimitiveCodec<B> decoder, int protocolVersion) {
-    return decode(source, decoder, true);
+  private static boolean haveSameTable(List<ColumnSpec> specs) {
+    boolean first = true;
+    String ksName = null;
+    String tableName = null;
+    for (ColumnSpec spec : specs) {
+      if (first) {
+        first = false;
+        ksName = spec.ksName;
+        tableName = spec.tableName;
+      } else if (!Objects.equals(spec.ksName, ksName)
+          || !Objects.equals(spec.tableName, tableName)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

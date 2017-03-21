@@ -16,6 +16,7 @@
 package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,26 +32,19 @@ import java.util.Map;
  */
 public abstract class RawType {
 
-  /** @see ProtocolConstants.DataType */
-  public final int id;
-
-  protected RawType(int id) {
-    this.id = id;
-  }
-
-  public static <B> RawType decode(B source, PrimitiveCodec<B> decoder) {
+  public static <B> RawType decode(B source, PrimitiveCodec<B> decoder, int protocolVersion) {
     int id = decoder.readUnsignedShort(source);
     switch (id) {
       case ProtocolConstants.DataType.CUSTOM:
         String className = decoder.readString(source);
         return new RawCustom(className);
       case ProtocolConstants.DataType.LIST:
-        return new RawList(decode(source, decoder));
+        return new RawList(decode(source, decoder, protocolVersion));
       case ProtocolConstants.DataType.SET:
-        return new RawSet(decode(source, decoder));
+        return new RawSet(decode(source, decoder, protocolVersion));
       case ProtocolConstants.DataType.MAP:
-        RawType key = decode(source, decoder);
-        RawType value = decode(source, decoder);
+        RawType key = decode(source, decoder, protocolVersion);
+        RawType value = decode(source, decoder, protocolVersion);
         return new RawMap(key, value);
       case ProtocolConstants.DataType.UDT:
         String keyspace = decoder.readString(source);
@@ -59,7 +53,7 @@ public abstract class RawType {
         Map<String, RawType> fields = new HashMap<>(nFields * 2);
         for (int i = 0; i < nFields; i++) {
           String fieldName = decoder.readString(source);
-          RawType fieldType = decode(source, decoder);
+          RawType fieldType = decode(source, decoder, protocolVersion);
           fields.put(fieldName, fieldType);
         }
         return new RawUdt(keyspace, typeName, Collections.unmodifiableMap(fields));
@@ -67,7 +61,7 @@ public abstract class RawType {
         nFields = decoder.readUnsignedShort(source);
         List<RawType> fieldTypes = new ArrayList<>(nFields);
         for (int i = 0; i < nFields; i++) {
-          fieldTypes.add(decode(source, decoder));
+          fieldTypes.add(decode(source, decoder, protocolVersion));
         }
         return new RawTuple(Collections.unmodifiableList(fieldTypes));
       default:
@@ -79,9 +73,30 @@ public abstract class RawType {
     }
   }
 
+  /** @see ProtocolConstants.DataType */
+  public final int id;
+
+  protected RawType(int id) {
+    this.id = id;
+  }
+
+  public abstract <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion);
+
+  public abstract int encodedSize(int protocolVersion);
+
   public static class RawPrimitive extends RawType {
     private RawPrimitive(int id) {
       super(id);
+    }
+
+    @Override
+    public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      encoder.writeUnsignedShort(id, dest);
+    }
+
+    @Override
+    public int encodedSize(int protocolVersion) {
+      return 2;
     }
   }
 
@@ -92,6 +107,17 @@ public abstract class RawType {
       super(ProtocolConstants.DataType.CUSTOM);
       this.className = className;
     }
+
+    @Override
+    public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      encoder.writeUnsignedShort(id, dest);
+      encoder.writeString(className, dest);
+    }
+
+    @Override
+    public int encodedSize(int protocolVersion) {
+      return 2 + PrimitiveSizes.sizeOfString(className);
+    }
   }
 
   public static class RawList extends RawType {
@@ -101,6 +127,17 @@ public abstract class RawType {
       super(ProtocolConstants.DataType.LIST);
       this.elementType = elementType;
     }
+
+    @Override
+    public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      encoder.writeUnsignedShort(id, dest);
+      elementType.encode(dest, encoder, protocolVersion);
+    }
+
+    @Override
+    public int encodedSize(int protocolVersion) {
+      return 2 + elementType.encodedSize(protocolVersion);
+    }
   }
 
   public static class RawSet extends RawType {
@@ -109,6 +146,17 @@ public abstract class RawType {
     private RawSet(RawType elementType) {
       super(ProtocolConstants.DataType.SET);
       this.elementType = elementType;
+    }
+
+    @Override
+    public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      encoder.writeUnsignedShort(id, dest);
+      elementType.encode(dest, encoder, protocolVersion);
+    }
+
+    @Override
+    public int encodedSize(int protocolVersion) {
+      return 2 + elementType.encodedSize(protocolVersion);
     }
   }
 
@@ -120,6 +168,18 @@ public abstract class RawType {
       super(ProtocolConstants.DataType.MAP);
       this.keyType = keyType;
       this.valueType = valueType;
+    }
+
+    @Override
+    public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      encoder.writeUnsignedShort(id, dest);
+      keyType.encode(dest, encoder, protocolVersion);
+      valueType.encode(dest, encoder, protocolVersion);
+    }
+
+    @Override
+    public int encodedSize(int protocolVersion) {
+      return 2 + keyType.encodedSize(protocolVersion) + valueType.encodedSize(protocolVersion);
     }
   }
 
@@ -134,6 +194,29 @@ public abstract class RawType {
       this.typeName = typeName;
       this.fields = fields;
     }
+
+    @Override
+    public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      encoder.writeUnsignedShort(id, dest);
+      encoder.writeString(keyspace, dest);
+      encoder.writeString(typeName, dest);
+      encoder.writeUnsignedShort(fields.size(), dest);
+      for (Map.Entry<String, RawType> entry : fields.entrySet()) {
+        encoder.writeString(entry.getKey(), dest);
+        entry.getValue().encode(dest, encoder, protocolVersion);
+      }
+    }
+
+    @Override
+    public int encodedSize(int protocolVersion) {
+      int size =
+          2 + PrimitiveSizes.sizeOfString(keyspace) + PrimitiveSizes.sizeOfString(typeName) + 2;
+      for (Map.Entry<String, RawType> entry : fields.entrySet()) {
+        size += PrimitiveSizes.sizeOfString(entry.getKey());
+        size += entry.getValue().encodedSize(protocolVersion);
+      }
+      return size;
+    }
   }
 
   public static class RawTuple extends RawType {
@@ -142,6 +225,24 @@ public abstract class RawType {
     public RawTuple(List<RawType> fieldTypes) {
       super(ProtocolConstants.DataType.TUPLE);
       this.fieldTypes = fieldTypes;
+    }
+
+    @Override
+    public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      encoder.writeUnsignedShort(id, dest);
+      encoder.writeUnsignedShort(fieldTypes.size(), dest);
+      for (RawType fieldType : fieldTypes) {
+        fieldType.encode(dest, encoder, protocolVersion);
+      }
+    }
+
+    @Override
+    public int encodedSize(int protocolVersion) {
+      int size = 2 + 2;
+      for (RawType fieldType : fieldTypes) {
+        size += fieldType.encodedSize(protocolVersion);
+      }
+      return size;
     }
   }
 

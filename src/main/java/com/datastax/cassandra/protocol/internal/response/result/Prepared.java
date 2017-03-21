@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Result;
 
@@ -40,23 +41,30 @@ public class Prepared extends Result {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      Prepared prepared = (Prepared) message;
+      encoder.writeShortBytes(prepared.preparedQueryId, dest);
+      boolean hasPkIndices = (protocolVersion >= ProtocolConstants.Version.V4);
+      prepared.variablesMetadata.encode(dest, encoder, hasPkIndices, protocolVersion);
+      prepared.resultMetadata.encode(dest, encoder, false, protocolVersion);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      Prepared prepared = (Prepared) message;
+      int size = PrimitiveSizes.sizeOfShortBytes(prepared.preparedQueryId);
+      boolean hasPkIndices = (protocolVersion >= ProtocolConstants.Version.V4);
+      size += prepared.variablesMetadata.encodedSize(hasPkIndices, protocolVersion);
+      size += prepared.resultMetadata.encodedSize(false, protocolVersion);
+      return size;
     }
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       byte[] preparedQueryId = decoder.readShortBytes(source);
+      boolean hasPkIndices = (protocolVersion >= ProtocolConstants.Version.V4);
       RowsMetadata variablesMetadata =
-          (protocolVersion >= ProtocolConstants.Version.V4)
-              ? RowsMetadata.decodeWithPkIndices(source, decoder, protocolVersion)
-              : RowsMetadata.decodeWithoutPkIndices(source, decoder, protocolVersion);
-      RowsMetadata resultMetadata =
-          RowsMetadata.decodeWithoutPkIndices(source, decoder, protocolVersion);
+          RowsMetadata.decode(source, decoder, hasPkIndices, protocolVersion);
+      RowsMetadata resultMetadata = RowsMetadata.decode(source, decoder, false, protocolVersion);
       return new Prepared(preparedQueryId, variablesMetadata, resultMetadata);
     }
   }

@@ -32,7 +32,7 @@ public enum QueryFlag {
     this.mask = mask;
   }
 
-  public static EnumSet<QueryFlag> deserialize(int flags, int protocolVersion) {
+  public static EnumSet<QueryFlag> decode(int flags, int protocolVersion) {
     EnumSet<QueryFlag> set = EnumSet.noneOf(QueryFlag.class);
     for (QueryFlag flag : QueryFlag.values()) {
       if ((flags & flag.mask) != 0) {
@@ -42,7 +42,7 @@ public enum QueryFlag {
     return set;
   }
 
-  public static int serialize(EnumSet<QueryFlag> flags, int protocolVersion) {
+  public static int encode(EnumSet<QueryFlag> flags, int protocolVersion) {
     int i = 0;
     for (QueryFlag flag : flags) {
       i |= flag.mask;
@@ -50,7 +50,7 @@ public enum QueryFlag {
     return i;
   }
 
-  public static int serializedSize(int protocolVersion) {
+  public static int encodedSize(int protocolVersion) {
     return 1;
   }
 }

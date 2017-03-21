@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.error;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Error;
 
@@ -37,12 +38,18 @@ public class AlreadyExists extends Error {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      AlreadyExists alreadyExists = (AlreadyExists) message;
+      encoder.writeString(alreadyExists.message, dest);
+      encoder.writeString(alreadyExists.keyspace, dest);
+      encoder.writeString(alreadyExists.table, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      AlreadyExists alreadyExists = (AlreadyExists) message;
+      return PrimitiveSizes.sizeOfString(alreadyExists.message)
+          + PrimitiveSizes.sizeOfString(alreadyExists.keyspace)
+          + PrimitiveSizes.sizeOfString(alreadyExists.table);
     }
 
     @Override

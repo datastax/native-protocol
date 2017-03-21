@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.ProtocolErrors;
 import com.datastax.cassandra.protocol.internal.response.event.SchemaChangeEvent;
@@ -59,13 +60,14 @@ public abstract class Event extends Message {
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Event event = (Event) message;
+      encoder.writeString(event.type, dest);
       getSubCodec(event.type).encode(dest, message, encoder);
     }
 
     @Override
     public int encodedSize(Message message) {
       Event event = (Event) message;
-      return getSubCodec(event.type).encodedSize(message);
+      return PrimitiveSizes.sizeOfString(event.type) + getSubCodec(event.type).encodedSize(message);
     }
 
     @Override

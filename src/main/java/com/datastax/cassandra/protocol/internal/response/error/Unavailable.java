@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.error;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Error;
 
@@ -45,12 +46,17 @@ public class Unavailable extends Error {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      Unavailable unavailable = (Unavailable) message;
+      encoder.writeString(unavailable.message, dest);
+      encoder.writeUnsignedShort(unavailable.consistencyLevel, dest);
+      encoder.writeInt(unavailable.required, dest);
+      encoder.writeInt(unavailable.alive, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      Unavailable unavailable = (Unavailable) message;
+      return PrimitiveSizes.sizeOfString(unavailable.message) + 2 + 4 + 4;
     }
 
     @Override

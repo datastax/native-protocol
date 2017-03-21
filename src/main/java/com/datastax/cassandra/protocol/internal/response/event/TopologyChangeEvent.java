@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.event;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Event;
 import java.net.InetSocketAddress;
@@ -41,12 +42,16 @@ public class TopologyChangeEvent extends Event {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      TopologyChangeEvent event = (TopologyChangeEvent) message;
+      encoder.writeString(event.changeType, dest);
+      encoder.writeInet(event.address, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      TopologyChangeEvent event = (TopologyChangeEvent) message;
+      return PrimitiveSizes.sizeOfString(event.changeType)
+          + PrimitiveSizes.sizeOfInet(event.address);
     }
 
     @Override

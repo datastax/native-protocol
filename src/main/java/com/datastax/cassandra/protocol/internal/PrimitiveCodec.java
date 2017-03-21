@@ -115,6 +115,8 @@ public abstract class PrimitiveCodec<B> {
 
   public abstract void writeInt(int i, B dest);
 
+  public abstract void writeInet(InetSocketAddress address, B dest);
+
   public abstract void writeLong(long l, B dest);
 
   public abstract void writeUnsignedShort(int i, B dest);

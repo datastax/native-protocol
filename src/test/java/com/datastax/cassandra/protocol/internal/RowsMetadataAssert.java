@@ -18,6 +18,7 @@ package com.datastax.cassandra.protocol.internal;
 import com.datastax.cassandra.protocol.internal.response.result.ColumnSpec;
 import com.datastax.cassandra.protocol.internal.response.result.RowsMetadata;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
+import java.util.List;
 import org.assertj.core.api.AbstractAssert;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,11 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RowsMetadataAssert extends AbstractAssert<RowsMetadataAssert, RowsMetadata> {
   public RowsMetadataAssert(RowsMetadata actual) {
     super(actual, RowsMetadataAssert.class);
-  }
-
-  public RowsMetadataAssert hasColumnCount(int expected) {
-    assertThat(actual.columnCount).isEqualTo(expected);
-    return this;
   }
 
   public RowsMetadataAssert hasPagingState(String expected) {
@@ -44,6 +40,11 @@ public class RowsMetadataAssert extends AbstractAssert<RowsMetadataAssert, RowsM
 
   public RowsMetadataAssert hasColumnSpecs(ColumnSpec... expected) {
     assertThat(actual.columnSpecs).containsExactly(expected);
+    return this;
+  }
+
+  public RowsMetadataAssert hasColumnSpecs(List<ColumnSpec> expected) {
+    assertThat(actual.columnSpecs).isEqualTo(expected);
     return this;
   }
 

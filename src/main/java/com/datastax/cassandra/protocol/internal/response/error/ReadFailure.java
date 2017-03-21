@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.error;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Error;
 
@@ -54,12 +55,19 @@ public class ReadFailure extends Error {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      ReadFailure readFailure = (ReadFailure) message;
+      encoder.writeString(readFailure.message, dest);
+      encoder.writeUnsignedShort(readFailure.consistencyLevel, dest);
+      encoder.writeInt(readFailure.received, dest);
+      encoder.writeInt(readFailure.blockFor, dest);
+      encoder.writeInt(readFailure.numFailures, dest);
+      encoder.writeByte((byte) (readFailure.dataPresent ? 1 : 0), dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      ReadFailure readFailure = (ReadFailure) message;
+      return PrimitiveSizes.sizeOfString(readFailure.message) + 2 + 4 + 4 + 4 + 1;
     }
 
     @Override

@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.error;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Error;
 
@@ -35,12 +36,16 @@ public class Unprepared extends Error {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      Unprepared unprepared = (Unprepared) message;
+      encoder.writeString(unprepared.message, dest);
+      encoder.writeShortBytes(unprepared.id, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      Unprepared unprepared = (Unprepared) message;
+      return PrimitiveSizes.sizeOfString(unprepared.message)
+          + PrimitiveSizes.sizeOfShortBytes(unprepared.id);
     }
 
     @Override

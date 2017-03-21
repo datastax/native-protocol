@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.ProtocolErrors;
 import com.datastax.cassandra.protocol.internal.response.Result;
@@ -49,12 +50,62 @@ public class SchemaChange extends Result {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      SchemaChange schemaChange = (SchemaChange) message;
+
+      encoder.writeString(schemaChange.changeType, dest);
+      encoder.writeString(schemaChange.target, dest);
+      encoder.writeString(schemaChange.keyspace, dest);
+
+      switch (schemaChange.target) {
+        case ProtocolConstants.SchemaChangeTarget.KEYSPACE:
+          break;
+        case ProtocolConstants.SchemaChangeTarget.TABLE:
+        case ProtocolConstants.SchemaChangeTarget.TYPE:
+          encoder.writeString(schemaChange.object, dest);
+          break;
+        case ProtocolConstants.SchemaChangeTarget.AGGREGATE:
+        case ProtocolConstants.SchemaChangeTarget.FUNCTION:
+          encoder.writeString(schemaChange.object, dest);
+          encoder.writeStringList(schemaChange.arguments, dest);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              "Unknown schema change target: " + schemaChange.target);
+      }
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      SchemaChange schemaChange = (SchemaChange) message;
+
+      ProtocolErrors.check(
+          protocolVersion >= ProtocolConstants.Version.V4
+              || !ProtocolConstants.SchemaChangeTarget.AGGREGATE.equals(schemaChange.target)
+                  && !ProtocolConstants.SchemaChangeTarget.FUNCTION.equals(schemaChange.target),
+          "%s schema change events are not supported in protocol version %d",
+          schemaChange.target,
+          protocolVersion);
+      int size = PrimitiveSizes.sizeOfString(schemaChange.changeType);
+      size += PrimitiveSizes.sizeOfString(schemaChange.target);
+      size += PrimitiveSizes.sizeOfString(schemaChange.keyspace);
+
+      switch (schemaChange.target) {
+        case ProtocolConstants.SchemaChangeTarget.KEYSPACE:
+          break;
+        case ProtocolConstants.SchemaChangeTarget.TABLE:
+        case ProtocolConstants.SchemaChangeTarget.TYPE:
+          size += PrimitiveSizes.sizeOfString(schemaChange.object);
+          break;
+        case ProtocolConstants.SchemaChangeTarget.AGGREGATE:
+        case ProtocolConstants.SchemaChangeTarget.FUNCTION:
+          size += PrimitiveSizes.sizeOfString(schemaChange.object);
+          size += PrimitiveSizes.sizeOfStringList(schemaChange.arguments);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              "Unknown schema change target: " + schemaChange.target);
+      }
+      return size;
     }
 
     @Override

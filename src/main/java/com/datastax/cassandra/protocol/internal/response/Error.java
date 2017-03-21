@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants.ErrorCode;
 import com.datastax.cassandra.protocol.internal.ProtocolErrors;
@@ -86,13 +87,14 @@ public class Error extends Message {
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Error error = (Error) message;
+      encoder.writeInt(error.code, dest);
       getSubCodec(error.code).encode(dest, message, encoder);
     }
 
     @Override
     public int encodedSize(Message message) {
       Error error = (Error) message;
-      return getSubCodec(error.code).encodedSize(message);
+      return 4 + getSubCodec(error.code).encodedSize(message);
     }
 
     @Override
@@ -132,12 +134,14 @@ public class Error extends Message {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      Error error = (Error) message;
+      encoder.writeString(error.message, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      Error error = (Error) message;
+      return PrimitiveSizes.sizeOfString(error.message);
     }
 
     @Override

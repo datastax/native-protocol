@@ -15,6 +15,7 @@
  */
 package com.datastax.cassandra.protocol.internal.binary;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
 
@@ -33,7 +34,7 @@ public class MockBinaryString {
   }
 
   public MockBinaryString inet(String host, int port) {
-    append(Element.Type.INET, InetSocketAddress.createUnresolved(host, port));
+    append(Element.Type.INET, new InetSocketAddress(host, port));
     return this;
   }
 

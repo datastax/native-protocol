@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import java.nio.ByteBuffer;
 
@@ -35,12 +36,14 @@ public class AuthSuccess extends Message {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      AuthSuccess authSuccess = (AuthSuccess) message;
+      encoder.writeBytes(authSuccess.token, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      AuthSuccess authSuccess = (AuthSuccess) message;
+      return PrimitiveSizes.sizeOfBytes(authSuccess.token);
     }
 
     @Override

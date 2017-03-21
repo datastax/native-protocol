@@ -19,8 +19,9 @@ import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AuthenticateTest extends MessageTest<Authenticate> {
 
@@ -34,10 +35,16 @@ public class AuthenticateTest extends MessageTest<Authenticate> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode(int protocolVersion) {
-    Authenticate authenticate =
-        decode(new MockBinaryString().string("MockAuthenticator"), protocolVersion);
+  public void should_encode_and_decode(int protocolVersion) {
+    String authenticator = "MockAuthenticator";
+    Authenticate initial = new Authenticate(authenticator);
 
-    Assertions.assertThat(authenticate.authenticator).isEqualTo("MockAuthenticator");
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded).isEqualTo(new MockBinaryString().string(authenticator));
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2 + authenticator.length());
+
+    Authenticate decoded = decode(encoded, protocolVersion);
+    assertThat(decoded.authenticator).isEqualTo(authenticator);
   }
 }

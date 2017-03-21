@@ -89,7 +89,7 @@ public class Batch extends Message {
 
       encoder.writeUnsignedShort(batch.consistency, dest);
 
-      encoder.writeByte((byte) QueryFlag.serialize(batch.flags, protocolVersion), dest);
+      encoder.writeByte((byte) QueryFlag.encode(batch.flags, protocolVersion), dest);
       if (batch.flags.contains(QueryFlag.SERIAL_CONSISTENCY)) {
         encoder.writeUnsignedShort(batch.serialConsistency, dest);
       }
@@ -123,7 +123,7 @@ public class Batch extends Message {
         size += Values.sizeOfPositionalValues(batch.values.get(i));
       }
       size += 2; // consistency level
-      size += QueryFlag.serializedSize(protocolVersion);
+      size += QueryFlag.encodedSize(protocolVersion);
       if (batch.flags.contains(QueryFlag.SERIAL_CONSISTENCY)) {
         size += 2;
       }

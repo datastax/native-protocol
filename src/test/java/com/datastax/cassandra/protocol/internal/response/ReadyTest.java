@@ -40,6 +40,7 @@ public class ReadyTest extends MessageTest<Ready> {
     MockBinaryString encoded = encode(initial, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString());
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(0);
 
     Ready decoded = decode(encoded, protocolVersion);
 

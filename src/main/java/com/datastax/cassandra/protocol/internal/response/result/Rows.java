@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Result;
 import java.nio.ByteBuffer;
@@ -42,24 +43,40 @@ public class Rows extends Result {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      Rows rows = (Rows) message;
+      rows.metadata.encode(dest, encoder, false, protocolVersion);
+      encoder.writeInt(rows.data.size(), dest);
+      for (List<ByteBuffer> row : rows.data) {
+        for (ByteBuffer column : row) {
+          encoder.writeBytes(column, dest);
+        }
+      }
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      Rows rows = (Rows) message;
+      int size = rows.metadata.encodedSize(false, protocolVersion) + 4;
+      for (List<ByteBuffer> row : rows.data) {
+        for (ByteBuffer column : row) {
+          size += PrimitiveSizes.sizeOfBytes(column);
+        }
+      }
+      return size;
     }
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      RowsMetadata metadata = RowsMetadata.decodeWithoutPkIndices(source, decoder, protocolVersion);
+      RowsMetadata metadata = RowsMetadata.decode(source, decoder, false, protocolVersion);
       int rowCount = decoder.readInt(source);
-      int columnCount = metadata.columnCount;
+      int columnCount = metadata.columnSpecs.size();
 
       Queue<List<ByteBuffer>> data = new ArrayDeque<>(rowCount);
       for (int i = 0; i < rowCount; i++) {
         List<ByteBuffer> row = new ArrayList<>(columnCount);
-        for (int j = 0; j < columnCount; j++) row.add(decoder.readBytes(source));
+        for (int j = 0; j < columnCount; j++) {
+          row.add(decoder.readBytes(source));
+        }
         data.add(row);
       }
 

@@ -20,8 +20,10 @@ import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
-import org.assertj.core.api.Assertions;
+import java.nio.ByteBuffer;
 import org.testng.annotations.Test;
+
+import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
 
 public class AuthSuccessTest extends MessageTest<AuthSuccess> {
 
@@ -35,9 +37,17 @@ public class AuthSuccessTest extends MessageTest<AuthSuccess> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode(int protocolVersion) {
-    AuthSuccess authSuccess = decode(new MockBinaryString().bytes("0xcafebabe"), protocolVersion);
+  public void should_encode_and_decode(int protocolVersion) {
+    ByteBuffer token = Bytes.fromHexString("0xcafebabe");
+    AuthSuccess initial = new AuthSuccess(token);
 
-    Assertions.assertThat(Bytes.toHexString(authSuccess.token)).isEqualTo("0xcafebabe");
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded).isEqualTo(new MockBinaryString().bytes("0xcafebabe"));
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + "cafebabe".length() / 2);
+
+    AuthSuccess decoded = decode(encoded, protocolVersion);
+
+    assertThat(Bytes.toHexString(decoded.token)).isEqualTo("0xcafebabe");
   }
 }

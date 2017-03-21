@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.error;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Error;
 
@@ -48,12 +49,22 @@ public class WriteTimeout extends Error {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      WriteTimeout writeTimeout = (WriteTimeout) message;
+      encoder.writeString(writeTimeout.message, dest);
+      encoder.writeUnsignedShort(writeTimeout.consistencyLevel, dest);
+      encoder.writeInt(writeTimeout.received, dest);
+      encoder.writeInt(writeTimeout.blockFor, dest);
+      encoder.writeString(writeTimeout.writeType, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      WriteTimeout writeTimeout = (WriteTimeout) message;
+      return PrimitiveSizes.sizeOfString(writeTimeout.message)
+          + 2
+          + 4
+          + 4
+          + PrimitiveSizes.sizeOfString(writeTimeout.writeType);
     }
 
     @Override

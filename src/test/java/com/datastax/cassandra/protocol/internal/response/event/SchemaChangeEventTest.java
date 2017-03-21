@@ -21,7 +21,7 @@ import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import com.datastax.cassandra.protocol.internal.response.Event;
-import org.assertj.core.api.Assertions;
+import java.util.Arrays;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
@@ -38,62 +38,115 @@ public class SchemaChangeEventTest extends MessageTest<SchemaChangeEvent> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode_keyspace_change(int protocolVersion) {
-    SchemaChangeEvent event =
-        decode(
+  public void should_encode_and_decode_keyspace_change(int protocolVersion) {
+    SchemaChangeEvent initial =
+        new SchemaChangeEvent(
+            ProtocolConstants.SchemaChangeType.CREATED,
+            ProtocolConstants.SchemaChangeTarget.KEYSPACE,
+            "test",
+            null,
+            null);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.KEYSPACE)
-                .string("test"),
-            protocolVersion);
+                .string("test"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (2 + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
+                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (2 + ProtocolConstants.SchemaChangeTarget.KEYSPACE.length())
+                + (2 + "test".length()));
 
-    assertThat(event.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
-    Assertions.assertThat(event.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
-    Assertions.assertThat(event.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.KEYSPACE);
-    Assertions.assertThat(event.keyspace).isEqualTo("test");
-    Assertions.assertThat(event.object).isNull();
-    Assertions.assertThat(event.arguments).isNull();
+    SchemaChangeEvent decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
+    assertThat(decoded.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
+    assertThat(decoded.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.KEYSPACE);
+    assertThat(decoded.keyspace).isEqualTo("test");
+    assertThat(decoded.object).isNull();
+    assertThat(decoded.arguments).isNull();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode_table_change(int protocolVersion) {
-    SchemaChangeEvent event =
-        decode(
+  public void should_encode_and_decode_table_change(int protocolVersion) {
+    SchemaChangeEvent initial =
+        new SchemaChangeEvent(
+            ProtocolConstants.SchemaChangeType.CREATED,
+            ProtocolConstants.SchemaChangeTarget.TABLE,
+            "test",
+            "mytable",
+            null);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.TABLE)
                 .string("test")
-                .string("mytable"),
-            protocolVersion);
+                .string("mytable"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (2 + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
+                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (2 + ProtocolConstants.SchemaChangeTarget.TABLE.length())
+                + (2 + "test".length())
+                + (2 + "mytable".length()));
 
-    assertThat(event.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
-    Assertions.assertThat(event.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
-    Assertions.assertThat(event.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.TABLE);
-    Assertions.assertThat(event.keyspace).isEqualTo("test");
-    Assertions.assertThat(event.object).isEqualTo("mytable");
-    Assertions.assertThat(event.arguments).isNull();
+    SchemaChangeEvent decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
+    assertThat(decoded.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
+    assertThat(decoded.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.TABLE);
+    assertThat(decoded.keyspace).isEqualTo("test");
+    assertThat(decoded.object).isEqualTo("mytable");
+    assertThat(decoded.arguments).isNull();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode_type_change(int protocolVersion) {
-    SchemaChangeEvent event =
-        decode(
+  public void should_encode_and_decode_type_change(int protocolVersion) {
+    SchemaChangeEvent initial =
+        new SchemaChangeEvent(
+            ProtocolConstants.SchemaChangeType.CREATED,
+            ProtocolConstants.SchemaChangeTarget.TYPE,
+            "test",
+            "mytype",
+            null);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.TYPE)
                 .string("test")
-                .string("mytype"),
-            protocolVersion);
+                .string("mytype"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (2 + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
+                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (2 + ProtocolConstants.SchemaChangeTarget.TYPE.length())
+                + (2 + "test".length())
+                + (2 + "mytype".length()));
 
-    assertThat(event.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
-    Assertions.assertThat(event.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
-    Assertions.assertThat(event.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.TYPE);
-    Assertions.assertThat(event.keyspace).isEqualTo("test");
-    Assertions.assertThat(event.object).isEqualTo("mytype");
-    Assertions.assertThat(event.arguments).isNull();
+    SchemaChangeEvent decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
+    assertThat(decoded.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
+    assertThat(decoded.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.TYPE);
+    assertThat(decoded.keyspace).isEqualTo("test");
+    assertThat(decoded.object).isEqualTo("mytype");
+    assertThat(decoded.arguments).isNull();
   }
 
   @Test(
@@ -135,9 +188,19 @@ public class SchemaChangeEventTest extends MessageTest<SchemaChangeEvent> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
-  public void should_decode_function_change_in_v4_or_above(int protocolVersion) {
-    SchemaChangeEvent event =
-        decode(
+  public void should_encode_and_decode_function_change_in_v4_or_above(int protocolVersion) {
+    SchemaChangeEvent initial =
+        new SchemaChangeEvent(
+            ProtocolConstants.SchemaChangeType.CREATED,
+            ProtocolConstants.SchemaChangeTarget.FUNCTION,
+            "test",
+            "myfunction",
+            Arrays.asList("int", "int"));
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
@@ -146,21 +209,41 @@ public class SchemaChangeEventTest extends MessageTest<SchemaChangeEvent> {
                 .string("myfunction")
                 .unsignedShort(2)
                 .string("int")
-                .string("int"),
-            protocolVersion);
+                .string("int"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (2 + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
+                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (2 + ProtocolConstants.SchemaChangeTarget.FUNCTION.length())
+                + (2 + "test".length())
+                + (2 + "myfunction".length())
+                + 2
+                + (2 + "int".length()) * 2);
 
-    assertThat(event.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
-    Assertions.assertThat(event.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
-    Assertions.assertThat(event.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.FUNCTION);
-    Assertions.assertThat(event.keyspace).isEqualTo("test");
-    Assertions.assertThat(event.object).isEqualTo("myfunction");
-    Assertions.assertThat(event.arguments).containsExactly("int", "int");
+    SchemaChangeEvent decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
+    assertThat(decoded.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
+    assertThat(decoded.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.FUNCTION);
+    assertThat(decoded.keyspace).isEqualTo("test");
+    assertThat(decoded.object).isEqualTo("myfunction");
+    assertThat(decoded.arguments).containsExactly("int", "int");
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
-  public void should_decode_aggregate_change_in_v4_or_above(int protocolVersion) {
-    SchemaChangeEvent event =
-        decode(
+  public void should_encode_and_decode_aggregate_change_in_v4_or_above(int protocolVersion) {
+    SchemaChangeEvent initial =
+        new SchemaChangeEvent(
+            ProtocolConstants.SchemaChangeType.CREATED,
+            ProtocolConstants.SchemaChangeTarget.AGGREGATE,
+            "test",
+            "myaggregate",
+            Arrays.asList("int", "int"));
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
@@ -169,14 +252,24 @@ public class SchemaChangeEventTest extends MessageTest<SchemaChangeEvent> {
                 .string("myaggregate")
                 .unsignedShort(2)
                 .string("int")
-                .string("int"),
-            protocolVersion);
+                .string("int"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (2 + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
+                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (2 + ProtocolConstants.SchemaChangeTarget.AGGREGATE.length())
+                + (2 + "test".length())
+                + (2 + "myaggregate".length())
+                + 2
+                + (2 + "int".length()) * 2);
 
-    assertThat(event.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
-    Assertions.assertThat(event.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
-    Assertions.assertThat(event.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.AGGREGATE);
-    Assertions.assertThat(event.keyspace).isEqualTo("test");
-    Assertions.assertThat(event.object).isEqualTo("myaggregate");
-    Assertions.assertThat(event.arguments).containsExactly("int", "int");
+    SchemaChangeEvent decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.EventType.SCHEMA_CHANGE);
+    assertThat(decoded.changeType).isEqualTo(ProtocolConstants.SchemaChangeType.CREATED);
+    assertThat(decoded.target).isEqualTo(ProtocolConstants.SchemaChangeTarget.AGGREGATE);
+    assertThat(decoded.keyspace).isEqualTo("test");
+    assertThat(decoded.object).isEqualTo("myaggregate");
+    assertThat(decoded.arguments).containsExactly("int", "int");
   }
 }
