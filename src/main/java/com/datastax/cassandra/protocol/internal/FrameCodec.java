@@ -87,6 +87,16 @@ public class FrameCodec<B> {
   public B encode(Frame frame) {
     int protocolVersion = frame.protocolVersion;
     Message request = frame.message;
+
+    ProtocolErrors.check(
+        protocolVersion >= ProtocolConstants.Version.V4 || frame.customPayload.isEmpty(),
+        "Custom payload is not supported in protocol v%d",
+        protocolVersion);
+    ProtocolErrors.check(
+        protocolVersion >= ProtocolConstants.Version.V4 || frame.warnings.isEmpty(),
+        "Warnings are not supported in protocol v%d",
+        protocolVersion);
+
     int opcode = request.opcode;
     Message.Codec encoder = encoders.get(protocolVersion, opcode);
     ProtocolErrors.check(
@@ -96,13 +106,13 @@ public class FrameCodec<B> {
     if (compressor != null && opcode != ProtocolConstants.Opcode.STARTUP) {
       flags.add(Flag.COMPRESSED);
     }
-    if (frame.tracing) {
+    if (frame.tracing || frame.tracingId != null) {
       flags.add(Flag.TRACING);
     }
-    if (protocolVersion >= ProtocolConstants.Version.V4 && !frame.customPayload.isEmpty()) {
+    if (!frame.customPayload.isEmpty()) {
       flags.add(Flag.CUSTOM_PAYLOAD);
     }
-    if (protocolVersion >= ProtocolConstants.Version.V4 && !frame.warnings.isEmpty()) {
+    if (!frame.warnings.isEmpty()) {
       flags.add(Flag.WARNING);
     }
 
@@ -110,8 +120,14 @@ public class FrameCodec<B> {
     if (!flags.contains(Flag.COMPRESSED)) {
       // No compression: we can optimize and do everything with a single allocation
       int messageSize = encoder.encodedSize(request);
+      if (frame.tracingId != null) {
+        messageSize += 2 * 8; // two longs
+      }
       if (!frame.customPayload.isEmpty()) {
         messageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
+      }
+      if (!frame.warnings.isEmpty()) {
+        messageSize += PrimitiveSizes.sizeOfStringList(frame.warnings);
       }
       B dest = primitiveCodec.allocate(headerSize + messageSize);
       encodeHeader(frame, flags, messageSize, dest);

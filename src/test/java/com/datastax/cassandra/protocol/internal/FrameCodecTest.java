@@ -135,12 +135,8 @@ public class FrameCodecTest {
       // size will be what is returned by the mock message codec
       size = MockOptionsCodec.MOCK_ENCODED_SIZE;
       if (customPayload.size() > 0) {
-        size +=
-            2
-                + (2 + "foo".length())
-                + (4 + "0a".length() / 2)
-                + (2 + "bar".length())
-                + (4 + "0b".length() / 2);
+        assertThat(customPayload).isEqualTo(SOME_PAYLOAD);
+        size += PrimitiveSizes.sizeOfBytesMap(SOME_PAYLOAD);
       }
     }
     binary.int_(size);
@@ -303,13 +299,16 @@ public class FrameCodecTest {
     } else {
       // size will be what is returned by the mock message codec
       size = MockReadyCodec.MOCK_ENCODED_SIZE;
-      if (customPayload.size() > 0) {
-        size +=
-            2
-                + (2 + "foo".length())
-                + (4 + "0a".length() / 2)
-                + (2 + "bar".length())
-                + (4 + "0b".length() / 2);
+      if (tracing) {
+        size += 16; // size of tracing id
+      }
+      if (!customPayload.isEmpty()) {
+        assertThat(customPayload).isEqualTo(SOME_PAYLOAD);
+        size += PrimitiveSizes.sizeOfBytesMap(SOME_PAYLOAD);
+      }
+      if (!warnings.isEmpty()) {
+        assertThat(warnings).isEqualTo(SOME_WARNINGS);
+        size += PrimitiveSizes.sizeOfStringList(SOME_WARNINGS);
       }
     }
     binary.int_(size);
