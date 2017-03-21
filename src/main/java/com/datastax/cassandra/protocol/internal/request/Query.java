@@ -62,8 +62,7 @@ public class Query extends Message {
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       String query = decoder.readLongString(source);
-      QueryOptions options =
-          QueryOptions.decode(source, decoder, ProtocolConstants.Opcode.QUERY, protocolVersion);
+      QueryOptions options = QueryOptions.decode(source, decoder, protocolVersion);
       return new Query(query, options);
     }
   }

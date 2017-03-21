@@ -47,7 +47,8 @@ public class Prepare extends Message {
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      throw new UnsupportedOperationException("TODO");
+      String cqlQuery = decoder.readLongString(source);
+      return new Prepare(cqlQuery);
     }
   }
 }

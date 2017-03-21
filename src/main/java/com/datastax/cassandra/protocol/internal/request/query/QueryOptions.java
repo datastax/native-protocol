@@ -29,7 +29,6 @@ public class QueryOptions {
 
   public static final QueryOptions DEFAULT =
       new QueryOptions(
-          ProtocolConstants.Opcode.QUERY,
           ProtocolConstants.ConsistencyLevel.ONE,
           Collections.emptyList(),
           Collections.emptyMap(),
@@ -40,7 +39,6 @@ public class QueryOptions {
           Long.MIN_VALUE);
 
   private final EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
-  public final int requestType;
   /** @see ProtocolConstants.ConsistencyLevel */
   public final int consistency;
 
@@ -55,7 +53,6 @@ public class QueryOptions {
   public final long defaultTimestamp;
 
   public QueryOptions(
-      int requestType,
       int consistency,
       List<ByteBuffer> positionalValues,
       Map<String, ByteBuffer> namedValues,
@@ -69,7 +66,6 @@ public class QueryOptions {
         positionalValues.isEmpty() || namedValues.isEmpty(),
         "Can't have both positional and named values");
 
-    this.requestType = requestType;
     this.consistency = consistency;
     this.positionalValues = positionalValues;
     this.namedValues = namedValues;
@@ -167,8 +163,7 @@ public class QueryOptions {
         serialConsistency);
   }
 
-  public static <B> QueryOptions decode(
-      B source, PrimitiveCodec<B> decoder, int requestType, int protocolVersion) {
+  public static <B> QueryOptions decode(B source, PrimitiveCodec<B> decoder, int protocolVersion) {
     int consistency = decoder.readUnsignedShort(source);
     EnumSet flags = QueryFlag.deserialize(decoder.readByte(source), protocolVersion);
 
@@ -194,7 +189,6 @@ public class QueryOptions {
         flags.contains(QueryFlag.DEFAULT_TIMESTAMP) ? decoder.readLong(source) : Long.MIN_VALUE;
 
     return new QueryOptions(
-        requestType,
         consistency,
         positionalValues,
         namedValues,

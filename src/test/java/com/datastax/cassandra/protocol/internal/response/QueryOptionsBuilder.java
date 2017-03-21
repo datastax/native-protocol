@@ -26,7 +26,6 @@ import java.util.Map;
 
 public class QueryOptionsBuilder {
 
-  private int requestType = ProtocolConstants.Opcode.QUERY;
   private int consistency = ProtocolConstants.ConsistencyLevel.ONE;
   private List<ByteBuffer> positionalValues = new ArrayList<>();
   private Map<String, ByteBuffer> namedValues = new HashMap<>();
@@ -78,7 +77,6 @@ public class QueryOptionsBuilder {
 
   public QueryOptions build() {
     return new QueryOptions(
-        requestType,
         consistency,
         positionalValues,
         namedValues,

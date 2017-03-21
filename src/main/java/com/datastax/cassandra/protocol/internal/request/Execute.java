@@ -54,7 +54,9 @@ public class Execute extends Message {
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      throw new UnsupportedOperationException("TODO");
+      byte[] queryId = decoder.readShortBytes(source);
+      QueryOptions options = QueryOptions.decode(source, decoder, protocolVersion);
+      return new Execute(queryId, options);
     }
   }
 }

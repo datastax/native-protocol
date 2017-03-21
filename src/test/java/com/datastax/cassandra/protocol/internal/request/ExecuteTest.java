@@ -20,7 +20,6 @@ import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import com.datastax.cassandra.protocol.internal.request.Execute;
 import com.datastax.cassandra.protocol.internal.request.query.QueryOptions;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
 import org.testng.annotations.Test;
@@ -41,17 +40,31 @@ public class ExecuteTest extends MessageTest<Execute> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_query_with_default_options(int protocolVersion) {
-    Execute execute = new Execute(queryId, QueryOptions.DEFAULT);
+  public void should_encode_and_decode_with_default_options(int protocolVersion) {
+    Execute initial = new Execute(queryId, QueryOptions.DEFAULT);
 
-    assertThat(encode(execute, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .shortBytes("0xcafebabe")
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
                 .byte_(0) // no flags
             );
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2 + queryId.length + 2 + 1);
 
-    assertThat(encodedSize(execute, protocolVersion)).isEqualTo(2 + queryId.length + 2 + 1);
+    Execute decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.queryId).isEqualTo(initial.queryId);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
+    assertThat(decoded.options.positionalValues).isEmpty();
+    assertThat(decoded.options.namedValues).isEmpty();
+    assertThat(decoded.options.skipMetadata).isFalse();
+    assertThat(decoded.options.pageSize).isEqualTo(-1);
+    assertThat(decoded.options.pagingState).isNull();
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 }

@@ -19,7 +19,6 @@ import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import com.datastax.cassandra.protocol.internal.request.Prepare;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
@@ -36,10 +35,16 @@ public class PrepareTest extends MessageTest<Prepare> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode(int protocolVersion) {
-    Prepare prepare = new Prepare("SELECT * FROM foo");
-    assertThat(encode(prepare, protocolVersion))
-        .isEqualTo(new MockBinaryString().longString("SELECT * FROM foo"));
-    assertThat(encodedSize(prepare, protocolVersion)).isEqualTo(4 + "SELECT * FROM foo".length());
+  public void should_encode_and_decode(int protocolVersion) {
+    Prepare initial = new Prepare("SELECT * FROM foo");
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded).isEqualTo(new MockBinaryString().longString("SELECT * FROM foo"));
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + "SELECT * FROM foo".length());
+
+    Prepare decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.cqlQuery).isEqualTo(initial.cqlQuery);
   }
 }
