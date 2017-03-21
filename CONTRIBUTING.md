@@ -26,6 +26,17 @@ run:
 mvn license:format
 ```
 
+## Pre-commit hook (highly recommended)
+ 
+Ensure `pre-commit.sh` is executable, then run:
+
+```
+ln -s ../../pre-commit.sh .git/hooks/pre-commit
+```
+
+This will only allow commits if the tests pass. It is also a good reminder to keep the test suite
+short. 
+
 ## TODO
 
 * implement (and test) request deserialization and response serialization. Look for 
