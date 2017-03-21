@@ -6,21 +6,27 @@ with the associated serialization and deserialization code.
 ## Usage
 
 The code is agnostic about the underlying binary representation: start by implementing a 
-`PrimitiveCodec` to specify the target type `B` (it could be `ByteBuffer`, Netty's `ByteBuf`, 
+`PrimitiveCodec` for your target type `B` (which could be `ByteBuffer`, Netty's `ByteBuf`, 
 `byte[]`, etc.)
 
-You may also implement a `Compressor` (it can be `null` if you're not using frame compression).
+You may also implement a `Compressor<B>` (it can be `null` if you're not going to compress frames).
  
-Finally, build a `FrameCodec` that will allow you to encode and decode frames.
+Finally, build a `FrameCodec<B>` that will allow you to encode and decode frames. 
+`Frame.defaultClient` and `Frame.defaultServer` give you the default sets of codecs for the 
+protocol versions that are currently supported; alternatively, you can use the constructor
+to register an arbitrary set of codecs.
 
 `Frame`, `Message`, and `Message` subclasses are immutable, but for efficiency they don't make
-defensive copies of their fields. If these fields are mutable (for example collections), it is
-expected that you won't modify them after creating a message instance.
+defensive copies of their fields. If these fields are mutable (for example collections), they
+shouldn't be modified after creating a message instance.
 
 The code makes very few assumptions about how the messages will be used. Data is often represented
 in the most simple way. For example, `ProtocolConstants` uses simple constants to represent the
 protocol codes; client code can (and probably should) wrap them in more type-safe structures (such
 as enums) before exposing them to higher-level layers.
+
+Well-formed inputs are expected; if you pass an inconsistent `Frame` (ex: protocol v3 with a custom
+payload), an `IllegalArgumentException` will be thrown.
 
 ## Versioning
 
