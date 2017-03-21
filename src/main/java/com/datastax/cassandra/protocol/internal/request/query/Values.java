@@ -19,8 +19,7 @@ import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
 import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Values {
 
@@ -72,5 +71,37 @@ public class Values {
     return (value == null || value == ProtocolConstants.UNSET_VALUE)
         ? 4
         : PrimitiveSizes.sizeOfBytes(value);
+  }
+
+  public static <B> List<ByteBuffer> readPositionalValues(B source, PrimitiveCodec<B> decoder) {
+    int len = decoder.readUnsignedShort(source);
+    if (len == 0) {
+      return Collections.emptyList();
+    } else {
+      List<ByteBuffer> values = new ArrayList<>(len);
+      for (int i = 0; i < len; i++) {
+        values.add(readValue(source, decoder));
+      }
+      return Collections.unmodifiableList(values);
+    }
+  }
+
+  public static <B> Map<String, ByteBuffer> readNamedValues(B source, PrimitiveCodec<B> decoder) {
+    int len = decoder.readUnsignedShort(source);
+    if (len == 0) {
+      return Collections.emptyMap();
+    } else {
+      Map<String, ByteBuffer> values = new HashMap<>(len);
+      for (int i = 0; i < len; i++) {
+        String key = decoder.readString(source);
+        ByteBuffer value = readValue(source, decoder);
+        values.put(key, value);
+      }
+      return Collections.unmodifiableMap(values);
+    }
+  }
+
+  public static <B> ByteBuffer readValue(B source, PrimitiveCodec<B> decoder) {
+    return decoder.readBytes(source);
   }
 }

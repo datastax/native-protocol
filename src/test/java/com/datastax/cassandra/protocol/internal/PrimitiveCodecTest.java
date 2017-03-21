@@ -20,12 +20,13 @@ import com.datastax.cassandra.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
@@ -40,8 +41,8 @@ public class PrimitiveCodecTest {
 
     UUID uuid = MockPrimitiveCodec.INSTANCE.readUuid(new MockBinaryString().long_(msb).long_(lsb));
 
-    org.assertj.core.api.Assertions.assertThat(uuid.getMostSignificantBits()).isEqualTo(msb);
-    Assertions.assertThat(uuid.getLeastSignificantBits()).isEqualTo(lsb);
+    assertThat(uuid.getMostSignificantBits()).isEqualTo(msb);
+    assertThat(uuid.getLeastSignificantBits()).isEqualTo(lsb);
   }
 
   @Test
@@ -49,7 +50,27 @@ public class PrimitiveCodecTest {
     List<String> strings =
         MockPrimitiveCodec.INSTANCE.readStringList(
             new MockBinaryString().unsignedShort(3).string("foo").string("bar").string("baz"));
-    Assertions.assertThat(strings).containsExactly("foo", "bar", "baz");
+    assertThat(strings).containsExactly("foo", "bar", "baz");
+  }
+
+  @Test
+  public void should_read_string_map() {
+    Map<String, String> map =
+        MockPrimitiveCodec.INSTANCE.readStringMap(
+            new MockBinaryString()
+                .unsignedShort(3)
+                .string("key1")
+                .string("value1")
+                .string("key2")
+                .string("value2")
+                .string("key3")
+                .string("value3"));
+
+    assertThat(map)
+        .containsOnlyKeys("key1", "key2", "key3")
+        .containsEntry("key1", "value1")
+        .containsEntry("key2", "value2")
+        .containsEntry("key3", "value3");
   }
 
   @Test
@@ -70,10 +91,10 @@ public class PrimitiveCodecTest {
                 .string("value31")
                 .string("value32"));
 
-    Assertions.assertThat(map).containsOnlyKeys("key1", "key2", "key3");
-    Assertions.assertThat(map.get("key1")).containsExactly("value11", "value12");
-    Assertions.assertThat(map.get("key2")).containsExactly("value21");
-    Assertions.assertThat(map.get("key3")).containsExactly("value31", "value32");
+    assertThat(map).containsOnlyKeys("key1", "key2", "key3");
+    assertThat(map.get("key1")).containsExactly("value11", "value12");
+    assertThat(map.get("key2")).containsExactly("value21");
+    assertThat(map.get("key3")).containsExactly("value31", "value32");
   }
 
   @Test
@@ -81,9 +102,7 @@ public class PrimitiveCodecTest {
     Map<String, ByteBuffer> map =
         MockPrimitiveCodec.INSTANCE.readBytesMap(
             new MockBinaryString().unsignedShort(1).string("key").bytes("0xcafebabe"));
-    Assertions.assertThat(map)
-        .containsOnlyKeys("key")
-        .containsEntry("key", Bytes.fromHexString("0xcafebabe"));
+    assertThat(map).containsOnlyKeys("key").containsEntry("key", Bytes.fromHexString("0xcafebabe"));
   }
 
   @Test
@@ -126,6 +145,31 @@ public class PrimitiveCodecTest {
                 .string("2")
                 .string("foo")
                 .string("1"));
+  }
+
+  @Test
+  public void should_write_string_multimap() {
+    Map<String, List<String>> m = new LinkedHashMap<>();
+    m.put("foo", Arrays.asList("1", "2", "3"));
+    m.put("bar", Arrays.asList("4", "5", "6"));
+
+    MockBinaryString dest = new MockBinaryString();
+    MockPrimitiveCodec.INSTANCE.writeStringMultimap(m, dest);
+
+    assertThat(dest)
+        .isEqualTo(
+            new MockBinaryString()
+                .unsignedShort(2)
+                .string("foo")
+                .unsignedShort(3)
+                .string("1")
+                .string("2")
+                .string("3")
+                .string("bar")
+                .unsignedShort(3)
+                .string("4")
+                .string("5")
+                .string("6"));
   }
 
   @Test

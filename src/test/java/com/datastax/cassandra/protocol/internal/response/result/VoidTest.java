@@ -37,10 +37,13 @@ public class VoidTest
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode(int protocolVersion) {
-    assertThat(
-            decode(
-                new MockBinaryString().int_(ProtocolConstants.ResponseKind.VOID), protocolVersion))
-        .isEqualTo(com.datastax.cassandra.protocol.internal.response.result.Void.INSTANCE);
+  public void should_encode_and_decode(int protocolVersion) {
+    MockBinaryString encoded = encode(Void.INSTANCE, protocolVersion);
+
+    assertThat(encoded).isEqualTo(new MockBinaryString().int_(ProtocolConstants.ResponseKind.VOID));
+
+    Void decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded).isEqualTo(Void.INSTANCE);
   }
 }

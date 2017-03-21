@@ -20,7 +20,6 @@ import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import com.datastax.cassandra.protocol.internal.request.Register;
 import java.util.Arrays;
 import java.util.List;
 import org.testng.annotations.Test;
@@ -39,23 +38,31 @@ public class RegisterTest extends MessageTest<Register> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode(int protocolVersion) {
+  public void should_encode_and_decode(int protocolVersion) {
     List<String> eventTypes =
         Arrays.asList(
             ProtocolConstants.EventType.SCHEMA_CHANGE, ProtocolConstants.EventType.STATUS_CHANGE);
-    Register register = new Register(eventTypes);
+    Register initial = new Register(eventTypes);
 
-    assertThat(encode(register, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .unsignedShort(2)
                 .string(ProtocolConstants.EventType.SCHEMA_CHANGE)
                 .string(ProtocolConstants.EventType.STATUS_CHANGE));
 
-    assertThat(encodedSize(register, protocolVersion))
+    assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             2
                 + (2 + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
                 + (2 + ProtocolConstants.EventType.STATUS_CHANGE.length()));
+
+    Register decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.eventTypes)
+        .containsExactly(
+            ProtocolConstants.EventType.SCHEMA_CHANGE, ProtocolConstants.EventType.STATUS_CHANGE);
   }
 }

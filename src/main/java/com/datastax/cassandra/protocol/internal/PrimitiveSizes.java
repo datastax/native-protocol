@@ -65,6 +65,15 @@ public class PrimitiveSizes {
     return size;
   }
 
+  public static int sizeOfStringMultimap(Map<String, List<String>> m) {
+    int size = 2; // length
+    for (Map.Entry<String, List<String>> entry : m.entrySet()) {
+      size += sizeOfString(entry.getKey());
+      size += sizeOfStringList(entry.getValue());
+    }
+    return size;
+  }
+
   public static int sizeOfBytesMap(Map<String, ByteBuffer> m) {
     int size = 2;
     for (Map.Entry<String, ByteBuffer> entry : m.entrySet()) {

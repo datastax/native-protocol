@@ -33,13 +33,11 @@ public class Void extends Result {
     }
 
     @Override
-    public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
-    }
+    public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {}
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      return 0;
     }
 
     @Override

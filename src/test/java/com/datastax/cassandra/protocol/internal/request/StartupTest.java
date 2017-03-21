@@ -19,7 +19,6 @@ import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import com.datastax.cassandra.protocol.internal.request.Startup;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
@@ -36,10 +35,12 @@ public class StartupTest extends MessageTest<Startup> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_with_compression(int protocolVersion) {
-    Startup startup = new Startup("LZ4");
+  public void should_encode_and_decode_with_compression(int protocolVersion) {
+    Startup initial = new Startup("LZ4");
 
-    assertThat(encode(startup, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .unsignedShort(2) // size of string map
@@ -48,24 +49,35 @@ public class StartupTest extends MessageTest<Startup> {
                 .string("LZ4")
                 .string("CQL_VERSION")
                 .string("3.0.0"));
-
-    assertThat(encodedSize(startup, protocolVersion))
+    assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             2
                 + (2 + "COMPRESSION".length())
                 + (2 + "LZ4".length())
                 + (2 + "CQL_VERSION".length())
                 + (2 + "3.0.0".length()));
+
+    Startup decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options)
+        .hasSize(2)
+        .containsEntry("COMPRESSION", "LZ4")
+        .containsEntry("CQL_VERSION", "3.0.0");
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_without_compression(int protocolVersion) {
-    Startup startup = new Startup();
+  public void should_encode_and_decode_without_compression(int protocolVersion) {
+    Startup initial = new Startup();
 
-    assertThat(encode(startup, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(new MockBinaryString().unsignedShort(1).string("CQL_VERSION").string("3.0.0"));
-
-    assertThat(encodedSize(startup, protocolVersion))
+    assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(2 + (2 + "CQL_VERSION".length()) + (2 + "3.0.0".length()));
+
+    Startup decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options).hasSize(1).containsEntry("CQL_VERSION", "3.0.0");
   }
 }

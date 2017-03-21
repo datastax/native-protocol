@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Result;
 
@@ -35,12 +36,14 @@ public class SetKeyspace extends Result {
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
-      throw new UnsupportedOperationException("TODO");
+      SetKeyspace setKeyspace = (SetKeyspace) message;
+      encoder.writeString(setKeyspace.keyspace, dest);
     }
 
     @Override
     public int encodedSize(Message message) {
-      throw new UnsupportedOperationException("TODO");
+      SetKeyspace setKeyspace = (SetKeyspace) message;
+      return PrimitiveSizes.sizeOfString(setKeyspace.keyspace);
     }
 
     @Override

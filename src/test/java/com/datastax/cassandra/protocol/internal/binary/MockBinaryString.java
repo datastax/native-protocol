@@ -53,7 +53,7 @@ public class MockBinaryString {
   }
 
   public MockBinaryString longString(String value) {
-    append(Element.Type.STRING, value);
+    append(Element.Type.LONG_STRING, value);
     return this;
   }
 

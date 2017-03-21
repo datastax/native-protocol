@@ -19,6 +19,11 @@ import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,15 +39,29 @@ public class SupportedTest extends MessageTest<Supported> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode_without_options(int protocolVersion) {
-    Supported supported = decode(new MockBinaryString().unsignedShort(0), protocolVersion);
-    assertThat(supported.options).isEmpty();
+  public void should_encode_and_decode_without_options(int protocolVersion) {
+    Supported initial = new Supported(Collections.emptyMap());
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded).isEqualTo(new MockBinaryString().unsignedShort(0));
+
+    Supported decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options).isEmpty();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode_with_options(int protocolVersion) {
-    Supported supported =
-        decode(
+  public void should_encode_and_decode_with_options(int protocolVersion) {
+    Map<String, List<String>> options = new LinkedHashMap<>();
+    options.put("option1", Arrays.asList("value11", "value12"));
+    options.put("option2", Collections.singletonList("value21"));
+    Supported initial = new Supported(options);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
             new MockBinaryString()
                 .unsignedShort(2)
                 .string("option1")
@@ -51,10 +70,12 @@ public class SupportedTest extends MessageTest<Supported> {
                 .string("value12")
                 .string("option2")
                 .unsignedShort(1)
-                .string("value21"),
-            protocolVersion);
-    assertThat(supported.options).containsOnlyKeys("option1", "option2");
-    assertThat(supported.options.get("option1")).containsExactly("value11", "value12");
-    assertThat(supported.options.get("option2")).containsExactly("value21");
+                .string("value21"));
+
+    Supported decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options).hasSize(2);
+    assertThat(decoded.options.get("option1")).containsExactly("value11", "value12");
+    assertThat(decoded.options.get("option2")).containsExactly("value21");
   }
 }

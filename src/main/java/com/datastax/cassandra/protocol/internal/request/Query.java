@@ -61,7 +61,10 @@ public class Query extends Message {
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      throw new UnsupportedOperationException("TODO");
+      String query = decoder.readLongString(source);
+      QueryOptions options =
+          QueryOptions.decode(source, decoder, ProtocolConstants.Opcode.QUERY, protocolVersion);
+      return new Query(query, options);
     }
   }
 }

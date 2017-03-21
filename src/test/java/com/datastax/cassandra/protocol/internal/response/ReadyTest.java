@@ -34,7 +34,15 @@ public class ReadyTest extends MessageTest<Ready> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode_from_empty_body(int protocolVersion) {
-    assertThat(decode(new MockBinaryString(), protocolVersion)).isInstanceOf(Ready.class);
+  public void should_encode_and_decode(int protocolVersion) {
+    Ready initial = new Ready();
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded).isEqualTo(new MockBinaryString());
+
+    Ready decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded).isInstanceOf(Ready.class);
   }
 }

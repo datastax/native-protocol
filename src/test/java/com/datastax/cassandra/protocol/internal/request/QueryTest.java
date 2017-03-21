@@ -20,9 +20,9 @@ import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import com.datastax.cassandra.protocol.internal.request.Query;
 import com.datastax.cassandra.protocol.internal.request.query.QueryOptions;
 import com.datastax.cassandra.protocol.internal.response.QueryOptionsBuilder;
+import com.datastax.cassandra.protocol.internal.util.Bytes;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
@@ -40,10 +40,12 @@ public class QueryTest extends MessageTest<Query> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_query_with_default_options(int protocolVersion) {
-    Query query = new Query(queryString);
+  public void should_encode_and_decode_query_with_default_options(int protocolVersion) {
+    Query initial = new Query(queryString);
 
-    assertThat(encode(query, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .longString("select * from system.local")
@@ -51,33 +53,63 @@ public class QueryTest extends MessageTest<Query> {
                 .byte_(0) // no flags
             );
 
-    assertThat(encodedSize(query, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 1);
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 1);
+
+    Query decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.query).isEqualTo(initial.query);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
+    assertThat(decoded.options.positionalValues).isEmpty();
+    assertThat(decoded.options.namedValues).isEmpty();
+    assertThat(decoded.options.skipMetadata).isFalse();
+    assertThat(decoded.options.pageSize).isEqualTo(-1);
+    assertThat(decoded.options.pagingState).isNull();
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_query_with_different_CL(int protocolVersion) {
+  public void should_encode_and_decode_query_with_different_CL(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
             .consistencyLevel(ProtocolConstants.ConsistencyLevel.QUORUM)
             .build();
-    Query query = new Query(queryString, options);
+    Query initial = new Query(queryString, options);
 
-    assertThat(encode(query, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .longString("select * from system.local")
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.QUORUM)
                 .byte_(0));
 
-    assertThat(encodedSize(query, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 1);
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 1);
+
+    Query decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.query).isEqualTo(initial.query);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.QUORUM);
+    assertThat(decoded.options.positionalValues).isEmpty();
+    assertThat(decoded.options.namedValues).isEmpty();
+    assertThat(decoded.options.skipMetadata).isFalse();
+    assertThat(decoded.options.pageSize).isEqualTo(-1);
+    assertThat(decoded.options.pagingState).isNull();
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_positional_values(int protocolVersion) {
+  public void should_encode_and_decode_positional_values(int protocolVersion) {
     QueryOptions options = new QueryOptionsBuilder().positionalValue("0xcafebabe").build();
-    Query query = new Query(queryString, options);
+    Query initial = new Query(queryString, options);
 
-    assertThat(encode(query, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .longString("select * from system.local")
@@ -87,8 +119,21 @@ public class QueryTest extends MessageTest<Query> {
                 .bytes("0xcafebabe") // count + list of values
             );
 
-    assertThat(encodedSize(query, protocolVersion))
+    assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(4 + queryString.length() + 2 + 1 + 2 + 8);
+
+    Query decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.query).isEqualTo(initial.query);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
+    assertThat(decoded.options.positionalValues).containsExactly(Bytes.fromHexString("0xcafebabe"));
+    assertThat(decoded.options.namedValues).isEmpty();
+    assertThat(decoded.options.skipMetadata).isFalse();
+    assertThat(decoded.options.pageSize).isEqualTo(-1);
+    assertThat(decoded.options.pagingState).isNull();
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
@@ -99,28 +144,47 @@ public class QueryTest extends MessageTest<Query> {
             .withPageSize(10)
             .withPagingState("0xcafebabe")
             .withSerialConsistency(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL)
+            .withDefaultTimestamp(42)
             .build();
-    Query query = new Query(queryString, options);
+    Query initial = new Query(queryString, options);
 
-    assertThat(encode(query, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .longString("select * from system.local")
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
-                .byte_(0x02 | 0x04 | 0x08 | 0x10)
+                .byte_(0x02 | 0x04 | 0x08 | 0x10 | 0x20)
                 .int_(10)
                 .bytes("0xcafebabe")
-                .unsignedShort(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL));
-    assertThat(encodedSize(query, protocolVersion))
-        .isEqualTo(4 + queryString.length() + 2 + 1 + 4 + 8 + 2);
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL)
+                .long_(42));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(4 + queryString.length() + 2 + 1 + 4 + 8 + 2 + 8);
+
+    Query decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.query).isEqualTo(initial.query);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
+    assertThat(decoded.options.positionalValues).isEmpty();
+    assertThat(decoded.options.namedValues).isEmpty();
+    assertThat(decoded.options.skipMetadata).isTrue();
+    assertThat(decoded.options.pageSize).isEqualTo(10);
+    assertThat(decoded.options.pagingState).isEqualTo(Bytes.fromHexString("0xcafebabe"));
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(42);
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
   public void should_encode_named_values(int protocolVersion) {
     QueryOptions options = new QueryOptionsBuilder().namedValue("foo", "0xcafebabe").build();
-    Query query = new Query(queryString, options);
+    Query initial = new Query(queryString, options);
 
-    assertThat(encode(query, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .longString("select * from system.local")
@@ -130,23 +194,23 @@ public class QueryTest extends MessageTest<Query> {
                 .string("foo")
                 .bytes("0xcafebabe") // count + list of values
             );
-    assertThat(encodedSize(query, protocolVersion))
+    assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(4 + queryString.length() + 2 + 1 + 2 + (2 + "foo".length()) + 8);
-  }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_set_default_timestamp_in_protocol_v3(int protocolVersion) {
-    QueryOptions options = new QueryOptionsBuilder().withDefaultTimestamp(10).build();
-    Query query = new Query(queryString, options);
+    Query decoded = decode(encoded, protocolVersion);
 
-    assertThat(encode(query, protocolVersion))
-        .isEqualTo(
-            new MockBinaryString()
-                .longString("select * from system.local")
-                .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
-                .byte_(0x20)
-                .long_(10));
-    assertThat(encodedSize(query, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 1 + 8);
+    assertThat(decoded.query).isEqualTo(initial.query);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
+    assertThat(decoded.options.positionalValues).isEmpty();
+    assertThat(decoded.options.namedValues)
+        .hasSize(1)
+        .containsEntry("foo", Bytes.fromHexString("0xcafebabe"));
+    assertThat(decoded.options.skipMetadata).isFalse();
+    assertThat(decoded.options.pageSize).isEqualTo(-1);
+    assertThat(decoded.options.pagingState).isNull();
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
   @Test(
@@ -154,8 +218,7 @@ public class QueryTest extends MessageTest<Query> {
     dataProvider = "protocolV3OrAbove",
     expectedExceptions = IllegalArgumentException.class
   )
-  public void should_not_allow_both_named_and_positional_values_in_protocol_v3_or_above(
-      int protocolVersion) {
+  public void should_not_allow_both_named_and_positional_values(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
             .positionalValue("0xcafebabe")

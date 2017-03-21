@@ -62,13 +62,15 @@ public abstract class Result extends Message {
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Result result = (Result) message;
+      encoder.writeInt(result.kind, dest);
       getSubCodec(result.kind).encode(dest, result, encoder);
     }
 
     @Override
     public int encodedSize(Message message) {
       Result result = (Result) message;
-      return getSubCodec(result.kind).encodedSize(result);
+      // size of int (result kind) + size of result.
+      return 4 + getSubCodec(result.kind).encodedSize(result);
     }
 
     @Override

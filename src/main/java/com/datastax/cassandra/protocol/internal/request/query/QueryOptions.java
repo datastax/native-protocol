@@ -166,4 +166,42 @@ public class QueryOptions {
         pagingState,
         serialConsistency);
   }
+
+  public static <B> QueryOptions decode(
+      B source, PrimitiveCodec<B> decoder, int requestType, int protocolVersion) {
+    int consistency = decoder.readUnsignedShort(source);
+    EnumSet flags = QueryFlag.deserialize(decoder.readByte(source), protocolVersion);
+
+    List<ByteBuffer> positionalValues = Collections.emptyList();
+    Map<String, ByteBuffer> namedValues = Collections.emptyMap();
+    if (flags.contains(QueryFlag.VALUES)) {
+      if (flags.contains(QueryFlag.VALUE_NAMES)) {
+        namedValues = Values.readNamedValues(source, decoder);
+      } else {
+        positionalValues = Values.readPositionalValues(source, decoder);
+      }
+    }
+
+    boolean skipMetadata = flags.contains(QueryFlag.SKIP_METADATA);
+    int pageSize = flags.contains(QueryFlag.PAGE_SIZE) ? decoder.readInt(source) : -1;
+    ByteBuffer pagingState =
+        flags.contains(QueryFlag.PAGING_STATE) ? decoder.readBytes(source) : null;
+    int serialConsistency =
+        flags.contains(QueryFlag.SERIAL_CONSISTENCY)
+            ? decoder.readUnsignedShort(source)
+            : ProtocolConstants.ConsistencyLevel.SERIAL;
+    long defaultTimestamp =
+        flags.contains(QueryFlag.DEFAULT_TIMESTAMP) ? decoder.readLong(source) : Long.MIN_VALUE;
+
+    return new QueryOptions(
+        requestType,
+        consistency,
+        positionalValues,
+        namedValues,
+        skipMetadata,
+        pageSize,
+        pagingState,
+        serialConsistency,
+        defaultTimestamp);
+  }
 }

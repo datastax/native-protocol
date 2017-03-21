@@ -68,7 +68,8 @@ public class Startup extends Message {
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      throw new UnsupportedOperationException("TODO");
+      Map<String, String> map = decoder.readStringMap(source);
+      return new Startup(map.get(COMPRESSION_KEY));
     }
   }
 }

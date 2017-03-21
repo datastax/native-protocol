@@ -61,6 +61,8 @@ public abstract class PrimitiveCodec<B> {
 
   public abstract String readString(B source);
 
+  public abstract String readLongString(B source);
+
   public UUID readUuid(B source) {
     long msb = readLong(source);
     long lsb = readLong(source);
@@ -74,6 +76,17 @@ public abstract class PrimitiveCodec<B> {
       l.add(readString(source));
     }
     return Collections.unmodifiableList(l);
+  }
+
+  public Map<String, String> readStringMap(B source) {
+    int length = readUnsignedShort(source);
+    Map<String, String> m = new HashMap<>(length);
+    for (int i = 0; i < length; i++) {
+      String k = readString(source);
+      String v = readString(source);
+      m.put(k, v);
+    }
+    return Collections.unmodifiableMap(m);
   }
 
   public Map<String, List<String>> readStringMultimap(B source) {
@@ -131,6 +144,14 @@ public abstract class PrimitiveCodec<B> {
     for (Map.Entry<String, String> entry : m.entrySet()) {
       writeString(entry.getKey(), dest);
       writeString(entry.getValue(), dest);
+    }
+  }
+
+  public void writeStringMultimap(Map<String, List<String>> m, B dest) {
+    writeUnsignedShort(m.size(), dest);
+    for (Map.Entry<String, List<String>> entry : m.entrySet()) {
+      writeString(entry.getKey(), dest);
+      writeStringList(entry.getValue(), dest);
     }
   }
 

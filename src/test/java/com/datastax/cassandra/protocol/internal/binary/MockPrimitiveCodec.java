@@ -93,6 +93,11 @@ public class MockPrimitiveCodec extends PrimitiveCodec<MockBinaryString> {
   }
 
   @Override
+  public String readLongString(MockBinaryString source) {
+    return (String) pop(source, Element.Type.LONG_STRING);
+  }
+
+  @Override
   public void writeByte(byte b, MockBinaryString dest) {
     dest.byte_(b);
   }

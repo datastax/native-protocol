@@ -21,8 +21,9 @@ import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import com.datastax.cassandra.protocol.internal.response.Result;
-import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SetKeyspaceTest extends MessageTest<SetKeyspace> {
   public SetKeyspaceTest() {
@@ -35,11 +36,16 @@ public class SetKeyspaceTest extends MessageTest<SetKeyspace> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_decode(int protocolVersion) {
-    SetKeyspace setKeypace =
-        decode(
-            new MockBinaryString().int_(ProtocolConstants.ResponseKind.SET_KEYSPACE).string("ks"),
-            protocolVersion);
-    Assertions.assertThat(setKeypace.keyspace).isEqualTo("ks");
+  public void should_encode_and_decode(int protocolVersion) {
+    SetKeyspace initial = new SetKeyspace("ks");
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString().int_(ProtocolConstants.ResponseKind.SET_KEYSPACE).string("ks"));
+
+    SetKeyspace decoded = decode(encoded, protocolVersion);
+    assertThat(decoded.keyspace).isEqualTo("ks");
   }
 }
