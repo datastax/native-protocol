@@ -20,7 +20,6 @@ import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import com.datastax.cassandra.protocol.internal.request.Batch;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,8 +40,8 @@ public class BatchTest extends MessageTest<Batch> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_with_default_options(int protocolVersion) {
-    Batch batch =
+  public void should_encode_and_decode_with_default_options(int protocolVersion) {
+    Batch initial =
         new Batch(
             ProtocolConstants.BatchType.LOGGED,
             Arrays.asList("SELECT * FROM foo", queryId),
@@ -53,7 +52,9 @@ public class BatchTest extends MessageTest<Batch> {
             ProtocolConstants.ConsistencyLevel.SERIAL,
             Long.MIN_VALUE);
 
-    assertThat(encode(batch, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .byte_(ProtocolConstants.BatchType.LOGGED)
@@ -71,8 +72,7 @@ public class BatchTest extends MessageTest<Batch> {
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
                 .byte_(0) // flags (empty)
             );
-
-    assertThat(encodedSize(batch, protocolVersion))
+    assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             1 // batch type
                 + 2 // number of queries
@@ -86,12 +86,23 @@ public class BatchTest extends MessageTest<Batch> {
                     + (4 + "0b".length() / 2))
                 + 2
                 + 1);
+
+    Batch decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.BatchType.LOGGED);
+    assertThat(decoded.queriesOrIds).hasSize(2);
+    assertThat(decoded.queriesOrIds.get(0)).isEqualTo("SELECT * FROM foo");
+    assertThat(Bytes.toHexString((byte[]) decoded.queriesOrIds.get(1))).isEqualTo("0xcafebabe");
+    assertThat(decoded.values).isEqualTo(initial.values);
+    assertThat(decoded.consistency).isEqualTo(initial.consistency);
+    assertThat(decoded.serialConsistency).isEqualTo(initial.serialConsistency);
+    assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
   public void should_encode_with_custom_options(int protocolVersion) {
     long timestamp = 1234L;
-    Batch batch =
+    Batch initial =
         new Batch(
             ProtocolConstants.BatchType.LOGGED,
             Arrays.asList("SELECT * FROM foo", queryId),
@@ -102,7 +113,8 @@ public class BatchTest extends MessageTest<Batch> {
             ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL, // non-default serial CL
             timestamp);
 
-    assertThat(encode(batch, protocolVersion))
+    MockBinaryString encoded = encode(initial, protocolVersion);
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .byte_(ProtocolConstants.BatchType.LOGGED)
@@ -121,8 +133,7 @@ public class BatchTest extends MessageTest<Batch> {
                 .byte_(0x10 | 0x20) // flags (serial CL and timestamp)
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL)
                 .long_(timestamp));
-
-    assertThat(encodedSize(batch, protocolVersion))
+    assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             1 // batch type
                 + 2 // number of queries
@@ -138,5 +149,16 @@ public class BatchTest extends MessageTest<Batch> {
                 + 1
                 + 2
                 + 8);
+
+    Batch decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.type).isEqualTo(ProtocolConstants.BatchType.LOGGED);
+    assertThat(decoded.queriesOrIds).hasSize(2);
+    assertThat(decoded.queriesOrIds.get(0)).isEqualTo("SELECT * FROM foo");
+    assertThat(Bytes.toHexString((byte[]) decoded.queriesOrIds.get(1))).isEqualTo("0xcafebabe");
+    assertThat(decoded.values).isEqualTo(initial.values);
+    assertThat(decoded.consistency).isEqualTo(initial.consistency);
+    assertThat(decoded.serialConsistency).isEqualTo(initial.serialConsistency);
+    assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
   }
 }

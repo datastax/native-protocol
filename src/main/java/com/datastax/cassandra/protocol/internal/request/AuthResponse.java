@@ -54,7 +54,8 @@ public class AuthResponse extends Message {
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      throw new UnsupportedOperationException("TODO");
+      ByteBuffer token = decoder.readBytes(source);
+      return new AuthResponse(token);
     }
   }
 }

@@ -20,6 +20,7 @@ import com.datastax.cassandra.protocol.internal.MessageTest;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import com.datastax.cassandra.protocol.internal.request.AuthResponse;
+import com.datastax.cassandra.protocol.internal.response.result.RowsMetadata;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
 import org.testng.annotations.Test;
 
@@ -37,12 +38,16 @@ public class AuthResponseTest extends MessageTest<AuthResponse> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode(int protocolVersion) {
-    AuthResponse authResponse = new AuthResponse(Bytes.fromHexString("0xcafebabe"));
+  public void should_encode_and_decode(int protocolVersion) {
+    AuthResponse initial = new AuthResponse(Bytes.fromHexString("0xcafebabe"));
 
-    assertThat(encode(authResponse, protocolVersion))
-        .isEqualTo(new MockBinaryString().bytes("0xcafebabe"));
+    MockBinaryString encoded = encode(initial, protocolVersion);
 
-    assertThat(encodedSize(authResponse, protocolVersion)).isEqualTo(8);
+    assertThat(encoded).isEqualTo(new MockBinaryString().bytes("0xcafebabe"));
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(8);
+
+    AuthResponse decoded = decode(encoded, protocolVersion);
+
+    assertThat(Bytes.toHexString(decoded.token)).isEqualTo("0xcafebabe");
   }
 }

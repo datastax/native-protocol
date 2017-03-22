@@ -23,6 +23,7 @@ import com.datastax.cassandra.protocol.internal.ProtocolErrors;
 import com.datastax.cassandra.protocol.internal.request.query.QueryFlag;
 import com.datastax.cassandra.protocol.internal.request.query.Values;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -39,9 +40,10 @@ public class Batch extends Message {
   public final int serialConsistency;
   public final long defaultTimestamp;
 
-  private final EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
+  private final EnumSet<QueryFlag> flags;
 
-  public Batch(
+  private Batch(
+      EnumSet<QueryFlag> flags,
       byte type,
       List<Object> queriesOrIds,
       List<List<ByteBuffer>> values,
@@ -55,13 +57,35 @@ public class Batch extends Message {
     this.consistency = consistency;
     this.serialConsistency = serialConsistency;
     this.defaultTimestamp = defaultTimestamp;
+    this.flags = flags;
+  }
 
+  public Batch(
+      byte type,
+      List<Object> queriesOrIds,
+      List<List<ByteBuffer>> values,
+      int consistency,
+      int serialConsistency,
+      long defaultTimestamp) {
+    this(
+        computeFlags(serialConsistency, defaultTimestamp),
+        type,
+        queriesOrIds,
+        values,
+        consistency,
+        serialConsistency,
+        defaultTimestamp);
+  }
+
+  private static EnumSet<QueryFlag> computeFlags(int serialConsistency, long defaultTimestamp) {
+    EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
     if (serialConsistency != ProtocolConstants.ConsistencyLevel.SERIAL) {
       flags.add(QueryFlag.SERIAL_CONSISTENCY);
     }
     if (defaultTimestamp != Long.MIN_VALUE) {
       flags.add(QueryFlag.DEFAULT_TIMESTAMP);
     }
+    return flags;
   }
 
   public static class Codec extends Message.Codec {
@@ -135,7 +159,27 @@ public class Batch extends Message {
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      throw new UnsupportedOperationException("TODO");
+      byte type = decoder.readByte(source);
+      int queryCount = decoder.readUnsignedShort(source);
+      List<Object> queriesOrIds = new ArrayList<>();
+      List<List<ByteBuffer>> values = new ArrayList<>();
+      for (int i = 0; i < queryCount; i++) {
+        boolean isQueryString = (decoder.readByte(source) == 0);
+        queriesOrIds.add(
+            isQueryString ? decoder.readLongString(source) : decoder.readShortBytes(source));
+        values.add(Values.readPositionalValues(source, decoder));
+      }
+      int consistency = decoder.readUnsignedShort(source);
+      EnumSet<QueryFlag> flags = QueryFlag.decode(decoder.readByte(source), protocolVersion);
+      int serialConsistency =
+          (flags.contains(QueryFlag.SERIAL_CONSISTENCY))
+              ? decoder.readUnsignedShort(source)
+              : ProtocolConstants.ConsistencyLevel.SERIAL;
+      long defaultTimestamp =
+          (flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) ? decoder.readLong(source) : Long.MIN_VALUE;
+
+      return new Batch(
+          flags, type, queriesOrIds, values, consistency, serialConsistency, defaultTimestamp);
     }
   }
 }
