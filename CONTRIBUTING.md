@@ -36,9 +36,3 @@ ln -s ../../pre-commit.sh .git/hooks/pre-commit
 
 This will only allow commits if the tests pass. It is also a good reminder to keep the test suite
 short. 
-
-## TODO
-
-* implement (and test) request deserialization and response serialization. Look for 
-  `UnsupportedOperationException` in the code.
-* implement protocol v5 beta.
