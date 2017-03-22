@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MockPrimitiveCodec extends PrimitiveCodec<MockBinaryString> {
+public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   public static final MockPrimitiveCodec INSTANCE = new MockPrimitiveCodec();
 
   /** In this implementation, {@link #sizeOf(MockBinaryString)} always returns this value. */
