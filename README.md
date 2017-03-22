@@ -1,7 +1,10 @@
 # Native protocol layer for Apache Cassandra™
  
 A set of Java types representing the frames and messages of the Apache Cassandra™ native protocol,
-with the associated serialization and deserialization code.
+with the associated serialization and deserialization logic (this is a third-party implementation,
+not related to the Apache Cassandra project).
+
+Native protocol versions 3 and above are supported.
 
 ## Usage
 

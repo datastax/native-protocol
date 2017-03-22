@@ -27,8 +27,9 @@
 
   <name>An implementation of the Apache Cassandra™ native protocol</name>
   <description>
-    Contains a set of Java types to represent protocol frames, and the associated serialization/deserialization logic
-    (this project is not affiliated with the Apache Cassandra project)
+    A set of Java types representing the frames and messages of the Apache Cassandra™ native protocol,
+    with the associated serialization and deserialization logic (this is a third-party implementation,
+    not related to the Apache Cassandra project)
   </description>
   <url>https://github.com/datastax/cassandra-protocol</url>
   <inceptionYear>2017</inceptionYear>
