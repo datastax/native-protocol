@@ -27,8 +27,4 @@ public class ProtocolErrors {
       throw new IllegalArgumentException(String.format(errorWhenFalse, arguments));
     }
   }
-
-  public static IllegalArgumentException unsupportedVersion(int protocolVersion) {
-    return new IllegalArgumentException("Unsupported protocol version: " + protocolVersion);
-  }
 }
