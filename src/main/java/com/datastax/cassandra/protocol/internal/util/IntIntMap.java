@@ -27,7 +27,7 @@ public class IntIntMap<V> {
 
   private final IntMap<IntMap<V>> outer;
 
-  public IntIntMap(IntMap<IntMap<V>> outer) {
+  private IntIntMap(IntMap<IntMap<V>> outer) {
     this.outer = outer;
   }
 
