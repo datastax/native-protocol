@@ -140,8 +140,14 @@ public class FrameCodec<B> {
       // We need to compress first in order to know the body size
       // 1) Encode uncompressed message
       int uncompressedMessageSize = encoder.encodedSize(request);
+      if (frame.tracingId != null) {
+        uncompressedMessageSize += 2 * 8; // two longs
+      }
       if (!frame.customPayload.isEmpty()) {
         uncompressedMessageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
+      }
+      if (!frame.warnings.isEmpty()) {
+        uncompressedMessageSize += PrimitiveSizes.sizeOfStringList(frame.warnings);
       }
       B uncompressedMessage = primitiveCodec.allocate(uncompressedMessageSize);
       encodeTracingId(frame.tracingId, uncompressedMessage);

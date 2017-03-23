@@ -20,14 +20,26 @@ import com.datastax.cassandra.protocol.internal.binary.MockCompressor;
 import com.datastax.cassandra.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.cassandra.protocol.internal.response.Ready;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
 
 public class ResponseFrameCodecTest extends FrameCodecTest {
+
+  private MockPrimitiveCodec primitiveCodec;
+  private List<Integer> expectedAllocations;
+
+  @BeforeMethod
+  public void setup() {
+    primitiveCodec = Mockito.spy(new MockPrimitiveCodec());
+    expectedAllocations = new ArrayList<>();
+  }
 
   @Test(dataProvider = "responseParameters")
   public void should_encode_response_frame(
@@ -39,7 +51,7 @@ public class ResponseFrameCodecTest extends FrameCodecTest {
 
     FrameCodec<MockBinaryString> frameCodec =
         new FrameCodec<>(
-            new MockPrimitiveCodec(),
+            primitiveCodec,
             compressor,
             (FrameCodec.CodecGroup)
                 registry -> registry.addEncoder(new MockReadyCodec(protocolVersion)));
@@ -58,6 +70,9 @@ public class ResponseFrameCodecTest extends FrameCodecTest {
         mockResponsePayload(protocolVersion, compressor, tracing, customPayload, warnings, false);
 
     assertThat(actual).isEqualTo(expected);
+    for (Integer size : expectedAllocations) {
+      Mockito.verify(primitiveCodec).allocate(size);
+    }
   }
 
   @Test(dataProvider = "responseParameters")
@@ -70,7 +85,7 @@ public class ResponseFrameCodecTest extends FrameCodecTest {
 
     FrameCodec<MockBinaryString> frameCodec =
         new FrameCodec<>(
-            new MockPrimitiveCodec(),
+            primitiveCodec,
             compressor,
             (FrameCodec.CodecGroup)
                 registry -> registry.addDecoder(new MockReadyCodec(protocolVersion)));
@@ -127,19 +142,28 @@ public class ResponseFrameCodecTest extends FrameCodecTest {
       uncompressedSize += PrimitiveSizes.sizeOfStringList(SOME_WARNINGS);
     }
 
-    int sizeInHeader;
-    if (forDecoding || compressor != null) {
+    int headerSize = 9;
+
+    int bodySize;
+    if (forDecoding) {
       // If we're decoding, decode() will call MockPrimitiveCodec.sizeOf on the rest of the
       // frame, and checks that it matches the size in the header.
+      bodySize = MockPrimitiveCodec.MOCK_SIZE;
+    } else if (compressor != null) {
       // If we're encoding with compression, encode() will call MockPrimitiveCodec.sizeOf to
       // measure the size of the compressed message, and use that in the header.
-      sizeInHeader = MockPrimitiveCodec.MOCK_SIZE;
+      bodySize = MockPrimitiveCodec.MOCK_SIZE;
+      // It will allocate one buffer for the header, and one for the uncompressed body
+      expectedAllocations.add(headerSize);
+      expectedAllocations.add(uncompressedSize);
     } else {
       // If we're encoding without compression, encode() will write the uncompressed size in the
       // header
-      sizeInHeader = uncompressedSize;
+      bodySize = uncompressedSize;
+      // It will allocate a single buffer
+      expectedAllocations.add(headerSize + bodySize);
     }
-    binary.int_(sizeInHeader);
+    binary.int_(bodySize);
 
     // Message body
     if (compressor != null) {
