@@ -35,4 +35,9 @@ public class IntMapTest {
     assertThat(map.get(3)).isEqualTo("bar");
     assertThat(map.get(4)).isNull();
   }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void should_fail_if_key_already_exists() {
+    IntMap.builder().put(1, "foo").put(1, "bar");
+  }
 }

@@ -15,8 +15,7 @@
  */
 package com.datastax.cassandra.protocol.internal.util;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -57,22 +56,21 @@ public class IntMap<V> {
   }
 
   public static class Builder<V> {
-    private Set<Map.Entry<Integer, V>> entries = new HashSet<>();
+    private Map<Integer, V> map = new HashMap<>();
 
     public Builder<V> put(int key, V value) {
       if (key < 0) {
-        throw new IllegalArgumentException("key must be positive");
+        throw new IllegalArgumentException("key must be positive: " + key);
       }
-      SimpleEntry<Integer, V> entry = new SimpleEntry<>(key, value);
-      if (!entries.add(entry)) {
-        throw new IllegalArgumentException(
-            String.format("Entry already exists: (%s, %s)", key, value));
+      if (map.containsKey(key)) {
+        throw new IllegalArgumentException("key already exists: " + key);
       }
+      map.put(key, value);
       return this;
     }
 
     public IntMap<V> build() {
-      return new IntMap<>(entries);
+      return new IntMap<>(map.entrySet());
     }
   }
 }
