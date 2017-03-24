@@ -38,6 +38,11 @@ public class MockBinaryString {
     return this;
   }
 
+  public MockBinaryString inetAddr(InetAddress host) {
+    append(Element.Type.INETADDR, host);
+    return this;
+  }
+
   public MockBinaryString long_(long value) {
     append(Element.Type.LONG, value);
     return this;
@@ -110,6 +115,7 @@ public class MockBinaryString {
       BYTE,
       INT,
       INET,
+      INETADDR,
       LONG,
       UNSIGNED_SHORT,
       STRING,

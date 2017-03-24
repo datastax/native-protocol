@@ -111,8 +111,8 @@ public class Error extends Message {
   }
 
   public abstract static class SubCodec {
-    final int errorCode;
-    final int protocolVersion;
+    protected final int errorCode;
+    protected final int protocolVersion;
 
     protected SubCodec(int errorCode, int protocolVersion) {
       this.errorCode = errorCode;

@@ -18,6 +18,7 @@ package com.datastax.cassandra.protocol.internal.binary;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString.Element;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
@@ -66,6 +67,11 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   }
 
   @Override
+  public InetAddress readInetAddr(MockBinaryString source) {
+    return (InetAddress) pop(source, Element.Type.INETADDR);
+  }
+
+  @Override
   public long readLong(MockBinaryString source) {
     return (Long) pop(source, Element.Type.LONG);
   }
@@ -110,6 +116,11 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   @Override
   public void writeInet(InetSocketAddress address, MockBinaryString dest) {
     dest.inet(address.getHostName(), address.getPort());
+  }
+
+  @Override
+  public void writeInetAddr(InetAddress address, MockBinaryString dest) {
+    dest.inetAddr(address);
   }
 
   @Override

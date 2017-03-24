@@ -39,8 +39,8 @@ public class ExecuteTest extends MessageTest<Execute> {
     return new Execute.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_and_decode_with_default_options(int protocolVersion) {
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  public void should_encode_and_decode_with_default_options_v3_v4(int protocolVersion) {
     Execute initial = new Execute(queryId, QueryOptions.DEFAULT);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -53,6 +53,35 @@ public class ExecuteTest extends MessageTest<Execute> {
                 .byte_(0) // no flags
             );
     assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2 + queryId.length + 2 + 1);
+
+    Execute decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.queryId).isEqualTo(initial.queryId);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
+    assertThat(decoded.options.positionalValues).isEmpty();
+    assertThat(decoded.options.namedValues).isEmpty();
+    assertThat(decoded.options.skipMetadata).isFalse();
+    assertThat(decoded.options.pageSize).isEqualTo(-1);
+    assertThat(decoded.options.pagingState).isNull();
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+  }
+
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  public void should_encode_and_decode_with_default_options(int protocolVersion) {
+    Execute initial = new Execute(queryId, QueryOptions.DEFAULT);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .shortBytes("0xcafebabe")
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
+                .int_(0) // no flags
+            );
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2 + queryId.length + 2 + 4);
 
     Execute decoded = decode(encoded, protocolVersion);
 

@@ -36,22 +36,25 @@ public class RowsMetadata {
       this.mask = mask;
     }
 
-    public static EnumSet<Flag> decode(int flags, int protocolVersion) {
+    public static <B> EnumSet<Flag> decode(
+        B source, PrimitiveCodec<B> decoder, int protocolVersion) {
+      int bits = decoder.readInt(source);
       EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
       for (Flag flag : Flag.values()) {
-        if ((flags & flag.mask) != 0) {
+        if ((bits & flag.mask) != 0) {
           set.add(flag);
         }
       }
       return set;
     }
 
-    public static int encode(EnumSet<Flag> flags, int protocolVersion) {
-      int i = 0;
+    public static <B> void encode(
+        EnumSet<Flag> flags, B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      int bits = 0;
       for (Flag flag : flags) {
-        i |= flag.mask;
+        bits |= flag.mask;
       }
-      return i;
+      encoder.writeInt(bits, dest);
     }
 
     public static int encodedSize(int protocolVersion) {
@@ -97,7 +100,7 @@ public class RowsMetadata {
 
   public <B> void encode(
       B dest, PrimitiveCodec<B> encoder, boolean withPkIndices, int protocolVersion) {
-    encoder.writeInt(Flag.encode(flags, protocolVersion), dest);
+    Flag.encode(flags, dest, encoder, protocolVersion);
     encoder.writeInt(columnSpecs.size(), dest);
     if (withPkIndices) {
       if (pkIndices == null) {
@@ -165,7 +168,7 @@ public class RowsMetadata {
 
   public static <B> RowsMetadata decode(
       B source, PrimitiveCodec<B> decoder, boolean withPkIndices, int protocolVersion) {
-    EnumSet<Flag> flags = Flag.decode(decoder.readInt(source), protocolVersion);
+    EnumSet<Flag> flags = Flag.decode(source, decoder, protocolVersion);
     int columnCount = decoder.readInt(source);
 
     int[] pkIndices = null;

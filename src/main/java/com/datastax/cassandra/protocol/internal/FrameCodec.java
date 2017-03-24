@@ -32,7 +32,11 @@ public class FrameCodec<B> {
   public static <B> FrameCodec<B> defaultClient(
       PrimitiveCodec<B> primitiveCodec, Compressor<B> compressor) {
     return new FrameCodec<>(
-        primitiveCodec, compressor, new ProtocolV3ClientCodecs(), new ProtocolV4ClientCodecs());
+        primitiveCodec,
+        compressor,
+        new ProtocolV3ClientCodecs(),
+        new ProtocolV4ClientCodecs(),
+        new ProtocolV5ClientCodecs());
   }
 
   /**
@@ -42,7 +46,11 @@ public class FrameCodec<B> {
   public static <B> FrameCodec<B> defaultServer(
       PrimitiveCodec<B> primitiveCodec, Compressor<B> compressor) {
     return new FrameCodec<>(
-        primitiveCodec, compressor, new ProtocolV3ServerCodecs(), new ProtocolV4ServerCodecs());
+        primitiveCodec,
+        compressor,
+        new ProtocolV3ServerCodecs(),
+        new ProtocolV4ServerCodecs(),
+        new ProtocolV5ServerCodecs());
   }
 
   private final PrimitiveCodec<B> primitiveCodec;
@@ -117,6 +125,9 @@ public class FrameCodec<B> {
     if (!frame.warnings.isEmpty()) {
       flags.add(Flag.WARNING);
     }
+    if (protocolVersion == ProtocolConstants.Version.BETA) {
+      flags.add(Flag.USE_BETA);
+    }
 
     int headerSize = headerEncodedSize();
     if (!flags.contains(Flag.COMPRESSED)) {
@@ -179,7 +190,7 @@ public class FrameCodec<B> {
       versionAndDirection |= 0b1000_0000;
     }
     primitiveCodec.writeByte((byte) versionAndDirection, dest);
-    primitiveCodec.writeByte((byte) Flag.encode(flags), dest);
+    Flag.encode(flags, dest, primitiveCodec, frame.protocolVersion);
     primitiveCodec.writeUnsignedShort(frame.streamId, dest);
     primitiveCodec.writeByte((byte) frame.message.opcode, dest);
     primitiveCodec.writeInt(messageSize, dest);
@@ -207,7 +218,8 @@ public class FrameCodec<B> {
     int directionAndVersion = primitiveCodec.readByte(source);
     boolean isResponse = (directionAndVersion & 0b1000_0000) == 0b1000_0000;
     int protocolVersion = directionAndVersion & 0b0111_1111;
-    EnumSet<Flag> flags = Flag.decode(primitiveCodec.readByte(source));
+    EnumSet<Flag> flags = Flag.decode(source, primitiveCodec, protocolVersion);
+    boolean beta = flags.contains(Flag.USE_BETA);
     int streamId = readStreamId(source);
     int opcode = primitiveCodec.readByte(source);
     int length = primitiveCodec.readInt(source);
@@ -242,7 +254,7 @@ public class FrameCodec<B> {
     Message response = decoder.decode(source, primitiveCodec);
 
     return new Frame(
-        protocolVersion, streamId, isTracing, tracingId, customPayload, warnings, response);
+        protocolVersion, beta, streamId, isTracing, tracingId, customPayload, warnings, response);
   }
 
   private int readStreamId(B source) {
@@ -253,7 +265,8 @@ public class FrameCodec<B> {
     COMPRESSED(0x01),
     TRACING(0x02),
     CUSTOM_PAYLOAD(0x04),
-    WARNING(0x08);
+    WARNING(0x08),
+    USE_BETA(0x10);
 
     private int mask;
 
@@ -261,27 +274,31 @@ public class FrameCodec<B> {
       this.mask = mask;
     }
 
-    static EnumSet<Flag> decode(int flags) {
+    static <B> EnumSet<Flag> decode(B source, PrimitiveCodec<B> decoder, int protocolVersion) {
+      int bits = decoder.readByte(source);
       EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
       for (Flag flag : Flag.values()) {
-        if ((flags & flag.mask) != 0) {
+        if ((bits & flag.mask) != 0) {
           set.add(flag);
         }
       }
       return set;
     }
 
-    static int encode(EnumSet<Flag> flags) {
-      int i = 0;
+    static <B> void encode(
+        EnumSet<Flag> flags, B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+      int bits = 0;
       for (Flag flag : flags) {
-        i |= flag.mask;
+        bits |= flag.mask;
       }
-      return i;
+      encoder.writeByte((byte) bits, dest);
     }
   }
 
   /**
    * Intermediary class to pass request/response codecs to the frame codec.
+   *
+   * <p>
    *
    * <p>This is just so that we can have the codecs nicely grouped by protocol version.
    */

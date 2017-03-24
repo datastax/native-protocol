@@ -15,6 +15,7 @@
  */
 package com.datastax.cassandra.protocol.internal;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -50,6 +51,8 @@ public interface PrimitiveCodec<B> {
   int readInt(B source);
 
   InetSocketAddress readInet(B source);
+
+  InetAddress readInetAddr(B source);
 
   long readLong(B source);
 
@@ -116,6 +119,8 @@ public interface PrimitiveCodec<B> {
   void writeInt(int i, B dest);
 
   void writeInet(InetSocketAddress address, B dest);
+
+  void writeInetAddr(InetAddress address, B dest);
 
   void writeLong(long l, B dest);
 

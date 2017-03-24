@@ -142,7 +142,7 @@ public class QueryOptions {
 
   public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
     encoder.writeUnsignedShort(consistency, dest);
-    encoder.writeByte((byte) QueryFlag.encode(flags, protocolVersion), dest);
+    QueryFlag.encode(this.flags, dest, encoder, protocolVersion);
     if (flags.contains(QueryFlag.VALUES)) {
       if (flags.contains(QueryFlag.VALUE_NAMES)) {
         Values.writeNamedValues(namedValues, dest, encoder);
@@ -192,8 +192,7 @@ public class QueryOptions {
 
   public static <B> QueryOptions decode(B source, PrimitiveCodec<B> decoder, int protocolVersion) {
     int consistency = decoder.readUnsignedShort(source);
-    EnumSet<QueryFlag> flags = QueryFlag.decode(decoder.readByte(source), protocolVersion);
-
+    EnumSet<QueryFlag> flags = QueryFlag.decode(source, decoder, protocolVersion);
     List<ByteBuffer> positionalValues = Collections.emptyList();
     Map<String, ByteBuffer> namedValues = Collections.emptyMap();
     if (flags.contains(QueryFlag.VALUES)) {

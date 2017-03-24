@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -29,6 +30,10 @@ import com.datastax.cassandra.protocol.internal.response.error.Unprepared;
 import com.datastax.cassandra.protocol.internal.response.error.WriteFailure;
 import com.datastax.cassandra.protocol.internal.response.error.WriteTimeout;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
@@ -187,10 +192,11 @@ public class ErrorTest extends MessageTest<Error> {
     assertThat(readTimeout.dataPresent).isFalse();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_and_decode_read_failure(int protocolVersion) {
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  public void should_encode_and_decode_read_failure_v3_v4(int protocolVersion) {
     ReadFailure initial =
-        new ReadFailure(MOCK_MESSAGE, ProtocolConstants.ConsistencyLevel.QUORUM, 2, 3, 1, false);
+        new ReadFailure(
+            MOCK_MESSAGE, ProtocolConstants.ConsistencyLevel.QUORUM, 2, 3, 1, null, false);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -217,6 +223,57 @@ public class ErrorTest extends MessageTest<Error> {
     assertThat(readFailure.received).isEqualTo(2);
     assertThat(readFailure.blockFor).isEqualTo(3);
     assertThat(readFailure.numFailures).isEqualTo(1);
+    assertThat(readFailure.reasonMap).isEmpty();
+    assertThat(readFailure.dataPresent).isFalse();
+  }
+
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  public void should_encode_and_decode_read_failure(int protocolVersion)
+      throws UnknownHostException {
+    Map<InetAddress, Integer> reasonMap = new HashMap<>();
+    InetAddress addr = InetAddress.getLoopbackAddress();
+    reasonMap.put(addr, 42);
+    ReadFailure initial =
+        new ReadFailure(
+            MOCK_MESSAGE, ProtocolConstants.ConsistencyLevel.QUORUM, 2, 3, 1, reasonMap, false);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(ProtocolConstants.ErrorCode.READ_FAILURE)
+                .string(MOCK_MESSAGE)
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.QUORUM)
+                .int_(2) // received
+                .int_(3) // blockFor
+                .int_(1) // size of reasonmap
+                .inetAddr(addr) // addr
+                .unsignedShort(42) // error code
+                .byte_(0)); // dataPresent
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.SIZE_OF_INT // error code
+                + (2 + MOCK_MESSAGE.length()) // message
+                + PrimitiveSizes.SIZE_OF_SHORT // consistencyLevel
+                + PrimitiveSizes.SIZE_OF_INT // received
+                + PrimitiveSizes.SIZE_OF_INT // blockFor
+                + PrimitiveSizes.SIZE_OF_INT // size of reasonmap
+                + (PrimitiveSizes.SIZE_OF_BYTE + addr.getAddress().length) // addr
+                + PrimitiveSizes.SIZE_OF_SHORT // error code
+                + PrimitiveSizes.SIZE_OF_BYTE); // dataPresent
+
+    Error decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.code).isEqualTo(ProtocolConstants.ErrorCode.READ_FAILURE);
+    assertThat(decoded).isInstanceOf(ReadFailure.class);
+    ReadFailure readFailure = (ReadFailure) decoded;
+    assertThat(readFailure.message).isEqualTo(MOCK_MESSAGE);
+    assertThat(readFailure.consistencyLevel).isEqualTo(ProtocolConstants.ConsistencyLevel.QUORUM);
+    assertThat(readFailure.received).isEqualTo(2);
+    assertThat(readFailure.blockFor).isEqualTo(3);
+    assertThat(readFailure.numFailures).isEqualTo(1);
+    assertThat(readFailure.reasonMap).isEqualTo(reasonMap);
     assertThat(readFailure.dataPresent).isFalse();
   }
 
@@ -262,8 +319,8 @@ public class ErrorTest extends MessageTest<Error> {
     assertThat(writeTimeout.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_and_decode_write_failure(int protocolVersion) {
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  public void should_encode_and_decode_write_failure_v3_v4(int protocolVersion) {
     WriteFailure initial =
         new WriteFailure(
             MOCK_MESSAGE,
@@ -271,6 +328,7 @@ public class ErrorTest extends MessageTest<Error> {
             2,
             3,
             1,
+            null,
             ProtocolConstants.WriteType.SIMPLE);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -296,6 +354,63 @@ public class ErrorTest extends MessageTest<Error> {
     assertThat(writeFailure.received).isEqualTo(2);
     assertThat(writeFailure.blockFor).isEqualTo(3);
     assertThat(writeFailure.numFailures).isEqualTo(1);
+    assertThat(writeFailure.reasonMap).isEmpty();
+    assertThat(writeFailure.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
+  }
+
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  public void should_encode_and_decode_write_failure(int protocolVersion)
+      throws UnknownHostException {
+    Map<InetAddress, Integer> reasonMap = new HashMap<>();
+    InetAddress addr = InetAddress.getLoopbackAddress();
+    reasonMap.put(addr, 42);
+    WriteFailure initial =
+        new WriteFailure(
+            MOCK_MESSAGE,
+            ProtocolConstants.ConsistencyLevel.QUORUM,
+            2,
+            3,
+            1,
+            reasonMap,
+            ProtocolConstants.WriteType.SIMPLE);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(ProtocolConstants.ErrorCode.WRITE_FAILURE)
+                .string(MOCK_MESSAGE)
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.QUORUM)
+                .int_(2) // received
+                .int_(3) // blockFor
+                .int_(1) // size of reasonmap
+                .inetAddr(addr) // addr
+                .unsignedShort(42) // error code
+                .string(ProtocolConstants.WriteType.SIMPLE)); // writeType
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.SIZE_OF_INT // error code
+                + (2 + MOCK_MESSAGE.length()) // message
+                + PrimitiveSizes.SIZE_OF_SHORT // consistencyLevel
+                + PrimitiveSizes.SIZE_OF_INT // received
+                + PrimitiveSizes.SIZE_OF_INT // blockFor
+                + PrimitiveSizes.SIZE_OF_INT // size of reasonmap
+                + (PrimitiveSizes.SIZE_OF_BYTE + addr.getAddress().length) // addr
+                + PrimitiveSizes.SIZE_OF_SHORT // error code
+                + (2 + ProtocolConstants.WriteType.SIMPLE.length())); // writeType
+
+    Error decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.code).isEqualTo(ProtocolConstants.ErrorCode.WRITE_FAILURE);
+    assertThat(decoded).isInstanceOf(WriteFailure.class);
+    WriteFailure writeFailure = (WriteFailure) decoded;
+    assertThat(writeFailure.message).isEqualTo(MOCK_MESSAGE);
+    assertThat(writeFailure.consistencyLevel).isEqualTo(ProtocolConstants.ConsistencyLevel.QUORUM);
+    assertThat(writeFailure.received).isEqualTo(2);
+    assertThat(writeFailure.blockFor).isEqualTo(3);
+    assertThat(writeFailure.numFailures).isEqualTo(1);
+    assertThat(writeFailure.reasonMap).isEqualTo(reasonMap);
     assertThat(writeFailure.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
   }
 

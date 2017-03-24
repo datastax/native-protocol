@@ -38,6 +38,16 @@ public class TestDataProviders {
     return protocolVersions(4, null);
   }
 
+  @DataProvider(name = "protocolV5OrAbove")
+  public static Object[][] protocolV5OrAbove() {
+    return protocolVersions(5, null);
+  }
+
+  @DataProvider(name = "protocolV3OrV4")
+  public static Object[][] protocolV3OrV4() {
+    return protocolVersions(3, 4);
+  }
+
   /**
    * @param min inclusive
    * @param max inclusive
@@ -47,7 +57,7 @@ public class TestDataProviders {
       min = ProtocolConstants.Version.MIN;
     }
     if (max == null) {
-      max = ProtocolConstants.Version.MAX;
+      max = ProtocolConstants.Version.BETA;
     }
     List<Object> l = new ArrayList<>();
     for (int i = min; i <= max; i++) {

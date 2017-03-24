@@ -15,7 +15,11 @@
  */
 package com.datastax.cassandra.protocol.internal.request.query;
 
+import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import java.util.EnumSet;
+
+import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V5;
 
 public enum QueryFlag {
   VALUES(0x01),
@@ -32,25 +36,32 @@ public enum QueryFlag {
     this.mask = mask;
   }
 
-  public static EnumSet<QueryFlag> decode(int flags, int protocolVersion) {
+  public static <B> EnumSet<QueryFlag> decode(
+      B source, PrimitiveCodec<B> decoder, int protocolVersion) {
+    int bits = protocolVersion >= V5 ? decoder.readInt(source) : decoder.readByte(source);
     EnumSet<QueryFlag> set = EnumSet.noneOf(QueryFlag.class);
     for (QueryFlag flag : QueryFlag.values()) {
-      if ((flags & flag.mask) != 0) {
+      if ((bits & flag.mask) != 0) {
         set.add(flag);
       }
     }
     return set;
   }
 
-  public static int encode(EnumSet<QueryFlag> flags, int protocolVersion) {
-    int i = 0;
+  public static <B> void encode(
+      EnumSet<QueryFlag> flags, B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
+    int bits = 0;
     for (QueryFlag flag : flags) {
-      i |= flag.mask;
+      bits |= flag.mask;
     }
-    return i;
+    if (protocolVersion >= V5) {
+      encoder.writeInt(bits, dest);
+    } else {
+      encoder.writeByte((byte) bits, dest);
+    }
   }
 
   public static int encodedSize(int protocolVersion) {
-    return 1;
+    return protocolVersion >= V5 ? PrimitiveSizes.SIZE_OF_INT : PrimitiveSizes.SIZE_OF_BYTE;
   }
 }

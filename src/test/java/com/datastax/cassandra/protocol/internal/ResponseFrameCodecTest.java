@@ -56,16 +56,15 @@ public class ResponseFrameCodecTest extends FrameCodecTest {
             (FrameCodec.CodecGroup)
                 registry -> registry.addEncoder(new MockReadyCodec(protocolVersion)));
 
-    MockBinaryString actual =
-        frameCodec.encode(
-            new Frame(
-                protocolVersion,
-                STREAM_ID,
-                tracing,
-                tracing ? TRACING_ID : null,
-                customPayload,
-                warnings,
-                new Ready()));
+    Frame frame =
+        Frame.forResponse(
+            protocolVersion,
+            STREAM_ID,
+            tracing ? TRACING_ID : null,
+            customPayload,
+            warnings,
+            new Ready());
+    MockBinaryString actual = frameCodec.encode(frame);
     MockBinaryString expected =
         mockResponsePayload(protocolVersion, compressor, tracing, customPayload, warnings, false);
 
@@ -125,6 +124,9 @@ public class ResponseFrameCodecTest extends FrameCodecTest {
     }
     if (!warnings.isEmpty()) {
       flags |= 0x08;
+    }
+    if (protocolVersion == ProtocolConstants.Version.BETA) {
+      flags |= 0x10;
     }
     binary.byte_(flags);
     binary.unsignedShort(STREAM_ID).byte_(ProtocolConstants.Opcode.READY);

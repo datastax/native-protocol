@@ -15,14 +15,20 @@
  */
 package com.datastax.cassandra.protocol.internal;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /** Computes the sizes of the protocol's primitive types. */
 public class PrimitiveSizes {
+  public static final int SIZE_OF_BYTE = 1;
+  public static final int SIZE_OF_SHORT = 2;
+  public static final int SIZE_OF_INT = 4;
+  public static final int SIZE_OF_LONG = 8;
+  public static final int SIZE_OF_UUID = 16;
+
   private PrimitiveSizes() {}
 
   public static int sizeOfString(String str) {
@@ -31,10 +37,6 @@ public class PrimitiveSizes {
 
   public static int sizeOfLongString(String s) {
     return 4 + encodedUTF8Length(s);
-  }
-
-  public static int sizeOfUuid(UUID uuid) {
-    return 16;
   }
 
   public static int sizeOfStringList(List<String> l) {
@@ -101,9 +103,12 @@ public class PrimitiveSizes {
   }
 
   public static int sizeOfInet(InetSocketAddress address) {
-    byte[] raw = address.getAddress().getAddress(); // sic
-    return 1 // number of bytes in address
-        + raw.length // bytes of address
-        + 4; // port
+    return sizeOfInetAddr(address.getAddress()) + SIZE_OF_INT; // port
+  }
+
+  public static int sizeOfInetAddr(InetAddress address) {
+    byte[] raw = address.getAddress();
+    return SIZE_OF_BYTE // number of bytes in address
+        + raw.length; // bytes of address
   }
 }

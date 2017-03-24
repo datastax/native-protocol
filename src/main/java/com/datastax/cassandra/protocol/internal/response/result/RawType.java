@@ -270,6 +270,7 @@ public abstract class RawType {
           ProtocolConstants.DataType.TIMEUUID,
           ProtocolConstants.DataType.SMALLINT,
           ProtocolConstants.DataType.TINYINT,
+          ProtocolConstants.DataType.DURATION,
           ProtocolConstants.DataType.DATE,
           ProtocolConstants.DataType.TIME
         }) {

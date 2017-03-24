@@ -113,7 +113,7 @@ public class Batch extends Message {
 
       encoder.writeUnsignedShort(batch.consistency, dest);
 
-      encoder.writeByte((byte) QueryFlag.encode(batch.flags, protocolVersion), dest);
+      QueryFlag.encode(batch.flags, dest, encoder, protocolVersion);
       if (batch.flags.contains(QueryFlag.SERIAL_CONSISTENCY)) {
         encoder.writeUnsignedShort(batch.serialConsistency, dest);
       }
@@ -170,7 +170,7 @@ public class Batch extends Message {
         values.add(Values.readPositionalValues(source, decoder));
       }
       int consistency = decoder.readUnsignedShort(source);
-      EnumSet<QueryFlag> flags = QueryFlag.decode(decoder.readByte(source), protocolVersion);
+      EnumSet<QueryFlag> flags = QueryFlag.decode(source, decoder, protocolVersion);
       int serialConsistency =
           (flags.contains(QueryFlag.SERIAL_CONSISTENCY))
               ? decoder.readUnsignedShort(source)

@@ -21,7 +21,6 @@ import com.datastax.cassandra.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.cassandra.protocol.internal.request.Options;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.mockito.Mockito;
@@ -56,16 +55,9 @@ public class RequestFrameCodecTest extends FrameCodecTest {
             (FrameCodec.CodecGroup)
                 registry -> registry.addEncoder(new MockOptionsCodec(protocolVersion)));
 
-    MockBinaryString actual =
-        frameCodec.encode(
-            new Frame(
-                protocolVersion,
-                STREAM_ID,
-                tracing,
-                null,
-                customPayload,
-                Collections.emptyList(),
-                Options.INSTANCE));
+    Frame frame =
+        Frame.forRequest(protocolVersion, STREAM_ID, tracing, customPayload, Options.INSTANCE);
+    MockBinaryString actual = frameCodec.encode(frame);
     MockBinaryString expected =
         mockRequestPayload(protocolVersion, compressor, tracing, customPayload, false);
 
@@ -94,6 +86,7 @@ public class RequestFrameCodecTest extends FrameCodecTest {
     Frame frame = frameCodec.decode(encoded);
 
     assertThat(frame.protocolVersion).isEqualTo(protocolVersion);
+    assertThat(frame.beta).isEqualTo(frame.protocolVersion == ProtocolConstants.Version.BETA);
     assertThat(frame.streamId).isEqualTo(STREAM_ID);
     assertThat(frame.tracing).isEqualTo(tracing);
     assertThat(frame.tracingId).isNull(); // always for requests
@@ -119,6 +112,9 @@ public class RequestFrameCodecTest extends FrameCodecTest {
     }
     if (!customPayload.isEmpty()) {
       flags |= 0x04;
+    }
+    if (protocolVersion == ProtocolConstants.Version.BETA) {
+      flags |= 0x10;
     }
     binary.byte_(flags);
     binary.unsignedShort(STREAM_ID).byte_(ProtocolConstants.Opcode.OPTIONS);
