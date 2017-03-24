@@ -111,7 +111,7 @@ public class RequestFrameCodecTest extends FrameCodecTest {
     // Header
     MockBinaryString binary = new MockBinaryString().byte_(protocolVersion);
     int flags = 0;
-    if (compressor != null) {
+    if (!(compressor instanceof NoopCompressor)) {
       flags |= 0x01;
     }
     if (tracing) {
@@ -136,7 +136,7 @@ public class RequestFrameCodecTest extends FrameCodecTest {
       // If we're decoding, decode() will call MockPrimitiveCodec.sizeOf on the rest of the
       // frame, and check that it matches the size in the header.
       bodySize = MockPrimitiveCodec.MOCK_SIZE;
-    } else if (compressor != null) {
+    } else if (!(compressor instanceof NoopCompressor)) {
       // If we're encoding with compression, encode() will call MockPrimitiveCodec.sizeOf to
       // measure the size of the compressed message, and use that in the header.
       bodySize = MockPrimitiveCodec.MOCK_SIZE;
@@ -153,14 +153,14 @@ public class RequestFrameCodecTest extends FrameCodecTest {
     binary.int_(bodySize);
 
     // Message body
-    if (compressor != null) {
+    if (!(compressor instanceof NoopCompressor)) {
       binary.string(MockCompressor.START);
     }
     if (customPayload.size() > 0) {
       binary.unsignedShort(2).string("foo").bytes("0x0a").string("bar").bytes("0x0b");
     }
     binary.string(MockOptionsCodec.MOCK_ENCODED);
-    if (compressor != null) {
+    if (!(compressor instanceof NoopCompressor)) {
       binary.string(MockCompressor.END);
     }
     return binary;
@@ -198,7 +198,7 @@ public class RequestFrameCodecTest extends FrameCodecTest {
     Object[][] v3Parameters =
         TestDataProviders.combine(
             TestDataProviders.protocolV3OrBelow(),
-            TestDataProviders.fromList(null, new MockCompressor()),
+            TestDataProviders.fromList(Compressor.none(), new MockCompressor()),
             TestDataProviders.fromList(false, true), // tracing
             TestDataProviders.fromList(Frame.NO_PAYLOAD));
 
@@ -206,7 +206,7 @@ public class RequestFrameCodecTest extends FrameCodecTest {
     Object[][] v4Parameters =
         TestDataProviders.combine(
             TestDataProviders.protocolV4OrAbove(),
-            TestDataProviders.fromList(null, new MockCompressor()),
+            TestDataProviders.fromList(Compressor.none(), new MockCompressor()),
             TestDataProviders.fromList(false, true),
             TestDataProviders.fromList(Frame.NO_PAYLOAD, SOME_PAYLOAD));
 

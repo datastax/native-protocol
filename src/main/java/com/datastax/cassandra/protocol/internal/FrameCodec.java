@@ -52,6 +52,8 @@ public class FrameCodec<B> {
 
   public FrameCodec(
       PrimitiveCodec<B> primitiveCodec, Compressor<B> compressor, CodecGroup... codecGroups) {
+    ProtocolErrors.check(primitiveCodec != null, "primitiveCodec can't be null");
+    ProtocolErrors.check(compressor != null, "compressor can't be null, use Compressor.none()");
     this.primitiveCodec = primitiveCodec;
     this.compressor = compressor;
     IntIntMap.Builder<Message.Codec> encodersBuilder = IntIntMap.builder();
@@ -103,7 +105,7 @@ public class FrameCodec<B> {
         encoder != null, "Unsupported opcode %s in protocol v%d", opcode, protocolVersion);
 
     EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
-    if (compressor != null && opcode != ProtocolConstants.Opcode.STARTUP) {
+    if (!(compressor instanceof NoopCompressor) && opcode != ProtocolConstants.Opcode.STARTUP) {
       flags.add(Flag.COMPRESSED);
     }
     if (frame.tracing || frame.tracingId != null) {
@@ -156,7 +158,6 @@ public class FrameCodec<B> {
       encoder.encode(uncompressedMessage, request, primitiveCodec);
 
       // 2) Compress and measure size, discard uncompressed buffer
-      assert compressor != null; // avoid compile warning
       B compressedMessage = compressor.compress(uncompressedMessage);
       primitiveCodec.release(uncompressedMessage);
       int messageSize = primitiveCodec.sizeOf(compressedMessage);

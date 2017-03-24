@@ -15,13 +15,14 @@
  */
 package com.datastax.cassandra.protocol.internal;
 
-/** @param <B> the binary representation to compress. */
-public interface Compressor<B> {
-  static <B> Compressor<B> none() {
-    return new NoopCompressor<>();
+public class NoopCompressor<B> implements Compressor<B> {
+  @Override
+  public B compress(B uncompressed) {
+    return uncompressed;
   }
 
-  B compress(B uncompressed);
-
-  B decompress(B compressed);
+  @Override
+  public B decompress(B compressed) {
+    return compressed;
+  }
 }
