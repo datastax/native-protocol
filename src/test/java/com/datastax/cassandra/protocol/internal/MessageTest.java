@@ -33,6 +33,7 @@ public abstract class MessageTest<M extends Message> {
   protected MockBinaryString encode(M message, int protocolVersion) {
     MockBinaryString dest = new MockBinaryString();
     Message.Codec codec = newCodec(protocolVersion);
+    assertThat(codec.opcode).isEqualTo(message.opcode);
     codec.encode(dest, message, MockPrimitiveCodec.INSTANCE);
     return dest;
   }
@@ -43,8 +44,10 @@ public abstract class MessageTest<M extends Message> {
   }
 
   protected M decode(MockBinaryString source, int protocolVersion) {
-    Message message = newCodec(protocolVersion).decode(source, MockPrimitiveCodec.INSTANCE);
+    Message.Codec codec = newCodec(protocolVersion);
+    Message message = codec.decode(source, MockPrimitiveCodec.INSTANCE);
     assertThat(message).isInstanceOf(messageClass);
+    assertThat(message.opcode).isEqualTo(codec.opcode);
     return messageClass.cast(message);
   }
 }

@@ -52,7 +52,7 @@ public class Error extends Message {
     private final IntMap<SubCodec> subCodecs;
 
     public Codec(int protocolVersion, SubCodec... SubCodecs) {
-      super(ProtocolConstants.Opcode.RESULT, protocolVersion);
+      super(ProtocolConstants.Opcode.ERROR, protocolVersion);
       IntMap.Builder<SubCodec> builder = IntMap.builder();
       for (SubCodec SubCodec : SubCodecs) {
         builder.put(SubCodec.errorCode, SubCodec);

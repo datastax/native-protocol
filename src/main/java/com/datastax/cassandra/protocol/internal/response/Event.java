@@ -40,7 +40,7 @@ public abstract class Event extends Message {
     private final Map<String, SubCodec> subDecoders;
 
     public Codec(int protocolVersion, SubCodec... subCodecs) {
-      super(ProtocolConstants.Opcode.RESULT, protocolVersion);
+      super(ProtocolConstants.Opcode.EVENT, protocolVersion);
       Map<String, SubCodec> tmp = new HashMap<>();
       for (SubCodec subCodec : subCodecs) {
         tmp.put(subCodec.type, subCodec);
