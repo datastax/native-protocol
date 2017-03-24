@@ -12,7 +12,8 @@ The code is agnostic about the underlying binary representation: start by implem
 `PrimitiveCodec` for your target type `B` (which could be `ByteBuffer`, Netty's `ByteBuf`, 
 `byte[]`, etc.)
 
-You may also implement a `Compressor<B>` (it can be `null` if you're not going to compress frames).
+You may also implement a `Compressor<B>` (it can be `Compressor.none()` if you're not going to
+compress frames).
  
 Finally, build a `FrameCodec<B>` that will allow you to encode and decode frames. 
 `Frame.defaultClient` and `Frame.defaultServer` give you the default sets of codecs for the 
