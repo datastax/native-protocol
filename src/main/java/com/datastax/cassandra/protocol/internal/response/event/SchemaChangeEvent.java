@@ -23,6 +23,8 @@ import com.datastax.cassandra.protocol.internal.ProtocolErrors;
 import com.datastax.cassandra.protocol.internal.response.Event;
 import java.util.List;
 
+import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V4;
+
 public class SchemaChangeEvent extends Event {
   /** @see ProtocolConstants.SchemaChangeType */
   public final String changeType;
@@ -78,7 +80,7 @@ public class SchemaChangeEvent extends Event {
       SchemaChangeEvent event = (SchemaChangeEvent) message;
 
       ProtocolErrors.check(
-          protocolVersion >= ProtocolConstants.Version.V4
+          protocolVersion >= V4
               || !ProtocolConstants.SchemaChangeTarget.AGGREGATE.equals(event.target)
                   && !ProtocolConstants.SchemaChangeTarget.FUNCTION.equals(event.target),
           "%s schema change events are not supported in protocol version %d",
@@ -111,7 +113,7 @@ public class SchemaChangeEvent extends Event {
       String changeType = decoder.readString(source);
       String target = decoder.readString(source);
       ProtocolErrors.check(
-          protocolVersion >= ProtocolConstants.Version.V4
+          protocolVersion >= V4
               || !ProtocolConstants.SchemaChangeTarget.AGGREGATE.equals(target)
                   && !ProtocolConstants.SchemaChangeTarget.FUNCTION.equals(target),
           "%s schema change events are not supported in protocol version %d",

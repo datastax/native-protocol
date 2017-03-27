@@ -21,6 +21,8 @@ import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.response.Result;
 
+import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V4;
+
 public class Prepared extends Result {
   public final byte[] preparedQueryId;
   public final RowsMetadata variablesMetadata;
@@ -43,7 +45,7 @@ public class Prepared extends Result {
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Prepared prepared = (Prepared) message;
       encoder.writeShortBytes(prepared.preparedQueryId, dest);
-      boolean hasPkIndices = (protocolVersion >= ProtocolConstants.Version.V4);
+      boolean hasPkIndices = (protocolVersion >= V4);
       prepared.variablesMetadata.encode(dest, encoder, hasPkIndices, protocolVersion);
       prepared.resultMetadata.encode(dest, encoder, false, protocolVersion);
     }
@@ -52,7 +54,7 @@ public class Prepared extends Result {
     public int encodedSize(Message message) {
       Prepared prepared = (Prepared) message;
       int size = PrimitiveSizes.sizeOfShortBytes(prepared.preparedQueryId);
-      boolean hasPkIndices = (protocolVersion >= ProtocolConstants.Version.V4);
+      boolean hasPkIndices = (protocolVersion >= V4);
       size += prepared.variablesMetadata.encodedSize(hasPkIndices, protocolVersion);
       size += prepared.resultMetadata.encodedSize(false, protocolVersion);
       return size;
@@ -61,7 +63,7 @@ public class Prepared extends Result {
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       byte[] preparedQueryId = decoder.readShortBytes(source);
-      boolean hasPkIndices = (protocolVersion >= ProtocolConstants.Version.V4);
+      boolean hasPkIndices = (protocolVersion >= V4);
       RowsMetadata variablesMetadata =
           RowsMetadata.decode(source, decoder, hasPkIndices, protocolVersion);
       RowsMetadata resultMetadata = RowsMetadata.decode(source, decoder, false, protocolVersion);

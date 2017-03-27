@@ -28,6 +28,7 @@ import java.util.Collections;
 import org.testng.annotations.Test;
 
 import static com.datastax.cassandra.protocol.internal.Assertions.assertThat;
+import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V3;
 
 public class PreparedTest extends MessageTest<Prepared> {
   private static final RawType BLOB_TYPE = RawType.PRIMITIVES.get(ProtocolConstants.DataType.BLOB);
@@ -53,7 +54,7 @@ public class PreparedTest extends MessageTest<Prepared> {
             null);
     RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), null, null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
-    int protocolVersion = ProtocolConstants.Version.V3;
+    int protocolVersion = V3;
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -107,7 +108,7 @@ public class PreparedTest extends MessageTest<Prepared> {
             null,
             null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
-    int protocolVersion = ProtocolConstants.Version.V3;
+    int protocolVersion = V3;
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 

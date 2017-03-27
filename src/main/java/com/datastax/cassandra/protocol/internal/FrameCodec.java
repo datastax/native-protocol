@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.datastax.cassandra.protocol.internal.ProtocolConstants.Version.V4;
+
 public class FrameCodec<B> {
 
   /**
@@ -99,11 +101,11 @@ public class FrameCodec<B> {
     Message request = frame.message;
 
     ProtocolErrors.check(
-        protocolVersion >= ProtocolConstants.Version.V4 || frame.customPayload.isEmpty(),
+        protocolVersion >= V4 || frame.customPayload.isEmpty(),
         "Custom payload is not supported in protocol v%d",
         protocolVersion);
     ProtocolErrors.check(
-        protocolVersion >= ProtocolConstants.Version.V4 || frame.warnings.isEmpty(),
+        protocolVersion >= V4 || frame.warnings.isEmpty(),
         "Warnings are not supported in protocol v%d",
         protocolVersion);
 
@@ -297,6 +299,10 @@ public class FrameCodec<B> {
 
   /**
    * Intermediary class to pass request/response codecs to the frame codec.
+   *
+   * <p>
+   *
+   * <p>
    *
    * <p>
    *
