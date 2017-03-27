@@ -64,7 +64,11 @@ public class ReadTimeout extends Error {
     @Override
     public int encodedSize(Message message) {
       ReadTimeout readTimeout = (ReadTimeout) message;
-      return PrimitiveSizes.sizeOfString(readTimeout.message) + 2 + 4 + 4 + 1;
+      return PrimitiveSizes.sizeOfString(readTimeout.message)
+          + PrimitiveSizes.SHORT
+          + PrimitiveSizes.INT
+          + PrimitiveSizes.INT
+          + PrimitiveSizes.BYTE;
     }
 
     @Override

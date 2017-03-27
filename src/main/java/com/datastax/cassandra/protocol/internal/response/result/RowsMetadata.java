@@ -58,7 +58,7 @@ public class RowsMetadata {
     }
 
     public static int encodedSize(int protocolVersion) {
-      return 4; // one [int]
+      return PrimitiveSizes.INT;
     }
   }
 
@@ -136,11 +136,11 @@ public class RowsMetadata {
 
   public int encodedSize(boolean withPkIndices, int protocolVersion) {
     int size = Flag.encodedSize(protocolVersion);
-    size += 4; // column count
+    size += PrimitiveSizes.INT; // column count
     if (withPkIndices) {
-      size += 4;
+      size += PrimitiveSizes.INT;
       if (pkIndices != null) {
-        size += pkIndices.length * 2;
+        size += pkIndices.length * PrimitiveSizes.SHORT;
       }
     }
     if (flags.contains(Flag.HAS_MORE_PAGES)) {

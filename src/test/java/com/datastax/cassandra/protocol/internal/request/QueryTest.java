@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.request;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -53,7 +54,11 @@ public class QueryTest extends MessageTest<Query> {
                 .byte_(0) // no flags
             );
 
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 1);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.BYTE);
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -82,7 +87,11 @@ public class QueryTest extends MessageTest<Query> {
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
                 .int_(0) // no flags
             );
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 4);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT);
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -115,7 +124,11 @@ public class QueryTest extends MessageTest<Query> {
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.QUORUM)
                 .byte_(0));
 
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 1);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.BYTE);
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -147,7 +160,11 @@ public class QueryTest extends MessageTest<Query> {
                 .longString("select * from system.local")
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.QUORUM)
                 .int_(0));
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + queryString.length() + 2 + 4);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT);
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -181,7 +198,12 @@ public class QueryTest extends MessageTest<Query> {
             );
 
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + queryString.length() + 2 + 1 + 2 + 8);
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.BYTE
+                + PrimitiveSizes.SHORT
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2));
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -214,7 +236,12 @@ public class QueryTest extends MessageTest<Query> {
                 .bytes("0xcafebabe") // count + list of values
             );
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + queryString.length() + 2 + 4 + 2 + 8);
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.SHORT
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2));
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -255,7 +282,14 @@ public class QueryTest extends MessageTest<Query> {
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL)
                 .long_(42));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + queryString.length() + 2 + 1 + 4 + 8 + 2 + 8);
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.BYTE
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2)
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.LONG);
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -296,7 +330,14 @@ public class QueryTest extends MessageTest<Query> {
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL)
                 .long_(42));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + queryString.length() + 2 + 4 + 4 + 8 + 2 + 8);
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2)
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.LONG);
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -330,7 +371,13 @@ public class QueryTest extends MessageTest<Query> {
                 .bytes("0xcafebabe") // count + list of values
             );
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + queryString.length() + 2 + 1 + 2 + (2 + "foo".length()) + 8);
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.BYTE
+                + PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "foo".length())
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2));
 
     Query decoded = decode(encoded, protocolVersion);
 
@@ -366,7 +413,13 @@ public class QueryTest extends MessageTest<Query> {
                 .bytes("0xcafebabe") // count + list of values
             );
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + queryString.length() + 2 + 4 + 2 + (2 + "foo".length()) + 8);
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "foo".length())
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2));
 
     Query decoded = decode(encoded, protocolVersion);
 

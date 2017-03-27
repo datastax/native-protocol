@@ -134,7 +134,7 @@ public class FrameCodec<B> {
       // No compression: we can optimize and do everything with a single allocation
       int messageSize = encoder.encodedSize(request);
       if (frame.tracingId != null) {
-        messageSize += 2 * 8; // two longs
+        messageSize += PrimitiveSizes.UUID;
       }
       if (!frame.customPayload.isEmpty()) {
         messageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
@@ -154,7 +154,7 @@ public class FrameCodec<B> {
       // 1) Encode uncompressed message
       int uncompressedMessageSize = encoder.encodedSize(request);
       if (frame.tracingId != null) {
-        uncompressedMessageSize += 2 * 8; // two longs
+        uncompressedMessageSize += PrimitiveSizes.UUID;
       }
       if (!frame.customPayload.isEmpty()) {
         uncompressedMessageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);

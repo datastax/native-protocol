@@ -87,14 +87,14 @@ public class WriteFailure extends Error {
       WriteFailure writeFailure = (WriteFailure) message;
       int size =
           PrimitiveSizes.sizeOfString(writeFailure.message)
-              + PrimitiveSizes.SIZE_OF_SHORT // consistencyLevel
-              + PrimitiveSizes.SIZE_OF_INT // received
-              + PrimitiveSizes.SIZE_OF_INT // blockFor
+              + PrimitiveSizes.SHORT // consistencyLevel
+              + PrimitiveSizes.INT // received
+              + PrimitiveSizes.INT // blockFor
               + PrimitiveSizes.sizeOfString(writeFailure.writeType);
       if (protocolVersion >= V5) {
         size += ReadFailure.SubCodec.sizeOfReasonMap(writeFailure.reasonMap);
       } else {
-        size += PrimitiveSizes.SIZE_OF_INT;
+        size += PrimitiveSizes.INT;
       }
       return size;
     }

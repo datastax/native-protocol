@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -57,10 +58,10 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
                 .string("test"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            4
-                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
-                + (2 + ProtocolConstants.SchemaChangeTarget.KEYSPACE.length())
-                + (2 + "test".length()));
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeTarget.KEYSPACE.length())
+                + (PrimitiveSizes.SHORT + "test".length()));
 
     SchemaChange decoded = decode(encoded, protocolVersion);
 
@@ -93,11 +94,11 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
                 .string("mytable"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            4
-                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
-                + (2 + ProtocolConstants.SchemaChangeTarget.TABLE.length())
-                + (2 + "test".length())
-                + (2 + "mytable".length()));
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeTarget.TABLE.length())
+                + (PrimitiveSizes.SHORT + "test".length())
+                + (PrimitiveSizes.SHORT + "mytable".length()));
 
     SchemaChange decoded = decode(encoded, protocolVersion);
 
@@ -130,11 +131,11 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
                 .string("mytype"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            4
-                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
-                + (2 + ProtocolConstants.SchemaChangeTarget.TYPE.length())
-                + (2 + "test".length())
-                + (2 + "mytype".length()));
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeTarget.TYPE.length())
+                + (PrimitiveSizes.SHORT + "test".length())
+                + (PrimitiveSizes.SHORT + "mytype".length()));
 
     SchemaChange decoded = decode(encoded, protocolVersion);
 
@@ -208,13 +209,13 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
                 .string("int"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            4
-                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
-                + (2 + ProtocolConstants.SchemaChangeTarget.FUNCTION.length())
-                + (2 + "test".length())
-                + (2 + "myfunction".length())
-                + 2
-                + (2 + "int".length()) * 2);
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeTarget.FUNCTION.length())
+                + (PrimitiveSizes.SHORT + "test".length())
+                + (PrimitiveSizes.SHORT + "myfunction".length())
+                + PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "int".length()) * 2);
 
     SchemaChange decoded = decode(encoded, protocolVersion);
 
@@ -250,13 +251,13 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
                 .string("int"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            4
-                + (2 + ProtocolConstants.SchemaChangeType.CREATED.length())
-                + (2 + ProtocolConstants.SchemaChangeTarget.AGGREGATE.length())
-                + (2 + "test".length())
-                + (2 + "myaggregate".length())
-                + 2
-                + (2 + "int".length()) * 2);
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeType.CREATED.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.SchemaChangeTarget.AGGREGATE.length())
+                + (PrimitiveSizes.SHORT + "test".length())
+                + (PrimitiveSizes.SHORT + "myaggregate".length())
+                + PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "int".length()) * 2);
 
     SchemaChange decoded = decode(encoded, protocolVersion);
 

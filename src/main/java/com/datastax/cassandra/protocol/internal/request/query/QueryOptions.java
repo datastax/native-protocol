@@ -166,7 +166,7 @@ public class QueryOptions {
 
   public int encodedSize(int protocolVersion) {
     int size = 0;
-    size += 2; // consistency level
+    size += PrimitiveSizes.SHORT; // consistency level
     size += QueryFlag.encodedSize(protocolVersion); // flags
     if (flags.contains(QueryFlag.VALUES)) {
       if (flags.contains(QueryFlag.VALUE_NAMES)) {
@@ -176,16 +176,16 @@ public class QueryOptions {
       }
     }
     if (flags.contains(QueryFlag.PAGE_SIZE)) {
-      size += 4;
+      size += PrimitiveSizes.INT;
     }
     if (flags.contains(QueryFlag.PAGING_STATE)) {
       size += PrimitiveSizes.sizeOfBytes(pagingState);
     }
     if (flags.contains(QueryFlag.SERIAL_CONSISTENCY)) {
-      size += 2;
+      size += PrimitiveSizes.SHORT;
     }
     if (flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
-      size += 8;
+      size += PrimitiveSizes.LONG;
     }
     return size;
   }

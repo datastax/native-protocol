@@ -56,7 +56,10 @@ public class Unavailable extends Error {
     @Override
     public int encodedSize(Message message) {
       Unavailable unavailable = (Unavailable) message;
-      return PrimitiveSizes.sizeOfString(unavailable.message) + 2 + 4 + 4;
+      return PrimitiveSizes.sizeOfString(unavailable.message)
+          + PrimitiveSizes.SHORT
+          + PrimitiveSizes.INT
+          + PrimitiveSizes.INT;
     }
 
     @Override

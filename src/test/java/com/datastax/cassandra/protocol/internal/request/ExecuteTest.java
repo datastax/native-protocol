@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.request;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -52,7 +53,9 @@ public class ExecuteTest extends MessageTest<Execute> {
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
                 .byte_(0) // no flags
             );
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2 + queryId.length + 2 + 1);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.SHORT + queryId.length) + PrimitiveSizes.SHORT + PrimitiveSizes.BYTE);
 
     Execute decoded = decode(encoded, protocolVersion);
 
@@ -81,7 +84,9 @@ public class ExecuteTest extends MessageTest<Execute> {
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
                 .int_(0) // no flags
             );
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2 + queryId.length + 2 + 4);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.SHORT + queryId.length) + PrimitiveSizes.SHORT + PrimitiveSizes.INT);
 
     Execute decoded = decode(encoded, protocolVersion);
 

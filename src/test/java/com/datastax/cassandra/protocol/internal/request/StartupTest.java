@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.request;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import org.testng.annotations.Test;
@@ -51,11 +52,11 @@ public class StartupTest extends MessageTest<Startup> {
                 .string("3.0.0"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            2
-                + (2 + "COMPRESSION".length())
-                + (2 + "LZ4".length())
-                + (2 + "CQL_VERSION".length())
-                + (2 + "3.0.0".length()));
+            PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "COMPRESSION".length())
+                + (PrimitiveSizes.SHORT + "LZ4".length())
+                + (PrimitiveSizes.SHORT + "CQL_VERSION".length())
+                + (PrimitiveSizes.SHORT + "3.0.0".length()));
 
     Startup decoded = decode(encoded, protocolVersion);
 
@@ -74,7 +75,10 @@ public class StartupTest extends MessageTest<Startup> {
     assertThat(encoded)
         .isEqualTo(new MockBinaryString().unsignedShort(1).string("CQL_VERSION").string("3.0.0"));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(2 + (2 + "CQL_VERSION".length()) + (2 + "3.0.0".length()));
+        .isEqualTo(
+            PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "CQL_VERSION".length())
+                + (PrimitiveSizes.SHORT + "3.0.0".length()));
 
     Startup decoded = decode(encoded, protocolVersion);
 

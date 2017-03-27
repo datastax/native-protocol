@@ -72,7 +72,8 @@ public class ErrorTest extends MessageTest<Error> {
       MockBinaryString encoded = encode(initial, protocolVersion);
 
       assertThat(encoded).isEqualTo(new MockBinaryString().int_(errorCode).string(MOCK_MESSAGE));
-      assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + 2 + MOCK_MESSAGE.length());
+      assertThat(encodedSize(initial, protocolVersion))
+          .isEqualTo(PrimitiveSizes.INT + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length()));
 
       Error decoded = decode(encoded, protocolVersion);
 
@@ -95,7 +96,10 @@ public class ErrorTest extends MessageTest<Error> {
                 .string(MOCK_MESSAGE)
                 .shortBytes("0xcafebabe"));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + (2 + MOCK_MESSAGE.length()) + (2 + "cafebabe".length() / 2));
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + (PrimitiveSizes.SHORT + "cafebabe".length() / 2));
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -120,7 +124,11 @@ public class ErrorTest extends MessageTest<Error> {
                 .string("ks")
                 .string("table"));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + (2 + MOCK_MESSAGE.length()) + (2 + "ks".length()) + (2 + "table".length()));
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + (PrimitiveSizes.SHORT + "ks".length())
+                + (PrimitiveSizes.SHORT + "table".length()));
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -148,7 +156,12 @@ public class ErrorTest extends MessageTest<Error> {
                 .int_(2)
                 .int_(1));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + (2 + MOCK_MESSAGE.length()) + 2 + 4 + 4);
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT);
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -178,7 +191,13 @@ public class ErrorTest extends MessageTest<Error> {
                 .int_(3)
                 .byte_(0));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + (2 + MOCK_MESSAGE.length()) + 2 + 4 + 4 + 1);
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.BYTE);
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -211,7 +230,14 @@ public class ErrorTest extends MessageTest<Error> {
                 .int_(1)
                 .byte_(0));
     assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(4 + (2 + MOCK_MESSAGE.length()) + 2 + 4 + 4 + 4 + 1);
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.BYTE);
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -253,15 +279,15 @@ public class ErrorTest extends MessageTest<Error> {
                 .byte_(0)); // dataPresent
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            PrimitiveSizes.SIZE_OF_INT // error code
-                + (2 + MOCK_MESSAGE.length()) // message
-                + PrimitiveSizes.SIZE_OF_SHORT // consistencyLevel
-                + PrimitiveSizes.SIZE_OF_INT // received
-                + PrimitiveSizes.SIZE_OF_INT // blockFor
-                + PrimitiveSizes.SIZE_OF_INT // size of reasonmap
-                + (PrimitiveSizes.SIZE_OF_BYTE + addr.getAddress().length) // addr
-                + PrimitiveSizes.SIZE_OF_SHORT // error code
-                + PrimitiveSizes.SIZE_OF_BYTE); // dataPresent
+            PrimitiveSizes.INT // error code
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length()) // message
+                + PrimitiveSizes.SHORT // consistencyLevel
+                + PrimitiveSizes.INT // received
+                + PrimitiveSizes.INT // blockFor
+                + PrimitiveSizes.INT // size of reasonmap
+                + (PrimitiveSizes.BYTE + addr.getAddress().length) // addr
+                + PrimitiveSizes.SHORT // error code
+                + PrimitiveSizes.BYTE); // dataPresent
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -300,12 +326,12 @@ public class ErrorTest extends MessageTest<Error> {
                 .string(ProtocolConstants.WriteType.SIMPLE));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            4
-                + (2 + MOCK_MESSAGE.length())
-                + 2
-                + 4
-                + 4
-                + (2 + ProtocolConstants.WriteType.SIMPLE.length()));
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.WriteType.SIMPLE.length()));
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -343,6 +369,15 @@ public class ErrorTest extends MessageTest<Error> {
                 .int_(3)
                 .int_(1)
                 .string(ProtocolConstants.WriteType.SIMPLE));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.WriteType.SIMPLE.length()));
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -390,15 +425,16 @@ public class ErrorTest extends MessageTest<Error> {
                 .string(ProtocolConstants.WriteType.SIMPLE)); // writeType
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            PrimitiveSizes.SIZE_OF_INT // error code
-                + (2 + MOCK_MESSAGE.length()) // message
-                + PrimitiveSizes.SIZE_OF_SHORT // consistencyLevel
-                + PrimitiveSizes.SIZE_OF_INT // received
-                + PrimitiveSizes.SIZE_OF_INT // blockFor
-                + PrimitiveSizes.SIZE_OF_INT // size of reasonmap
-                + (PrimitiveSizes.SIZE_OF_BYTE + addr.getAddress().length) // addr
-                + PrimitiveSizes.SIZE_OF_SHORT // error code
-                + (2 + ProtocolConstants.WriteType.SIMPLE.length())); // writeType
+            PrimitiveSizes.INT // error code
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length()) // message
+                + PrimitiveSizes.SHORT // consistencyLevel
+                + PrimitiveSizes.INT // received
+                + PrimitiveSizes.INT // blockFor
+                + PrimitiveSizes.INT // size of reasonmap
+                + (PrimitiveSizes.BYTE + addr.getAddress().length) // addr
+                + PrimitiveSizes.SHORT // error code
+                + (PrimitiveSizes.SHORT
+                    + ProtocolConstants.WriteType.SIMPLE.length())); // writeType
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -429,6 +465,13 @@ public class ErrorTest extends MessageTest<Error> {
                 .string("keyspace")
                 .string("function")
                 .string("arg types"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + (PrimitiveSizes.SHORT + "keyspace".length())
+                + (PrimitiveSizes.SHORT + "function".length())
+                + (PrimitiveSizes.SHORT + "arg types".length()));
 
     Error decoded = decode(encoded, protocolVersion);
 

@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.request;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import org.testng.annotations.Test;
@@ -41,7 +42,8 @@ public class PrepareTest extends MessageTest<Prepare> {
     MockBinaryString encoded = encode(initial, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString().longString("SELECT * FROM foo"));
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + "SELECT * FROM foo".length());
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(PrimitiveSizes.INT + "SELECT * FROM foo".length());
 
     Prepare decoded = decode(encoded, protocolVersion);
 

@@ -17,10 +17,9 @@ package com.datastax.cassandra.protocol.internal.request;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
-import com.datastax.cassandra.protocol.internal.request.AuthResponse;
-import com.datastax.cassandra.protocol.internal.response.result.RowsMetadata;
 import com.datastax.cassandra.protocol.internal.util.Bytes;
 import org.testng.annotations.Test;
 
@@ -44,7 +43,8 @@ public class AuthResponseTest extends MessageTest<AuthResponse> {
     MockBinaryString encoded = encode(initial, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString().bytes("0xcafebabe"));
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(8);
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(PrimitiveSizes.INT + "cafebabe".length() / 2);
 
     AuthResponse decoded = decode(encoded, protocolVersion);
 

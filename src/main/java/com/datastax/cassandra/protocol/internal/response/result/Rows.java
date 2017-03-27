@@ -56,7 +56,7 @@ public class Rows extends Result {
     @Override
     public int encodedSize(Message message) {
       Rows rows = (Rows) message;
-      int size = rows.metadata.encodedSize(false, protocolVersion) + 4;
+      int size = rows.metadata.encodedSize(false, protocolVersion) + PrimitiveSizes.INT;
       for (List<ByteBuffer> row : rows.data) {
         for (ByteBuffer column : row) {
           size += PrimitiveSizes.sizeOfBytes(column);

@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.event;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -53,9 +54,9 @@ public class StatusChangeEventTest extends MessageTest<StatusChangeEvent> {
                 .inet("127.0.0.1", 9042));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            (2 + ProtocolConstants.EventType.STATUS_CHANGE.length())
-                + (2 + ProtocolConstants.StatusChangeType.UP.length())
-                + (1 + 4 + 4));
+            (PrimitiveSizes.SHORT + ProtocolConstants.EventType.STATUS_CHANGE.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.StatusChangeType.UP.length())
+                + (PrimitiveSizes.BYTE + 4 + PrimitiveSizes.INT));
 
     StatusChangeEvent decoded = decode(encoded, protocolVersion);
 

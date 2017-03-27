@@ -62,6 +62,6 @@ public enum QueryFlag {
   }
 
   public static int encodedSize(int protocolVersion) {
-    return protocolVersion >= V5 ? PrimitiveSizes.SIZE_OF_INT : PrimitiveSizes.SIZE_OF_BYTE;
+    return protocolVersion >= V5 ? PrimitiveSizes.INT : PrimitiveSizes.BYTE;
   }
 }

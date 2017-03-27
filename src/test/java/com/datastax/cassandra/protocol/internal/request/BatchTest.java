@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.request;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -74,18 +75,20 @@ public class BatchTest extends MessageTest<Batch> {
             );
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            1 // batch type
-                + 2 // number of queries
+            PrimitiveSizes.BYTE // batch type
+                + PrimitiveSizes.SHORT // number of queries
                 // query 1
-                + (1 + (4 + "SELECT * FROM foo".length()) + 2)
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.INT + "SELECT * FROM foo".length())
+                    + PrimitiveSizes.SHORT)
                 // query 2
-                + (1
-                    + (2 + "cafebabe".length() / 2)
-                    + 2
-                    + (4 + "0a".length() / 2)
-                    + (4 + "0b".length() / 2))
-                + 2
-                + 1);
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.SHORT + "cafebabe".length() / 2)
+                    + PrimitiveSizes.SHORT
+                    + (PrimitiveSizes.INT + "0a".length() / 2)
+                    + (PrimitiveSizes.INT + "0b".length() / 2))
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.BYTE);
 
     Batch decoded = decode(encoded, protocolVersion);
 
@@ -135,18 +138,20 @@ public class BatchTest extends MessageTest<Batch> {
 
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            1 // batch type
-                + 2 // number of queries
+            PrimitiveSizes.BYTE // batch type
+                + PrimitiveSizes.SHORT // number of queries
                 // query 1
-                + (1 + (4 + "SELECT * FROM foo".length()) + 2)
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.INT + "SELECT * FROM foo".length())
+                    + PrimitiveSizes.SHORT)
                 // query 2
-                + (1
-                    + (2 + "cafebabe".length() / 2)
-                    + 2
-                    + (4 + "0a".length() / 2)
-                    + (4 + "0b".length() / 2))
-                + 2
-                + 4); // flags
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.SHORT + "cafebabe".length() / 2)
+                    + PrimitiveSizes.SHORT
+                    + (PrimitiveSizes.INT + "0a".length() / 2)
+                    + (PrimitiveSizes.INT + "0b".length() / 2))
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT); // flags
 
     Batch decoded = decode(encoded, protocolVersion);
 
@@ -196,20 +201,22 @@ public class BatchTest extends MessageTest<Batch> {
                 .long_(timestamp));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            1 // batch type
-                + 2 // number of queries
+            PrimitiveSizes.BYTE // batch type
+                + PrimitiveSizes.SHORT // number of queries
                 // query 1
-                + (1 + (4 + "SELECT * FROM foo".length()) + 2)
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.INT + "SELECT * FROM foo".length())
+                    + PrimitiveSizes.SHORT)
                 // query 2
-                + (1
-                    + (2 + "cafebabe".length() / 2)
-                    + 2
-                    + (4 + "0a".length() / 2)
-                    + (4 + "0b".length() / 2))
-                + 2
-                + 1 // flags
-                + 2
-                + 8);
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.SHORT + "cafebabe".length() / 2)
+                    + PrimitiveSizes.SHORT
+                    + (PrimitiveSizes.INT + "0a".length() / 2)
+                    + (PrimitiveSizes.INT + "0b".length() / 2))
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.BYTE // flags
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.LONG);
 
     Batch decoded = decode(encoded, protocolVersion);
 
@@ -259,20 +266,22 @@ public class BatchTest extends MessageTest<Batch> {
                 .long_(timestamp));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            1 // batch type
-                + 2 // number of queries
+            PrimitiveSizes.BYTE // batch type
+                + PrimitiveSizes.SHORT // number of queries
                 // query 1
-                + (1 + (4 + "SELECT * FROM foo".length()) + 2)
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.INT + "SELECT * FROM foo".length())
+                    + PrimitiveSizes.SHORT)
                 // query 2
-                + (1
-                    + (2 + "cafebabe".length() / 2)
-                    + 2
-                    + (4 + "0a".length() / 2)
-                    + (4 + "0b".length() / 2))
-                + 2
-                + 4 // flags
-                + 2
-                + 8);
+                + (PrimitiveSizes.BYTE
+                    + (PrimitiveSizes.SHORT + "cafebabe".length() / 2)
+                    + PrimitiveSizes.SHORT
+                    + (PrimitiveSizes.INT + "0a".length() / 2)
+                    + (PrimitiveSizes.INT + "0b".length() / 2))
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT // flags
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.LONG);
 
     Batch decoded = decode(encoded, protocolVersion);
 

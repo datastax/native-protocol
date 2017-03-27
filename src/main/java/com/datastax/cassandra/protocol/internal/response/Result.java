@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.PrimitiveCodec;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.ProtocolErrors;
 import com.datastax.cassandra.protocol.internal.response.result.Prepared;
@@ -69,8 +70,7 @@ public abstract class Result extends Message {
     @Override
     public int encodedSize(Message message) {
       Result result = (Result) message;
-      // size of int (result kind) + size of result.
-      return 4 + getSubCodec(result.kind).encodedSize(result);
+      return PrimitiveSizes.INT + getSubCodec(result.kind).encodedSize(result);
     }
 
     @Override

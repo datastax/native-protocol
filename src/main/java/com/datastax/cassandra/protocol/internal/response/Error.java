@@ -94,7 +94,7 @@ public class Error extends Message {
     @Override
     public int encodedSize(Message message) {
       Error error = (Error) message;
-      return 4 + getSubCodec(error.code).encodedSize(message);
+      return PrimitiveSizes.INT + getSubCodec(error.code).encodedSize(message);
     }
 
     @Override

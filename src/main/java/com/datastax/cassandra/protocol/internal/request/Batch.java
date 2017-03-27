@@ -125,7 +125,8 @@ public class Batch extends Message {
     @Override
     public int encodedSize(Message message) {
       Batch batch = (Batch) message;
-      int size = 1 + 2; // type + number of queries
+      int size = PrimitiveSizes.BYTE; // type
+      size += PrimitiveSizes.SHORT; // number of queries
 
       int queryCount = batch.queriesOrIds.size();
       ProtocolErrors.check(
@@ -139,20 +140,20 @@ public class Batch extends Message {
       for (int i = 0; i < queryCount; i++) {
         Object q = batch.queriesOrIds.get(i);
         size +=
-            1
+            PrimitiveSizes.BYTE
                 + (q instanceof String
                     ? PrimitiveSizes.sizeOfLongString((String) q)
                     : PrimitiveSizes.sizeOfShortBytes((byte[]) q));
 
         size += Values.sizeOfPositionalValues(batch.values.get(i));
       }
-      size += 2; // consistency level
+      size += PrimitiveSizes.SHORT; // consistency level
       size += QueryFlag.encodedSize(protocolVersion);
       if (batch.flags.contains(QueryFlag.SERIAL_CONSISTENCY)) {
-        size += 2;
+        size += PrimitiveSizes.SHORT;
       }
       if (batch.flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
-        size += 8;
+        size += PrimitiveSizes.LONG;
       }
       return size;
     }

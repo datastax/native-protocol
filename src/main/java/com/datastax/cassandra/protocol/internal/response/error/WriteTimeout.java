@@ -61,9 +61,9 @@ public class WriteTimeout extends Error {
     public int encodedSize(Message message) {
       WriteTimeout writeTimeout = (WriteTimeout) message;
       return PrimitiveSizes.sizeOfString(writeTimeout.message)
-          + 2
-          + 4
-          + 4
+          + PrimitiveSizes.SHORT
+          + PrimitiveSizes.INT
+          + PrimitiveSizes.INT
           + PrimitiveSizes.sizeOfString(writeTimeout.writeType);
     }
 

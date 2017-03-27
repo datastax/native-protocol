@@ -32,7 +32,7 @@ public class Values {
   }
 
   public static int sizeOfPositionalValues(List<ByteBuffer> values) {
-    int size = 2;
+    int size = PrimitiveSizes.SHORT;
     for (ByteBuffer value : values) {
       size += sizeOfValue(value);
     }
@@ -49,7 +49,7 @@ public class Values {
   }
 
   public static int sizeOfNamedValues(Map<String, ByteBuffer> values) {
-    int size = 2;
+    int size = PrimitiveSizes.SHORT;
     for (Map.Entry<String, ByteBuffer> entry : values.entrySet()) {
       size += PrimitiveSizes.sizeOfString(entry.getKey());
       size += sizeOfValue(entry.getValue());
@@ -69,7 +69,7 @@ public class Values {
 
   private static int sizeOfValue(ByteBuffer value) {
     return (value == null || value == ProtocolConstants.UNSET_VALUE)
-        ? 4
+        ? PrimitiveSizes.INT
         : PrimitiveSizes.sizeOfBytes(value);
   }
 

@@ -15,6 +15,7 @@
  */
 package com.datastax.cassandra.protocol.internal.response.result;
 
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -77,10 +78,16 @@ public class RowsMetadataTest {
                 .unsignedShort(ProtocolConstants.DataType.VARCHAR));
     assertThat(encodedSizeWithoutPkIndices(initial, protocolVersion))
         .isEqualTo(
-            4
-                + 4
-                + ((2 + "ks1".length()) + (2 + "table1".length()) + (2 + "column1".length()) + 2)
-                + ((2 + "ks2".length()) + (2 + "table2".length()) + (2 + "column2".length()) + 2));
+            PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + ((PrimitiveSizes.SHORT + "ks1".length())
+                    + (PrimitiveSizes.SHORT + "table1".length())
+                    + (PrimitiveSizes.SHORT + "column1".length())
+                    + PrimitiveSizes.SHORT)
+                + ((PrimitiveSizes.SHORT + "ks2".length())
+                    + (PrimitiveSizes.SHORT + "table2".length())
+                    + (PrimitiveSizes.SHORT + "column2".length())
+                    + PrimitiveSizes.SHORT));
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 
@@ -112,12 +119,12 @@ public class RowsMetadataTest {
                 .unsignedShort(ProtocolConstants.DataType.VARCHAR));
     assertThat(encodedSizeWithoutPkIndices(initial, protocolVersion))
         .isEqualTo(
-            4
-                + 4
-                + (2 + "ks1".length())
-                + (2 + "table1".length())
-                + ((2 + "column1".length()) + 2)
-                + ((2 + "column2".length()) + 2));
+            PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + "ks1".length())
+                + (PrimitiveSizes.SHORT + "table1".length())
+                + ((PrimitiveSizes.SHORT + "column1".length()) + PrimitiveSizes.SHORT)
+                + ((PrimitiveSizes.SHORT + "column2".length()) + PrimitiveSizes.SHORT));
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 
@@ -150,13 +157,13 @@ public class RowsMetadataTest {
                 .unsignedShort(ProtocolConstants.DataType.VARCHAR));
     assertThat(encodedSizeWithoutPkIndices(initial, protocolVersion))
         .isEqualTo(
-            4
-                + 4
-                + (4 + "cafebabe".length() / 2)
-                + (2 + "ks1".length())
-                + (2 + "table1".length())
-                + ((2 + "column1".length()) + 2)
-                + ((2 + "column2".length()) + 2));
+            PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2)
+                + (PrimitiveSizes.SHORT + "ks1".length())
+                + (PrimitiveSizes.SHORT + "table1".length())
+                + ((PrimitiveSizes.SHORT + "column1".length()) + PrimitiveSizes.SHORT)
+                + ((PrimitiveSizes.SHORT + "column2".length()) + PrimitiveSizes.SHORT));
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 

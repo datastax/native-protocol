@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import org.testng.annotations.Test;
@@ -42,7 +43,8 @@ public class AuthenticateTest extends MessageTest<Authenticate> {
     MockBinaryString encoded = encode(initial, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString().string(authenticator));
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2 + authenticator.length());
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(PrimitiveSizes.SHORT + authenticator.length());
 
     Authenticate decoded = decode(encoded, protocolVersion);
     assertThat(decoded.authenticator).isEqualTo(authenticator);

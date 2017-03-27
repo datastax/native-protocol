@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.request;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -55,9 +56,9 @@ public class RegisterTest extends MessageTest<Register> {
 
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            2
-                + (2 + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
-                + (2 + ProtocolConstants.EventType.STATUS_CHANGE.length()));
+            PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.EventType.SCHEMA_CHANGE.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.EventType.STATUS_CHANGE.length()));
 
     Register decoded = decode(encoded, protocolVersion);
 

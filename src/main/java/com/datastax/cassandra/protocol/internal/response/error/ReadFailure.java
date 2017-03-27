@@ -86,14 +86,14 @@ public class ReadFailure extends Error {
       ReadFailure readFailure = (ReadFailure) message;
       int size =
           PrimitiveSizes.sizeOfString(readFailure.message)
-              + PrimitiveSizes.SIZE_OF_SHORT // consistencyLevel
-              + PrimitiveSizes.SIZE_OF_INT // received
-              + PrimitiveSizes.SIZE_OF_INT // blockFor
-              + PrimitiveSizes.SIZE_OF_BYTE; // dataPresent
+              + PrimitiveSizes.SHORT // consistencyLevel
+              + PrimitiveSizes.INT // received
+              + PrimitiveSizes.INT // blockFor
+              + PrimitiveSizes.BYTE; // dataPresent
       if (protocolVersion >= V5) {
         size += sizeOfReasonMap(readFailure.reasonMap);
       } else {
-        size += PrimitiveSizes.SIZE_OF_INT; // numFailures
+        size += PrimitiveSizes.INT; // numFailures
       }
       return size;
     }
@@ -127,10 +127,10 @@ public class ReadFailure extends Error {
     }
 
     static int sizeOfReasonMap(Map<InetAddress, Integer> m) {
-      int size = PrimitiveSizes.SIZE_OF_INT;
+      int size = PrimitiveSizes.INT;
       for (Map.Entry<InetAddress, Integer> entry : m.entrySet()) {
         size += PrimitiveSizes.sizeOfInetAddr(entry.getKey());
-        size += PrimitiveSizes.SIZE_OF_SHORT;
+        size += PrimitiveSizes.SHORT;
       }
       return size;
     }

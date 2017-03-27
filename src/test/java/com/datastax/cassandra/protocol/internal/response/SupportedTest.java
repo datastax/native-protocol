@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
 import java.util.Arrays;
@@ -45,7 +46,7 @@ public class SupportedTest extends MessageTest<Supported> {
     MockBinaryString encoded = encode(initial, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString().unsignedShort(0));
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(2);
+    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(PrimitiveSizes.SHORT);
 
     Supported decoded = decode(encoded, protocolVersion);
 
@@ -60,13 +61,6 @@ public class SupportedTest extends MessageTest<Supported> {
     Supported initial = new Supported(options);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
-    assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(
-            2
-                + (2 + "option1".length())
-                + (2 + (2 + "value11".length()) + (2 + "value12".length()))
-                + (2 + "option2".length())
-                + (2 + (2 + "value21".length())));
 
     assertThat(encoded)
         .isEqualTo(
@@ -79,6 +73,15 @@ public class SupportedTest extends MessageTest<Supported> {
                 .string("option2")
                 .unsignedShort(1)
                 .string("value21"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "option1".length())
+                + (PrimitiveSizes.SHORT
+                    + (PrimitiveSizes.SHORT + "value11".length())
+                    + (PrimitiveSizes.SHORT + "value12".length()))
+                + (PrimitiveSizes.SHORT + "option2".length())
+                + (PrimitiveSizes.SHORT + (PrimitiveSizes.SHORT + "value21".length())));
 
     Supported decoded = decode(encoded, protocolVersion);
 

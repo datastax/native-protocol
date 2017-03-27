@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.event;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -54,9 +55,9 @@ public class TopologyChangeEventTest extends MessageTest<TopologyChangeEvent> {
                 .inet("localhost", 9042));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            (2 + ProtocolConstants.EventType.TOPOLOGY_CHANGE.length())
-                + (2 + ProtocolConstants.TopologyChangeType.NEW_NODE.length())
-                + (1 + 4 + 4));
+            (PrimitiveSizes.SHORT + ProtocolConstants.EventType.TOPOLOGY_CHANGE.length())
+                + (PrimitiveSizes.SHORT + ProtocolConstants.TopologyChangeType.NEW_NODE.length())
+                + (PrimitiveSizes.BYTE + 4 + PrimitiveSizes.INT));
 
     TopologyChangeEvent decoded = decode(encoded, protocolVersion);
 

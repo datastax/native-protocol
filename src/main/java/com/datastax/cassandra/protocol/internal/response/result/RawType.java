@@ -96,7 +96,7 @@ public abstract class RawType {
 
     @Override
     public int encodedSize(int protocolVersion) {
-      return 2;
+      return PrimitiveSizes.SHORT;
     }
   }
 
@@ -116,7 +116,7 @@ public abstract class RawType {
 
     @Override
     public int encodedSize(int protocolVersion) {
-      return 2 + PrimitiveSizes.sizeOfString(className);
+      return PrimitiveSizes.SHORT + PrimitiveSizes.sizeOfString(className);
     }
   }
 
@@ -136,7 +136,7 @@ public abstract class RawType {
 
     @Override
     public int encodedSize(int protocolVersion) {
-      return 2 + elementType.encodedSize(protocolVersion);
+      return PrimitiveSizes.SHORT + elementType.encodedSize(protocolVersion);
     }
   }
 
@@ -156,7 +156,7 @@ public abstract class RawType {
 
     @Override
     public int encodedSize(int protocolVersion) {
-      return 2 + elementType.encodedSize(protocolVersion);
+      return PrimitiveSizes.SHORT + elementType.encodedSize(protocolVersion);
     }
   }
 
@@ -179,7 +179,9 @@ public abstract class RawType {
 
     @Override
     public int encodedSize(int protocolVersion) {
-      return 2 + keyType.encodedSize(protocolVersion) + valueType.encodedSize(protocolVersion);
+      return PrimitiveSizes.SHORT
+          + keyType.encodedSize(protocolVersion)
+          + valueType.encodedSize(protocolVersion);
     }
   }
 
@@ -210,7 +212,10 @@ public abstract class RawType {
     @Override
     public int encodedSize(int protocolVersion) {
       int size =
-          2 + PrimitiveSizes.sizeOfString(keyspace) + PrimitiveSizes.sizeOfString(typeName) + 2;
+          PrimitiveSizes.SHORT
+              + PrimitiveSizes.sizeOfString(keyspace)
+              + PrimitiveSizes.sizeOfString(typeName)
+              + PrimitiveSizes.SHORT;
       for (Map.Entry<String, RawType> entry : fields.entrySet()) {
         size += PrimitiveSizes.sizeOfString(entry.getKey());
         size += entry.getValue().encodedSize(protocolVersion);
@@ -238,7 +243,7 @@ public abstract class RawType {
 
     @Override
     public int encodedSize(int protocolVersion) {
-      int size = 2 + 2;
+      int size = PrimitiveSizes.SHORT + PrimitiveSizes.SHORT;
       for (RawType fieldType : fieldTypes) {
         size += fieldType.encodedSize(protocolVersion);
       }

@@ -23,24 +23,24 @@ import java.util.Map;
 
 /** Computes the sizes of the protocol's primitive types. */
 public class PrimitiveSizes {
-  public static final int SIZE_OF_BYTE = 1;
-  public static final int SIZE_OF_SHORT = 2;
-  public static final int SIZE_OF_INT = 4;
-  public static final int SIZE_OF_LONG = 8;
-  public static final int SIZE_OF_UUID = 16;
+  public static final int BYTE = 1;
+  public static final int SHORT = 2;
+  public static final int INT = 4;
+  public static final int LONG = 8;
+  public static final int UUID = 16;
 
   private PrimitiveSizes() {}
 
   public static int sizeOfString(String str) {
-    return 2 + encodedUTF8Length(str);
+    return SHORT + encodedUTF8Length(str);
   }
 
   public static int sizeOfLongString(String s) {
-    return 4 + encodedUTF8Length(s);
+    return INT + encodedUTF8Length(s);
   }
 
   public static int sizeOfStringList(List<String> l) {
-    int size = 2;
+    int size = SHORT;
     for (String str : l) {
       size += sizeOfString(str);
     }
@@ -48,19 +48,19 @@ public class PrimitiveSizes {
   }
 
   public static int sizeOfBytes(byte[] bytes) {
-    return 4 + (bytes == null ? 0 : bytes.length);
+    return INT + (bytes == null ? 0 : bytes.length);
   }
 
   public static int sizeOfBytes(ByteBuffer bytes) {
-    return 4 + (bytes == null ? 0 : bytes.remaining());
+    return INT + (bytes == null ? 0 : bytes.remaining());
   }
 
   public static int sizeOfShortBytes(byte[] bytes) {
-    return 2 + bytes.length;
+    return SHORT + bytes.length;
   }
 
   public static int sizeOfStringMap(Map<String, String> m) {
-    int size = 2; // length
+    int size = SHORT; // length
     for (Map.Entry<String, String> entry : m.entrySet()) {
       size += sizeOfString(entry.getKey());
       size += sizeOfString(entry.getValue());
@@ -69,7 +69,7 @@ public class PrimitiveSizes {
   }
 
   public static int sizeOfStringMultimap(Map<String, List<String>> m) {
-    int size = 2; // length
+    int size = SHORT; // length
     for (Map.Entry<String, List<String>> entry : m.entrySet()) {
       size += sizeOfString(entry.getKey());
       size += sizeOfStringList(entry.getValue());
@@ -78,7 +78,7 @@ public class PrimitiveSizes {
   }
 
   public static int sizeOfBytesMap(Map<String, ByteBuffer> m) {
-    int size = 2;
+    int size = SHORT;
     for (Map.Entry<String, ByteBuffer> entry : m.entrySet()) {
       size += sizeOfString(entry.getKey());
       size += sizeOfBytes(entry.getValue());
@@ -103,12 +103,12 @@ public class PrimitiveSizes {
   }
 
   public static int sizeOfInet(InetSocketAddress address) {
-    return sizeOfInetAddr(address.getAddress()) + SIZE_OF_INT; // port
+    return sizeOfInetAddr(address.getAddress()) + INT; // port
   }
 
   public static int sizeOfInetAddr(InetAddress address) {
     byte[] raw = address.getAddress();
-    return SIZE_OF_BYTE // number of bytes in address
+    return BYTE // number of bytes in address
         + raw.length; // bytes of address
   }
 }

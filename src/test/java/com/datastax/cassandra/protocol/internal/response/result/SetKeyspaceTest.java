@@ -17,6 +17,7 @@ package com.datastax.cassandra.protocol.internal.response.result;
 
 import com.datastax.cassandra.protocol.internal.Message;
 import com.datastax.cassandra.protocol.internal.MessageTest;
+import com.datastax.cassandra.protocol.internal.PrimitiveSizes;
 import com.datastax.cassandra.protocol.internal.ProtocolConstants;
 import com.datastax.cassandra.protocol.internal.TestDataProviders;
 import com.datastax.cassandra.protocol.internal.binary.MockBinaryString;
@@ -44,7 +45,8 @@ public class SetKeyspaceTest extends MessageTest<SetKeyspace> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString().int_(ProtocolConstants.ResultKind.SET_KEYSPACE).string("ks"));
-    assertThat(encodedSize(initial, protocolVersion)).isEqualTo(4 + (2 + "ks".length()));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(PrimitiveSizes.INT + (PrimitiveSizes.SHORT + "ks".length()));
 
     SetKeyspace decoded = decode(encoded, protocolVersion);
     assertThat(decoded.keyspace).isEqualTo("ks");
