@@ -49,7 +49,7 @@ public class ProtocolConstants {
     public static final int AUTH_SUCCESS = 0x10;
   }
 
-  public static class ResponseKind {
+  public static class ResultKind {
     public static final int VOID = 0x0001;
     public static final int ROWS = 0x0002;
     public static final int SET_KEYSPACE = 0x0003;

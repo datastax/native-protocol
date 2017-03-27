@@ -51,7 +51,7 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.SCHEMA_CHANGE)
+                .int_(ProtocolConstants.ResultKind.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.KEYSPACE)
                 .string("test"));
@@ -86,7 +86,7 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.SCHEMA_CHANGE)
+                .int_(ProtocolConstants.ResultKind.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.TABLE)
                 .string("test")
@@ -123,7 +123,7 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.SCHEMA_CHANGE)
+                .int_(ProtocolConstants.ResultKind.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.TYPE)
                 .string("test")
@@ -153,7 +153,7 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
   public void should_fail_to_decode_function_change_in_v3_or_below(int protocolVersion) {
     decode(
         new MockBinaryString()
-            .int_(ProtocolConstants.ResponseKind.SCHEMA_CHANGE)
+            .int_(ProtocolConstants.ResultKind.SCHEMA_CHANGE)
             .string(ProtocolConstants.SchemaChangeType.CREATED)
             .string(ProtocolConstants.SchemaChangeTarget.FUNCTION)
             .string("test")
@@ -172,7 +172,7 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
   public void should_fail_to_decode_aggregate_change_in_v3_or_below(int protocolVersion) {
     decode(
         new MockBinaryString()
-            .int_(ProtocolConstants.ResponseKind.SCHEMA_CHANGE)
+            .int_(ProtocolConstants.ResultKind.SCHEMA_CHANGE)
             .string(ProtocolConstants.SchemaChangeType.CREATED)
             .string(ProtocolConstants.SchemaChangeTarget.AGGREGATE)
             .string("test")
@@ -198,7 +198,7 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.SCHEMA_CHANGE)
+                .int_(ProtocolConstants.ResultKind.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.FUNCTION)
                 .string("test")
@@ -240,7 +240,7 @@ public class SchemaChangeTest extends MessageTest<SchemaChange> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.SCHEMA_CHANGE)
+                .int_(ProtocolConstants.ResultKind.SCHEMA_CHANGE)
                 .string(ProtocolConstants.SchemaChangeType.CREATED)
                 .string(ProtocolConstants.SchemaChangeTarget.AGGREGATE)
                 .string("test")

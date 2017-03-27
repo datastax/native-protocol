@@ -24,12 +24,12 @@ public class Void extends Result {
   public static final Void INSTANCE = new Void();
 
   private Void() {
-    super(ProtocolConstants.ResponseKind.VOID);
+    super(ProtocolConstants.ResultKind.VOID);
   }
 
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
-      super(ProtocolConstants.ResponseKind.VOID, protocolVersion);
+      super(ProtocolConstants.ResultKind.VOID, protocolVersion);
     }
 
     @Override

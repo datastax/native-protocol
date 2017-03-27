@@ -40,7 +40,7 @@ public class VoidTest extends MessageTest<Void> {
   public void should_encode_and_decode(int protocolVersion) {
     MockBinaryString encoded = encode(Void.INSTANCE, protocolVersion);
 
-    assertThat(encoded).isEqualTo(new MockBinaryString().int_(ProtocolConstants.ResponseKind.VOID));
+    assertThat(encoded).isEqualTo(new MockBinaryString().int_(ProtocolConstants.ResultKind.VOID));
     assertThat(encodedSize(Void.INSTANCE, protocolVersion)).isEqualTo(4);
 
     Void decoded = decode(encoded, protocolVersion);

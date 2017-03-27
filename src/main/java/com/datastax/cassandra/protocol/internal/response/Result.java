@@ -28,7 +28,7 @@ import com.datastax.cassandra.protocol.internal.util.IntMap;
 
 public abstract class Result extends Message {
 
-  /** @see ProtocolConstants.ResponseKind */
+  /** @see ProtocolConstants.ResultKind */
   public final int kind;
 
   protected Result(int kind) {

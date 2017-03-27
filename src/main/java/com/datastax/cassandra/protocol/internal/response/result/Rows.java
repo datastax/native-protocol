@@ -31,14 +31,14 @@ public class Rows extends Result {
   public final Queue<List<ByteBuffer>> data;
 
   public Rows(RowsMetadata metadata, Queue<List<ByteBuffer>> data) {
-    super(ProtocolConstants.ResponseKind.ROWS);
+    super(ProtocolConstants.ResultKind.ROWS);
     this.metadata = metadata;
     this.data = data;
   }
 
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
-      super(ProtocolConstants.ResponseKind.ROWS, protocolVersion);
+      super(ProtocolConstants.ResultKind.ROWS, protocolVersion);
     }
 
     @Override

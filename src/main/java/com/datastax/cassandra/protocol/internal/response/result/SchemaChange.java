@@ -35,7 +35,7 @@ public class SchemaChange extends Result {
 
   public SchemaChange(
       String changeType, String target, String keyspace, String object, List<String> arguments) {
-    super(ProtocolConstants.ResponseKind.SCHEMA_CHANGE);
+    super(ProtocolConstants.ResultKind.SCHEMA_CHANGE);
     this.changeType = changeType;
     this.target = target;
     this.keyspace = keyspace;
@@ -45,7 +45,7 @@ public class SchemaChange extends Result {
 
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
-      super(ProtocolConstants.ResponseKind.SCHEMA_CHANGE, protocolVersion);
+      super(ProtocolConstants.ResultKind.SCHEMA_CHANGE, protocolVersion);
     }
 
     @Override

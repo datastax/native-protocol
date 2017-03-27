@@ -59,7 +59,7 @@ public class PreparedTest extends MessageTest<Prepared> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.PREPARED)
+                .int_(ProtocolConstants.ResultKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with 2 variables:
                 .int_(0x0001)
@@ -113,7 +113,7 @@ public class PreparedTest extends MessageTest<Prepared> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.PREPARED)
+                .int_(ProtocolConstants.ResultKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with no variables:
                 .int_(0x0004)
@@ -166,7 +166,7 @@ public class PreparedTest extends MessageTest<Prepared> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.PREPARED)
+                .int_(ProtocolConstants.ResultKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with 2 variables and 1 pk index:
                 .int_(0x0001)
@@ -225,7 +225,7 @@ public class PreparedTest extends MessageTest<Prepared> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.PREPARED)
+                .int_(ProtocolConstants.ResultKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with no variables:
                 .int_(0x0004)

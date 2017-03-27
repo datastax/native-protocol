@@ -25,13 +25,13 @@ public class SetKeyspace extends Result {
   public final String keyspace;
 
   public SetKeyspace(String keyspace) {
-    super(ProtocolConstants.ResponseKind.SET_KEYSPACE);
+    super(ProtocolConstants.ResultKind.SET_KEYSPACE);
     this.keyspace = keyspace;
   }
 
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
-      super(ProtocolConstants.ResponseKind.SET_KEYSPACE, protocolVersion);
+      super(ProtocolConstants.ResultKind.SET_KEYSPACE, protocolVersion);
     }
 
     @Override

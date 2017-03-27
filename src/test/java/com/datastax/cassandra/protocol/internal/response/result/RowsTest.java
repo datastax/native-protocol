@@ -63,7 +63,7 @@ public class RowsTest extends MessageTest<Rows> {
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(ProtocolConstants.ResponseKind.ROWS)
+                .int_(ProtocolConstants.ResultKind.ROWS)
                 // Simple metadata with 2 columns:
                 .int_(0x0001)
                 .int_(2)

@@ -28,7 +28,7 @@ public class Prepared extends Result {
 
   public Prepared(
       byte[] preparedQueryId, RowsMetadata variablesMetadata, RowsMetadata resultMetadata) {
-    super(ProtocolConstants.ResponseKind.PREPARED);
+    super(ProtocolConstants.ResultKind.PREPARED);
     this.preparedQueryId = preparedQueryId;
     this.variablesMetadata = variablesMetadata;
     this.resultMetadata = resultMetadata;
@@ -36,7 +36,7 @@ public class Prepared extends Result {
 
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
-      super(ProtocolConstants.ResponseKind.PREPARED, protocolVersion);
+      super(ProtocolConstants.ResultKind.PREPARED, protocolVersion);
     }
 
     @Override
