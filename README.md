@@ -1,4 +1,4 @@
-# Native protocol layer for Apache Cassandra™
+# Native protocol layer compatible with Apache Cassandra™
  
 A set of Java types representing the frames and messages of the Apache Cassandra™ native protocol,
 with the associated serialization and deserialization logic (this is a third-party implementation,
