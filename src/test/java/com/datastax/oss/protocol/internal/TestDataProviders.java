@@ -57,7 +57,7 @@ public class TestDataProviders {
       min = ProtocolConstants.Version.MIN;
     }
     if (max == null) {
-      max = ProtocolConstants.Version.BETA;
+      max = Math.max(ProtocolConstants.Version.MAX, ProtocolConstants.Version.BETA);
     }
     List<Object> l = new ArrayList<>();
     for (int i = min; i <= max; i++) {

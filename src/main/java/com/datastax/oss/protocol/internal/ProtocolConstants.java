@@ -27,6 +27,7 @@ public class ProtocolConstants {
     public static final int V5 = 5;
     public static final int MIN = V3;
     public static final int MAX = V4;
+    /** If no beta version is currently supported, this will be negative. */
     public static final int BETA = V5;
   }
 
