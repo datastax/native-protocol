@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
-public class ResponseFrameCodecTest extends FrameCodecTest {
+public class ResponseFrameCodecTest extends FrameCodecTestBase {
 
   private MockPrimitiveCodec primitiveCodec;
   private List<Integer> expectedAllocations;

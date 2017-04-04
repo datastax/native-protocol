@@ -16,7 +16,7 @@
 package com.datastax.oss.protocol.internal.response;
 
 import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTest;
+import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SupportedTest extends MessageTest<Supported> {
+public class SupportedTest extends MessageTestBase<Supported> {
   protected SupportedTest() {
     super(Supported.class);
   }

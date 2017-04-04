@@ -20,11 +20,11 @@ import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class MessageTest<M extends Message> {
+public abstract class MessageTestBase<M extends Message> {
 
   private final Class<M> messageClass;
 
-  protected MessageTest(Class<M> messageClass) {
+  protected MessageTestBase(Class<M> messageClass) {
     this.messageClass = messageClass;
   }
 

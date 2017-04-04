@@ -16,7 +16,7 @@
 package com.datastax.oss.protocol.internal.response.event;
 
 import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTest;
+import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
-public class SchemaChangeEventTest extends MessageTest<SchemaChangeEvent> {
+public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
 
   protected SchemaChangeEventTest() {
     super(SchemaChangeEvent.class);

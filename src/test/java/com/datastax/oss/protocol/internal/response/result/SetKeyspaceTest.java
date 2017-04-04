@@ -16,7 +16,7 @@
 package com.datastax.oss.protocol.internal.response.result;
 
 import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTest;
+import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SetKeyspaceTest extends MessageTest<SetKeyspace> {
+public class SetKeyspaceTest extends MessageTestBase<SetKeyspace> {
   public SetKeyspaceTest() {
     super(SetKeyspace.class);
   }

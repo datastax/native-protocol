@@ -16,7 +16,7 @@
 package com.datastax.oss.protocol.internal.request;
 
 import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTest;
+import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
@@ -24,7 +24,7 @@ import org.testng.annotations.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
-public class PrepareTest extends MessageTest<Prepare> {
+public class PrepareTest extends MessageTestBase<Prepare> {
 
   public PrepareTest() {
     super(Prepare.class);

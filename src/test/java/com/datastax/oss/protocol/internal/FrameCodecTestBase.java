@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public abstract class FrameCodecTest {
+public abstract class FrameCodecTestBase {
   protected static final int STREAM_ID = 2;
   protected static final UUID TRACING_ID = UUID.randomUUID();
   protected static final Map<String, ByteBuffer> SOME_PAYLOAD;

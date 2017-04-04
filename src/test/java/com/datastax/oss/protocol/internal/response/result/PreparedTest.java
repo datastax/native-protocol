@@ -16,7 +16,7 @@
 package com.datastax.oss.protocol.internal.response.result;
 
 import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTest;
+import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V3;
 
-public class PreparedTest extends MessageTest<Prepared> {
+public class PreparedTest extends MessageTestBase<Prepared> {
   private static final RawType BLOB_TYPE = RawType.PRIMITIVES.get(ProtocolConstants.DataType.BLOB);
   private static final byte[] PREPARED_QUERY_ID = Bytes.getArray(Bytes.fromHexString("0xcafebabe"));
 
