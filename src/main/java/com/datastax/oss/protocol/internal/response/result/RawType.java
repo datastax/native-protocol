@@ -103,7 +103,7 @@ public abstract class RawType {
   public static class RawCustom extends RawType {
     public final String className;
 
-    private RawCustom(String className) {
+    public RawCustom(String className) {
       super(ProtocolConstants.DataType.CUSTOM);
       this.className = className;
     }
@@ -123,7 +123,7 @@ public abstract class RawType {
   public static class RawList extends RawType {
     public final RawType elementType;
 
-    private RawList(RawType elementType) {
+    public RawList(RawType elementType) {
       super(ProtocolConstants.DataType.LIST);
       this.elementType = elementType;
     }
@@ -143,7 +143,7 @@ public abstract class RawType {
   public static class RawSet extends RawType {
     public final RawType elementType;
 
-    private RawSet(RawType elementType) {
+    public RawSet(RawType elementType) {
       super(ProtocolConstants.DataType.SET);
       this.elementType = elementType;
     }
