@@ -84,6 +84,25 @@ public abstract class RawType {
 
   public abstract int encodedSize(int protocolVersion);
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    RawType rawType = (RawType) o;
+
+    return id == rawType.id;
+  }
+
+  @Override
+  public int hashCode() {
+    return id;
+  }
+
   public static class RawPrimitive extends RawType {
     private RawPrimitive(int id) {
       super(id);
@@ -118,6 +137,30 @@ public abstract class RawType {
     public int encodedSize(int protocolVersion) {
       return PrimitiveSizes.SHORT + PrimitiveSizes.sizeOfString(className);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+
+      RawCustom rawCustom = (RawCustom) o;
+
+      return className.equals(rawCustom.className);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = super.hashCode();
+      result = 31 * result + className.hashCode();
+      return result;
+    }
   }
 
   public static class RawList extends RawType {
@@ -138,6 +181,30 @@ public abstract class RawType {
     public int encodedSize(int protocolVersion) {
       return PrimitiveSizes.SHORT + elementType.encodedSize(protocolVersion);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+
+      RawList rawList = (RawList) o;
+
+      return elementType.equals(rawList.elementType);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = super.hashCode();
+      result = 31 * result + elementType.hashCode();
+      return result;
+    }
   }
 
   public static class RawSet extends RawType {
@@ -157,6 +224,30 @@ public abstract class RawType {
     @Override
     public int encodedSize(int protocolVersion) {
       return PrimitiveSizes.SHORT + elementType.encodedSize(protocolVersion);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+
+      RawSet rawSet = (RawSet) o;
+
+      return elementType.equals(rawSet.elementType);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = super.hashCode();
+      result = 31 * result + elementType.hashCode();
+      return result;
     }
   }
 
@@ -182,6 +273,31 @@ public abstract class RawType {
       return PrimitiveSizes.SHORT
           + keyType.encodedSize(protocolVersion)
           + valueType.encodedSize(protocolVersion);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+
+      RawMap rawMap = (RawMap) o;
+
+      return keyType.equals(rawMap.keyType) && valueType.equals(rawMap.valueType);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = super.hashCode();
+      result = 31 * result + keyType.hashCode();
+      result = 31 * result + valueType.hashCode();
+      return result;
     }
   }
 
@@ -222,6 +338,34 @@ public abstract class RawType {
       }
       return size;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+
+      RawUdt rawUdt = (RawUdt) o;
+
+      return keyspace.equals(rawUdt.keyspace)
+          && typeName.equals(rawUdt.typeName)
+          && fields.equals(rawUdt.fields);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = super.hashCode();
+      result = 31 * result + keyspace.hashCode();
+      result = 31 * result + typeName.hashCode();
+      result = 31 * result + fields.hashCode();
+      return result;
+    }
   }
 
   public static class RawTuple extends RawType {
@@ -248,6 +392,30 @@ public abstract class RawType {
         size += fieldType.encodedSize(protocolVersion);
       }
       return size;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+
+      RawTuple rawTuple = (RawTuple) o;
+
+      return fieldTypes.equals(rawTuple.fieldTypes);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = super.hashCode();
+      result = 31 * result + fieldTypes.hashCode();
+      return result;
     }
   }
 
