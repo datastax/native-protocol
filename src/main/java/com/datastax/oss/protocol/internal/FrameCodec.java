@@ -304,8 +304,6 @@ public class FrameCodec<B> {
   /**
    * Intermediary class to pass request/response codecs to the frame codec.
    *
-   * <p>
-   *
    * <p>This is just so that we can have the codecs nicely grouped by protocol version.
    */
   public interface CodecGroup {
