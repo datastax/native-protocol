@@ -61,7 +61,7 @@ public class RequestFrameCodecTest extends FrameCodecTestBase {
     MockBinaryString expected =
         mockRequestPayload(protocolVersion, compressor, tracing, customPayload, false);
 
-    org.assertj.core.api.Assertions.assertThat(actual).isEqualTo(expected);
+    assertThat(actual).isEqualTo(expected);
     for (Integer size : expectedAllocations) {
       Mockito.verify(primitiveCodec).allocate(size);
     }
@@ -121,7 +121,7 @@ public class RequestFrameCodecTest extends FrameCodecTestBase {
 
     int uncompressedSize = MockOptionsCodec.MOCK_ENCODED_SIZE;
     if (!customPayload.isEmpty()) {
-      Assertions.assertThat(customPayload).isEqualTo(SOME_PAYLOAD);
+      assertThat(customPayload).isEqualTo(SOME_PAYLOAD);
       uncompressedSize += PrimitiveSizes.sizeOfBytesMap(SOME_PAYLOAD);
     }
 

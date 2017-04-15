@@ -25,7 +25,6 @@ import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.util.Arrays;
 import java.util.Collections;
-import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
@@ -59,7 +58,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
-    Assertions.assertThat(encoded)
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResultKind.PREPARED)
@@ -91,14 +90,11 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     Prepared decoded = decode(encoded, protocolVersion);
 
     assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.variablesMetadata)
+    assertThat(decoded.variablesMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(variablesMetadata.columnSpecs)
         .hasNoPkIndices();
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.resultMetadata)
-        .hasNoColumnSpecs()
-        .hasNoPagingState()
-        .hasNoPkIndices();
+    assertThat(decoded.resultMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
   }
 
   @Test
@@ -116,7 +112,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
-    Assertions.assertThat(encoded)
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResultKind.PREPARED)
@@ -148,11 +144,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     Prepared decoded = decode(encoded, protocolVersion);
 
     assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.variablesMetadata)
-        .hasNoColumnSpecs()
-        .hasNoPagingState()
-        .hasNoPkIndices();
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.resultMetadata)
+    assertThat(decoded.variablesMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
+    assertThat(decoded.resultMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(resultMetadata.columnSpecs)
         .hasNoPkIndices();
@@ -172,7 +165,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
-    Assertions.assertThat(encoded)
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResultKind.PREPARED)
@@ -208,16 +201,13 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     Prepared decoded = decode(encoded, protocolVersion);
 
     assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.variablesMetadata)
+    assertThat(decoded.variablesMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(
             new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
             new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE))
         .hasPkIndices(0);
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.resultMetadata)
-        .hasNoColumnSpecs()
-        .hasNoPagingState()
-        .hasNoPkIndices();
+    assertThat(decoded.resultMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
@@ -234,7 +224,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
-    Assertions.assertThat(encoded)
+    assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
                 .int_(ProtocolConstants.ResultKind.PREPARED)
@@ -267,11 +257,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     Prepared decoded = decode(encoded, protocolVersion);
 
     assertThat(Bytes.toHexString(decoded.preparedQueryId)).isEqualTo("0xcafebabe");
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.variablesMetadata)
-        .hasNoColumnSpecs()
-        .hasNoPagingState()
-        .hasNoPkIndices();
-    com.datastax.oss.protocol.internal.Assertions.assertThat(decoded.resultMetadata)
+    assertThat(decoded.variablesMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
+    assertThat(decoded.resultMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(
             new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
