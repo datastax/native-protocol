@@ -35,6 +35,11 @@ public class TopologyChangeEvent extends Event {
     this.address = address;
   }
 
+  @Override
+  public String toString() {
+    return String.format("TopologyChangeEvent(%s, %s)", changeType, address);
+  }
+
   public static class SubCodec extends Event.SubCodec {
     public SubCodec(int protocolVersion) {
       super(ProtocolConstants.EventType.TOPOLOGY_CHANGE, protocolVersion);

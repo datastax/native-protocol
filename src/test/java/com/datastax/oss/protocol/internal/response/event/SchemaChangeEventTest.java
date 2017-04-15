@@ -273,4 +273,46 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
     assertThat(decoded.object).isEqualTo("myaggregate");
     assertThat(decoded.arguments).containsExactly("int", "int");
   }
+
+  @Test
+  public void should_convert_to_string() {
+    assertThat(
+            new SchemaChangeEvent(
+                    ProtocolConstants.SchemaChangeType.CREATED,
+                    ProtocolConstants.SchemaChangeTarget.KEYSPACE,
+                    "ks",
+                    null,
+                    null)
+                .toString())
+        .isEqualTo("SchemaChangeEvent(CREATED, KEYSPACE, ks)");
+    assertThat(
+            new SchemaChangeEvent(
+                    ProtocolConstants.SchemaChangeType.CREATED,
+                    ProtocolConstants.SchemaChangeTarget.TABLE,
+                    "ks",
+                    "table",
+                    null)
+                .toString())
+        .isEqualTo("SchemaChangeEvent(CREATED, TABLE, ks, table)");
+    assertThat(
+            new SchemaChangeEvent(
+                    ProtocolConstants.SchemaChangeType.CREATED,
+                    ProtocolConstants.SchemaChangeTarget.FUNCTION,
+                    "ks",
+                    "fn",
+                    Arrays.asList("int", "int"))
+                .toString())
+        .isEqualTo("SchemaChangeEvent(CREATED, FUNCTION, ks, fn, [int, int])");
+
+    // Null argument list should never happen, but make sure it's handled gracefully:
+    assertThat(
+            new SchemaChangeEvent(
+                    ProtocolConstants.SchemaChangeType.CREATED,
+                    ProtocolConstants.SchemaChangeTarget.FUNCTION,
+                    "ks",
+                    "fn",
+                    null)
+                .toString())
+        .isEqualTo("SchemaChangeEvent(CREATED, FUNCTION, ks, fn, [])");
+  }
 }

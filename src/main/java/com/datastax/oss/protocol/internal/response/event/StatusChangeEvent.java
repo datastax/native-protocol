@@ -35,6 +35,11 @@ public class StatusChangeEvent extends Event {
     this.address = address;
   }
 
+  @Override
+  public String toString() {
+    return String.format("StatusChangeEvent(%s, %s)", changeType, address);
+  }
+
   public static class SubCodec extends Event.SubCodec {
     public SubCodec(int protocolVersion) {
       super(ProtocolConstants.EventType.STATUS_CHANGE, protocolVersion);
