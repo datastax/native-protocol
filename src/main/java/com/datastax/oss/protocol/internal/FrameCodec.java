@@ -191,7 +191,9 @@ public class FrameCodec<B> {
     }
     primitiveCodec.writeByte((byte) versionAndDirection, dest);
     Flag.encode(flags, dest, primitiveCodec, frame.protocolVersion);
-    primitiveCodec.writeUnsignedShort(frame.streamId, dest);
+    primitiveCodec.writeUnsignedShort(
+        frame.streamId & 0xFFFF, // see readStreamId()
+        dest);
     primitiveCodec.writeByte((byte) frame.message.opcode, dest);
     primitiveCodec.writeInt(messageSize, dest);
   }
@@ -258,7 +260,11 @@ public class FrameCodec<B> {
   }
 
   private int readStreamId(B source) {
-    return primitiveCodec.readUnsignedShort(source);
+    int id = primitiveCodec.readUnsignedShort(source);
+    // The protocol spec states that the stream id is a [short], but this is wrong: the stream id
+    // is signed. Rather than adding a `readSignedShort` to PrimitiveCodec for this edge case,
+    // handle the conversion here.
+    return (short) id;
   }
 
   enum Flag {
@@ -297,6 +303,8 @@ public class FrameCodec<B> {
 
   /**
    * Intermediary class to pass request/response codecs to the frame codec.
+   *
+   * <p>
    *
    * <p>This is just so that we can have the codecs nicely grouped by protocol version.
    */

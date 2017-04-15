@@ -44,6 +44,7 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
   @Test(dataProvider = "responseParameters")
   public void should_encode_response_frame(
       int protocolVersion,
+      int streamId,
       Compressor<MockBinaryString> compressor,
       boolean tracing,
       Map<String, ByteBuffer> customPayload,
@@ -59,16 +60,17 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
     Frame frame =
         Frame.forResponse(
             protocolVersion,
-            STREAM_ID,
+            streamId,
             tracing ? TRACING_ID : null,
             customPayload,
             warnings,
             new Ready());
     MockBinaryString actual = frameCodec.encode(frame);
     MockBinaryString expected =
-        mockResponsePayload(protocolVersion, compressor, tracing, customPayload, warnings, false);
+        mockResponsePayload(
+            protocolVersion, streamId, compressor, tracing, customPayload, warnings, false);
 
-    org.assertj.core.api.Assertions.assertThat(actual).isEqualTo(expected);
+    assertThat(actual).isEqualTo(expected);
     for (Integer size : expectedAllocations) {
       Mockito.verify(primitiveCodec).allocate(size);
     }
@@ -77,6 +79,7 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
   @Test(dataProvider = "responseParameters")
   public void should_decode_response_frame(
       int protocolVersion,
+      int streamId,
       Compressor<MockBinaryString> compressor,
       boolean tracing,
       Map<String, ByteBuffer> customPayload,
@@ -90,11 +93,12 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
                 registry -> registry.addDecoder(new MockReadyCodec(protocolVersion)));
 
     MockBinaryString encoded =
-        mockResponsePayload(protocolVersion, compressor, tracing, customPayload, warnings, true);
+        mockResponsePayload(
+            protocolVersion, streamId, compressor, tracing, customPayload, warnings, true);
     Frame frame = frameCodec.decode(encoded);
 
     assertThat(frame.protocolVersion).isEqualTo(protocolVersion);
-    assertThat(frame.streamId).isEqualTo(STREAM_ID);
+    assertThat(frame.streamId).isEqualTo(streamId);
     assertThat(frame.tracing).isEqualTo(tracing);
     assertThat(frame.tracingId).isEqualTo(tracing ? TRACING_ID : null);
     assertThat(frame.customPayload).isEqualTo(customPayload);
@@ -105,6 +109,7 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
   // assembles the binary string corresponding to a READY response
   private MockBinaryString mockResponsePayload(
       int protocolVersion,
+      int streamId,
       Compressor<MockBinaryString> compressor,
       boolean tracing,
       Map<String, ByteBuffer> customPayload,
@@ -129,18 +134,19 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
       flags |= 0x10;
     }
     binary.byte_(flags);
-    binary.unsignedShort(STREAM_ID).byte_(ProtocolConstants.Opcode.READY);
+    binary.unsignedShort(streamId & 0xFFFF);
+    binary.byte_(ProtocolConstants.Opcode.READY);
 
     int uncompressedSize = MockReadyCodec.MOCK_ENCODED_SIZE;
     if (tracing) {
       uncompressedSize += 16; // size of tracing id
     }
     if (!customPayload.isEmpty()) {
-      Assertions.assertThat(customPayload).isEqualTo(SOME_PAYLOAD);
+      assertThat(customPayload).isEqualTo(SOME_PAYLOAD);
       uncompressedSize += PrimitiveSizes.sizeOfBytesMap(SOME_PAYLOAD);
     }
     if (!warnings.isEmpty()) {
-      Assertions.assertThat(warnings).isEqualTo(SOME_WARNINGS);
+      assertThat(warnings).isEqualTo(SOME_WARNINGS);
       uncompressedSize += PrimitiveSizes.sizeOfStringList(SOME_WARNINGS);
     }
 
@@ -208,7 +214,7 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
-      Assertions.assertThat(decoder.readString(source)).isEqualTo(MOCK_ENCODED);
+      assertThat(decoder.readString(source)).isEqualTo(MOCK_ENCODED);
       return new Ready();
     }
   }
@@ -219,6 +225,7 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
     Object[][] v3Parameters =
         TestDataProviders.combine(
             TestDataProviders.protocolV3OrBelow(),
+            TestDataProviders.fromList(2, -1),
             TestDataProviders.fromList(Compressor.none(), new MockCompressor()),
             TestDataProviders.fromList(false, true), // tracing
             TestDataProviders.fromList(Frame.NO_PAYLOAD),
@@ -228,6 +235,7 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
     Object[][] v4Parameters =
         TestDataProviders.combine(
             TestDataProviders.protocolV4OrAbove(),
+            TestDataProviders.fromList(2, -1),
             TestDataProviders.fromList(Compressor.none(), new MockCompressor()),
             TestDataProviders.fromList(false, true),
             TestDataProviders.fromList(Frame.NO_PAYLOAD, SOME_PAYLOAD),
