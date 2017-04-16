@@ -40,9 +40,8 @@ public class StatusChangeEventTest extends MessageTestBase<StatusChangeEvent> {
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
-    StatusChangeEvent initial =
-        new StatusChangeEvent(
-            ProtocolConstants.StatusChangeType.UP, new InetSocketAddress("127.0.0.1", 9042));
+    InetSocketAddress addr = new InetSocketAddress("127.0.0.1", 9042);
+    StatusChangeEvent initial = new StatusChangeEvent(ProtocolConstants.StatusChangeType.UP, addr);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -51,7 +50,8 @@ public class StatusChangeEventTest extends MessageTestBase<StatusChangeEvent> {
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.STATUS_CHANGE)
                 .string(ProtocolConstants.StatusChangeType.UP)
-                .inet("127.0.0.1", 9042));
+                .inetAddr(addr.getAddress())
+                .int_(addr.getPort()));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             (PrimitiveSizes.SHORT + ProtocolConstants.EventType.STATUS_CHANGE.length())
