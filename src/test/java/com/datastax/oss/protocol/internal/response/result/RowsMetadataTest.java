@@ -56,8 +56,8 @@ public class RowsMetadataTest {
     RowsMetadata initial =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", INT_TYPE),
-                new ColumnSpec("ks2", "table2", "column2", VARCHAR_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
+                new ColumnSpec("ks2", "table2", "column2", 1, VARCHAR_TYPE)),
             null,
             null);
 
@@ -99,8 +99,8 @@ public class RowsMetadataTest {
     RowsMetadata initial =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", INT_TYPE),
-                new ColumnSpec("ks1", "table1", "column2", VARCHAR_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
             null,
             null);
 
@@ -136,8 +136,8 @@ public class RowsMetadataTest {
     RowsMetadata initial =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", INT_TYPE),
-                new ColumnSpec("ks1", "table1", "column2", VARCHAR_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
             Bytes.fromHexString("0xcafebabe"),
             null);
 

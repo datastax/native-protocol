@@ -48,8 +48,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     RowsMetadata variablesMetadata =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
             null);
     RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), null, null);
@@ -103,8 +103,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     RowsMetadata resultMetadata =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
             null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
@@ -156,8 +156,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     RowsMetadata variablesMetadata =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
             new int[] {0});
     RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), null, null);
@@ -204,8 +204,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     assertThat(decoded.variablesMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(
-            new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-            new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE))
+            new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
+            new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE))
         .hasPkIndices(0);
     assertThat(decoded.resultMetadata).hasNoColumnSpecs().hasNoPagingState().hasNoPkIndices();
   }
@@ -216,8 +216,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     RowsMetadata resultMetadata =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
             null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
@@ -261,8 +261,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     assertThat(decoded.resultMetadata)
         .hasNoPagingState()
         .hasColumnSpecs(
-            new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-            new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE))
+            new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
+            new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE))
         .hasNoPkIndices();
   }
 }
