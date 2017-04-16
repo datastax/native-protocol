@@ -61,11 +61,6 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   }
 
   @Override
-  public InetSocketAddress readInet(MockBinaryString source) {
-    return (InetSocketAddress) pop(source, MockBinaryString.Element.Type.INET);
-  }
-
-  @Override
   public InetAddress readInetAddr(MockBinaryString source) {
     return (InetAddress) pop(source, MockBinaryString.Element.Type.INETADDR);
   }
@@ -110,11 +105,6 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   @Override
   public void writeInt(int i, MockBinaryString dest) {
     dest.int_(i);
-  }
-
-  @Override
-  public void writeInet(InetSocketAddress address, MockBinaryString dest) {
-    dest.inet(address.getHostName(), address.getPort());
   }
 
   @Override

@@ -50,8 +50,6 @@ public interface PrimitiveCodec<B> {
 
   int readInt(B source);
 
-  InetSocketAddress readInet(B source);
-
   InetAddress readInetAddr(B source);
 
   long readLong(B source);
@@ -114,11 +112,15 @@ public interface PrimitiveCodec<B> {
     return Collections.unmodifiableMap(m);
   }
 
+  default InetSocketAddress readInet(B source) {
+    InetAddress addr = readInetAddr(source);
+    int port = readInt(source);
+    return new InetSocketAddress(addr, port);
+  }
+
   void writeByte(byte b, B dest);
 
   void writeInt(int i, B dest);
-
-  void writeInet(InetSocketAddress address, B dest);
 
   void writeInetAddr(InetAddress address, B dest);
 
@@ -168,5 +170,10 @@ public interface PrimitiveCodec<B> {
       writeString(entry.getKey(), dest);
       writeBytes(entry.getValue(), dest);
     }
+  }
+
+  default void writeInet(InetSocketAddress address, B dest) {
+    writeInetAddr(address.getAddress(), dest);
+    writeInt(address.getPort(), dest);
   }
 }

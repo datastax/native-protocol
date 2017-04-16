@@ -16,7 +16,6 @@
 package com.datastax.oss.protocol.internal.binary;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.LinkedList;
 
 /** A DSL that simulates a mock binary string for reading and writing, to use in our unit tests. */
@@ -30,11 +29,6 @@ public class MockBinaryString {
 
   public MockBinaryString int_(int value) {
     append(Element.Type.INT, value);
-    return this;
-  }
-
-  public MockBinaryString inet(String host, int port) {
-    append(Element.Type.INET, new InetSocketAddress(host, port));
     return this;
   }
 

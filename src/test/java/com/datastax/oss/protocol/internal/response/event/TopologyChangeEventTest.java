@@ -40,10 +40,9 @@ public class TopologyChangeEventTest extends MessageTestBase<TopologyChangeEvent
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
+    InetSocketAddress addr = new InetSocketAddress("127.0.0.1", 9042);
     TopologyChangeEvent initial =
-        new TopologyChangeEvent(
-            ProtocolConstants.TopologyChangeType.NEW_NODE,
-            new InetSocketAddress("127.0.0.1", 9042));
+        new TopologyChangeEvent(ProtocolConstants.TopologyChangeType.NEW_NODE, addr);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -52,7 +51,8 @@ public class TopologyChangeEventTest extends MessageTestBase<TopologyChangeEvent
             new MockBinaryString()
                 .string(ProtocolConstants.EventType.TOPOLOGY_CHANGE)
                 .string(ProtocolConstants.TopologyChangeType.NEW_NODE)
-                .inet("localhost", 9042));
+                .inetAddr(addr.getAddress())
+                .int_(addr.getPort()));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             (PrimitiveSizes.SHORT + ProtocolConstants.EventType.TOPOLOGY_CHANGE.length())
