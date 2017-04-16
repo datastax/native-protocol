@@ -49,8 +49,8 @@ public class RowsTest extends MessageTestBase<Rows> {
     RowsMetadata metadata =
         new RowsMetadata(
             Arrays.asList(
-                new ColumnSpec("ks1", "table1", "column1", BLOB_TYPE),
-                new ColumnSpec("ks1", "table1", "column2", BLOB_TYPE)),
+                new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
+                new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
             null);
     Queue<List<ByteBuffer>> data = new LinkedList<>();

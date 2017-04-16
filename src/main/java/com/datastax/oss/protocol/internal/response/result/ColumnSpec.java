@@ -21,12 +21,18 @@ public class ColumnSpec {
   public final String ksName;
   public final String tableName;
   public final String name;
+  public final int index;
   public final RawType type;
 
-  public ColumnSpec(String ksName, String tableName, String name, RawType type) {
+  /**
+   * @param index the position of the column. This is provided for convenience if a decoding client
+   *     needs to reorder the specs (for example index them by name). For encoding, it is ignored.
+   */
+  public ColumnSpec(String ksName, String tableName, String name, int index, RawType type) {
     this.ksName = ksName;
     this.tableName = tableName;
     this.name = name;
+    this.index = index;
     this.type = type;
   }
 

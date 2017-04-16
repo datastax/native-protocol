@@ -200,7 +200,7 @@ public class RowsMetadata {
         String cfName = globalTablesSpec ? globalCfName : decoder.readString(source);
         String name = decoder.readString(source);
         RawType type = RawType.decode(source, decoder, protocolVersion);
-        tmpSpecs.add(new ColumnSpec(ksName, cfName, name, type));
+        tmpSpecs.add(new ColumnSpec(ksName, cfName, name, i, type));
       }
       columnSpecs = Collections.unmodifiableList(tmpSpecs);
     }
