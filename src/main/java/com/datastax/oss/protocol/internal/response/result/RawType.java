@@ -21,6 +21,7 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +51,7 @@ public abstract class RawType {
         String keyspace = decoder.readString(source);
         String typeName = decoder.readString(source);
         int nFields = decoder.readUnsignedShort(source);
-        Map<String, RawType> fields = new HashMap<>(nFields * 2);
+        Map<String, RawType> fields = new LinkedHashMap<>(nFields * 2);
         for (int i = 0; i < nFields; i++) {
           String fieldName = decoder.readString(source);
           RawType fieldType = decode(source, decoder, protocolVersion);
