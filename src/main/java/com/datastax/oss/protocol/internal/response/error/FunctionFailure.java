@@ -20,13 +20,14 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.response.Error;
+import java.util.List;
 
 public class FunctionFailure extends Error {
   public final String keyspace;
   public final String function;
-  public final String argTypes;
+  public final List<String> argTypes;
 
-  public FunctionFailure(String message, String keyspace, String function, String argTypes) {
+  public FunctionFailure(String message, String keyspace, String function, List<String> argTypes) {
     super(ProtocolConstants.ErrorCode.FUNCTION_FAILURE, message);
     this.keyspace = keyspace;
     this.function = function;
@@ -44,7 +45,7 @@ public class FunctionFailure extends Error {
       encoder.writeString(functionFailure.message, dest);
       encoder.writeString(functionFailure.keyspace, dest);
       encoder.writeString(functionFailure.function, dest);
-      encoder.writeString(functionFailure.argTypes, dest);
+      encoder.writeStringList(functionFailure.argTypes, dest);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class FunctionFailure extends Error {
       return PrimitiveSizes.sizeOfString(functionFailure.message)
           + PrimitiveSizes.sizeOfString(functionFailure.keyspace)
           + PrimitiveSizes.sizeOfString(functionFailure.function)
-          + PrimitiveSizes.sizeOfString(functionFailure.argTypes);
+          + PrimitiveSizes.sizeOfStringList(functionFailure.argTypes);
     }
 
     @Override
@@ -61,7 +62,7 @@ public class FunctionFailure extends Error {
       String message = decoder.readString(source);
       String keyspace = decoder.readString(source);
       String function = decoder.readString(source);
-      String argTypes = decoder.readString(source);
+      List<String> argTypes = decoder.readStringList(source);
       return new FunctionFailure(message, keyspace, function, argTypes);
     }
   }

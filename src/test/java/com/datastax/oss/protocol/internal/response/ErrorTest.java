@@ -32,6 +32,7 @@ import com.datastax.oss.protocol.internal.response.error.WriteTimeout;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.testng.annotations.Test;
@@ -452,7 +453,7 @@ public class ErrorTest extends MessageTestBase<Error> {
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
   public void should_encode_and_decode_function_failure(int protocolVersion) {
     FunctionFailure initial =
-        new FunctionFailure(MOCK_MESSAGE, "keyspace", "function", "arg types");
+        new FunctionFailure(MOCK_MESSAGE, "keyspace", "function", Arrays.asList("int", "varchar"));
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -463,14 +464,20 @@ public class ErrorTest extends MessageTestBase<Error> {
                 .string(MOCK_MESSAGE)
                 .string("keyspace")
                 .string("function")
-                .string("arg types"));
+                .unsignedShort(2)
+                .string("int")
+                .string("varchar"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             PrimitiveSizes.INT
                 + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
                 + (PrimitiveSizes.SHORT + "keyspace".length())
                 + (PrimitiveSizes.SHORT + "function".length())
-                + (PrimitiveSizes.SHORT + "arg types".length()));
+                + (PrimitiveSizes.SHORT
+                    + PrimitiveSizes.SHORT
+                    + "int".length()
+                    + PrimitiveSizes.SHORT
+                    + "varchar".length()));
 
     Error decoded = decode(encoded, protocolVersion);
 
@@ -480,6 +487,6 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(functionFailure.message).isEqualTo(MOCK_MESSAGE);
     assertThat(functionFailure.keyspace).isEqualTo("keyspace");
     assertThat(functionFailure.function).isEqualTo("function");
-    assertThat(functionFailure.argTypes).isEqualTo("arg types");
+    assertThat(functionFailure.argTypes).containsExactly("int", "varchar");
   }
 }
