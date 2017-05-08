@@ -125,7 +125,7 @@ public class QueryOptions {
     if (skipMetadata) {
       flags.add(QueryFlag.SKIP_METADATA);
     }
-    if (pageSize >= 0) {
+    if (pageSize > 0) {
       flags.add(QueryFlag.PAGE_SIZE);
     }
     if (pagingState != null) {
