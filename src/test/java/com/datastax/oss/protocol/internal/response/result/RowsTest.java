@@ -25,6 +25,7 @@ import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -51,6 +52,7 @@ public class RowsTest extends MessageTestBase<Rows> {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
+            2,
             null,
             null);
     Queue<List<ByteBuffer>> data = new LinkedList<>();
@@ -85,12 +87,59 @@ public class RowsTest extends MessageTestBase<Rows> {
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             PrimitiveSizes.INT
-                + +(PrimitiveSizes.INT
+                + (PrimitiveSizes.INT
                     + PrimitiveSizes.INT
                     + (PrimitiveSizes.SHORT + "ks1".length())
                     + (PrimitiveSizes.SHORT + "table1".length())
                     + ((PrimitiveSizes.SHORT + "column1".length()) + PrimitiveSizes.SHORT)
                     + ((PrimitiveSizes.SHORT + "column2".length()) + PrimitiveSizes.SHORT))
+                + (PrimitiveSizes.INT
+                    + (PrimitiveSizes.INT + "11".length() / 2)
+                    + (PrimitiveSizes.INT + "12".length() / 2)
+                    + (PrimitiveSizes.INT + "21".length() / 2)
+                    + (PrimitiveSizes.INT + "22".length() / 2)
+                    + (PrimitiveSizes.INT + "31".length() / 2)
+                    + (PrimitiveSizes.INT + "32".length() / 2)));
+
+    Rows decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded)
+        .hasNextRow("0x11", "0x12")
+        .hasNextRow("0x21", "0x22")
+        .hasNextRow("0x31", "0x32");
+  }
+
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  public void should_encode_and_decode_when_no_metadata(int protocolVersion) {
+    RowsMetadata emptyMetadata = new RowsMetadata(Collections.emptyList(), 2, null, null);
+    Queue<List<ByteBuffer>> data = new LinkedList<>();
+    data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
+    data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
+    data.add(Arrays.asList(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
+    Rows initial = new Rows(emptyMetadata, data);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(ProtocolConstants.ResultKind.ROWS)
+                // No metadata:
+                .int_(0x0004)
+                .int_(2) // column count
+                // Rows:
+                .int_(3) // count
+                .bytes("0x11")
+                .bytes("0x12")
+                .bytes("0x21")
+                .bytes("0x22")
+                .bytes("0x31")
+                .bytes("0x32"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
                 + (PrimitiveSizes.INT
                     + (PrimitiveSizes.INT + "11".length() / 2)
                     + (PrimitiveSizes.INT + "12".length() / 2)

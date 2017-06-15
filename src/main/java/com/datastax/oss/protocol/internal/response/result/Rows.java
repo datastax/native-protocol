@@ -69,12 +69,11 @@ public class Rows extends Result {
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       RowsMetadata metadata = RowsMetadata.decode(source, decoder, false, protocolVersion);
       int rowCount = decoder.readInt(source);
-      int columnCount = metadata.columnSpecs.size();
 
       Queue<List<ByteBuffer>> data = new ArrayDeque<>(rowCount);
       for (int i = 0; i < rowCount; i++) {
-        List<ByteBuffer> row = new ArrayList<>(columnCount);
-        for (int j = 0; j < columnCount; j++) {
+        List<ByteBuffer> row = new ArrayList<>(metadata.columnCount);
+        for (int j = 0; j < metadata.columnCount; j++) {
           row.add(decoder.readBytes(source));
         }
         data.add(row);

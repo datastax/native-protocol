@@ -48,6 +48,11 @@ public class RowsMetadataAssert extends AbstractAssert<RowsMetadataAssert, RowsM
     return this;
   }
 
+  public RowsMetadataAssert hasColumnCount(int expected) {
+    assertThat(actual.columnCount).isEqualTo(expected);
+    return this;
+  }
+
   public RowsMetadataAssert hasNoColumnSpecs() {
     assertThat(actual.columnSpecs).isEmpty();
     return this;

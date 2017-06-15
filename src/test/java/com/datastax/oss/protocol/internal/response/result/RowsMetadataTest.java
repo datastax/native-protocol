@@ -34,7 +34,7 @@ public class RowsMetadataTest {
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
   public void should_encode_and_decode_minimal_metadata(int protocolVersion) {
-    RowsMetadata initial = new RowsMetadata(Collections.emptyList(), null, null);
+    RowsMetadata initial = new RowsMetadata(Collections.emptyList(), 0, null, null);
 
     MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
 
@@ -48,7 +48,7 @@ public class RowsMetadataTest {
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 
-    assertThat(decoded).hasNoPagingState().hasNoColumnSpecs().hasNoPkIndices();
+    assertThat(decoded).hasNoPagingState().hasNoColumnSpecs().hasColumnCount(0).hasNoPkIndices();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
@@ -58,6 +58,7 @@ public class RowsMetadataTest {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks2", "table2", "column2", 1, VARCHAR_TYPE)),
+            2,
             null,
             null);
 
@@ -91,7 +92,11 @@ public class RowsMetadataTest {
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 
-    assertThat(decoded).hasNoPagingState().hasColumnSpecs(initial.columnSpecs).hasNoPkIndices();
+    assertThat(decoded)
+        .hasNoPagingState()
+        .hasColumnSpecs(initial.columnSpecs)
+        .hasColumnCount(2)
+        .hasNoPkIndices();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
@@ -101,6 +106,7 @@ public class RowsMetadataTest {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
+            2,
             null,
             null);
 
@@ -128,7 +134,11 @@ public class RowsMetadataTest {
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 
-    assertThat(decoded).hasNoPagingState().hasColumnSpecs(initial.columnSpecs).hasNoPkIndices();
+    assertThat(decoded)
+        .hasNoPagingState()
+        .hasColumnSpecs(initial.columnSpecs)
+        .hasColumnCount(2)
+        .hasNoPkIndices();
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
@@ -138,6 +148,7 @@ public class RowsMetadataTest {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
+            2,
             Bytes.fromHexString("0xcafebabe"),
             null);
 
@@ -170,6 +181,7 @@ public class RowsMetadataTest {
     assertThat(decoded)
         .hasPagingState("0xcafebabe")
         .hasColumnSpecs(initial.columnSpecs)
+        .hasColumnCount(2)
         .hasNoPkIndices();
   }
 

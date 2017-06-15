@@ -68,21 +68,28 @@ public class RowsMetadata {
    */
   public final List<ColumnSpec> columnSpecs;
 
+  public final int columnCount;
   public final ByteBuffer pagingState;
   public final int[] pkIndices;
 
   private final EnumSet<Flag> flags;
 
   private RowsMetadata(
-      EnumSet<Flag> flags, List<ColumnSpec> columnSpecs, ByteBuffer pagingState, int[] pkIndices) {
+      EnumSet<Flag> flags,
+      List<ColumnSpec> columnSpecs,
+      int columnCount,
+      ByteBuffer pagingState,
+      int[] pkIndices) {
     this.columnSpecs = columnSpecs;
+    this.columnCount = columnCount;
     this.pagingState = pagingState;
     this.pkIndices = pkIndices;
     this.flags = flags;
   }
 
-  public RowsMetadata(List<ColumnSpec> columnSpecs, ByteBuffer pagingState, int[] pkIndices) {
-    this(computeFlags(columnSpecs, pagingState), columnSpecs, pagingState, pkIndices);
+  public RowsMetadata(
+      List<ColumnSpec> columnSpecs, int columnCount, ByteBuffer pagingState, int[] pkIndices) {
+    this(computeFlags(columnSpecs, pagingState), columnSpecs, columnCount, pagingState, pkIndices);
   }
 
   private static EnumSet<Flag> computeFlags(List<ColumnSpec> columnSpecs, ByteBuffer pagingState) {
@@ -101,7 +108,7 @@ public class RowsMetadata {
   public <B> void encode(
       B dest, PrimitiveCodec<B> encoder, boolean withPkIndices, int protocolVersion) {
     Flag.encode(flags, dest, encoder, protocolVersion);
-    encoder.writeInt(columnSpecs.size(), dest);
+    encoder.writeInt(columnCount, dest);
     if (withPkIndices) {
       if (pkIndices == null) {
         encoder.writeInt(0, dest);
@@ -204,7 +211,7 @@ public class RowsMetadata {
       }
       columnSpecs = Collections.unmodifiableList(tmpSpecs);
     }
-    return new RowsMetadata(flags, columnSpecs, state, pkIndices);
+    return new RowsMetadata(flags, columnSpecs, columnCount, state, pkIndices);
   }
 
   private static boolean haveSameTable(List<ColumnSpec> specs) {
