@@ -74,6 +74,33 @@ public class RowsMetadata {
 
   private final EnumSet<Flag> flags;
 
+  /**
+   * Builds a new instance with {@code NO_METADATA == false}; the column count is set to the number
+   * of column specifications in the provided list.
+   */
+  public RowsMetadata(List<ColumnSpec> columnSpecs, ByteBuffer pagingState, int[] pkIndices) {
+    this(columnSpecs, columnSpecs.size(), false, pagingState, pkIndices);
+  }
+
+  /** Builds a new instance with {@code NO_METADATA == true}. */
+  public RowsMetadata(int columnCount, ByteBuffer pagingState, int[] pkIndices) {
+    this(Collections.emptyList(), columnCount, true, pagingState, pkIndices);
+  }
+
+  private RowsMetadata(
+      List<ColumnSpec> columnSpecs,
+      int columnCount,
+      boolean noMetadata,
+      ByteBuffer pagingState,
+      int[] pkIndices) {
+    this(
+        computeFlags(noMetadata, columnSpecs, pagingState),
+        columnSpecs,
+        columnCount,
+        pagingState,
+        pkIndices);
+  }
+
   private RowsMetadata(
       EnumSet<Flag> flags,
       List<ColumnSpec> columnSpecs,
@@ -87,20 +114,16 @@ public class RowsMetadata {
     this.flags = flags;
   }
 
-  public RowsMetadata(
-      List<ColumnSpec> columnSpecs, int columnCount, ByteBuffer pagingState, int[] pkIndices) {
-    this(computeFlags(columnSpecs, pagingState), columnSpecs, columnCount, pagingState, pkIndices);
-  }
-
-  private static EnumSet<Flag> computeFlags(List<ColumnSpec> columnSpecs, ByteBuffer pagingState) {
+  private static EnumSet<Flag> computeFlags(
+      boolean noMetadata, List<ColumnSpec> columnSpecs, ByteBuffer pagingState) {
     EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
-    if (pagingState != null) {
-      flags.add(Flag.HAS_MORE_PAGES);
-    }
-    if (columnSpecs.isEmpty()) {
+    if (noMetadata) {
       flags.add(Flag.NO_METADATA);
     } else if (haveSameTable(columnSpecs)) {
       flags.add(Flag.GLOBAL_TABLES_SPEC);
+    }
+    if (pagingState != null) {
+      flags.add(Flag.HAS_MORE_PAGES);
     }
     return flags;
   }
@@ -122,8 +145,7 @@ public class RowsMetadata {
     if (flags.contains(Flag.HAS_MORE_PAGES)) {
       encoder.writeBytes(pagingState, dest);
     }
-    if (!flags.contains(Flag.NO_METADATA)) {
-      assert !columnSpecs.isEmpty();
+    if (!flags.contains(Flag.NO_METADATA) && !columnSpecs.isEmpty()) {
       boolean globalTable = flags.contains(Flag.GLOBAL_TABLES_SPEC);
       if (globalTable) {
         ColumnSpec firstSpec = columnSpecs.get(0);
@@ -153,8 +175,7 @@ public class RowsMetadata {
     if (flags.contains(Flag.HAS_MORE_PAGES)) {
       size += PrimitiveSizes.sizeOfBytes(pagingState);
     }
-    if (!flags.contains(Flag.NO_METADATA)) {
-      assert !columnSpecs.isEmpty();
+    if (!flags.contains(Flag.NO_METADATA) && !columnSpecs.isEmpty()) {
       boolean globalTable = flags.contains(Flag.GLOBAL_TABLES_SPEC);
       if (globalTable) {
         ColumnSpec firstSpec = columnSpecs.get(0);
@@ -215,6 +236,9 @@ public class RowsMetadata {
   }
 
   private static boolean haveSameTable(List<ColumnSpec> specs) {
+    if (specs.isEmpty()) {
+      return false;
+    }
     boolean first = true;
     String ksName = null;
     String tableName = null;

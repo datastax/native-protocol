@@ -33,15 +33,15 @@ public class RowsMetadataTest {
       RawType.PRIMITIVES.get(ProtocolConstants.DataType.VARCHAR);
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
-  public void should_encode_and_decode_minimal_metadata(int protocolVersion) {
-    RowsMetadata initial = new RowsMetadata(Collections.emptyList(), 0, null, null);
+  public void should_encode_and_decode_metadata_with_zero_columns(int protocolVersion) {
+    RowsMetadata initial = new RowsMetadata(Collections.emptyList(), null, null);
 
     MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
 
     assertThat(encoded)
         .isEqualTo(
             new MockBinaryString()
-                .int_(0x0004) // no metadata
+                .int_(0x0000) // no flags
                 .int_(0) // column count
             );
     assertThat(encodedSizeWithoutPkIndices(initial, protocolVersion)).isEqualTo(4 + 4);
@@ -52,13 +52,31 @@ public class RowsMetadataTest {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  public void should_encode_and_decode_metadata_with_no_metadata_flag(int protocolVersion) {
+    RowsMetadata initial = new RowsMetadata(3, null, null);
+
+    MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(0x0004) // no metadata
+                .int_(3) // column count
+            );
+    assertThat(encodedSizeWithoutPkIndices(initial, protocolVersion)).isEqualTo(4 + 4);
+
+    RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
+
+    assertThat(decoded).hasNoPagingState().hasNoColumnSpecs().hasColumnCount(3).hasNoPkIndices();
+  }
+
+  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
   public void should_encode_and_decode_column_specs(int protocolVersion) {
     RowsMetadata initial =
         new RowsMetadata(
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks2", "table2", "column2", 1, VARCHAR_TYPE)),
-            2,
             null,
             null);
 
@@ -106,7 +124,6 @@ public class RowsMetadataTest {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
-            2,
             null,
             null);
 
@@ -148,7 +165,6 @@ public class RowsMetadataTest {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
-            2,
             Bytes.fromHexString("0xcafebabe"),
             null);
 

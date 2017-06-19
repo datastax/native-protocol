@@ -44,16 +44,15 @@ public class PreparedTest extends MessageTestBase<Prepared> {
   }
 
   @Test
-  public void should_encode_and_decode_without_result_metadata_in_protocol_v3() {
+  public void should_encode_and_decode_with_empty_result_in_protocol_v3() {
     RowsMetadata variablesMetadata =
         new RowsMetadata(
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
-            2,
             null,
             null);
-    RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), 0, null, null);
+    RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), null, null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
     int protocolVersion = V3;
 
@@ -74,7 +73,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
                 .string("column2")
                 .unsignedShort(ProtocolConstants.DataType.BLOB)
                 // Empty result metadata:
-                .int_(0x0004)
+                .int_(0x0000)
                 .int_(0));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
@@ -104,14 +103,13 @@ public class PreparedTest extends MessageTestBase<Prepared> {
   }
 
   @Test
-  public void should_encode_and_decode_with_result_metadata_in_protocol_v3() {
-    RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), 0, null, null);
+  public void should_encode_and_decode_with_non_empty_result_in_protocol_v3() {
+    RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null);
     RowsMetadata resultMetadata =
         new RowsMetadata(
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
-            2,
             null,
             null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
@@ -125,7 +123,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
                 .int_(ProtocolConstants.ResultKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with no variables:
-                .int_(0x0004)
+                .int_(0x0000)
                 .int_(0)
                 // Result metadata with 2 columns:
                 .int_(0x0001)
@@ -164,16 +162,16 @@ public class PreparedTest extends MessageTestBase<Prepared> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
-  public void should_decode_without_result_metadata_in_protocol_v4_or_above(int protocolVersion) {
+  public void should_encode_and_decode_with_empty_result_in_protocol_v4_or_above(
+      int protocolVersion) {
     RowsMetadata variablesMetadata =
         new RowsMetadata(
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
-            2,
             null,
             new int[] {0});
-    RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), 0, null, null);
+    RowsMetadata resultMetadata = new RowsMetadata(Collections.emptyList(), null, null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -195,7 +193,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
                 .string("column2")
                 .unsignedShort(ProtocolConstants.DataType.BLOB)
                 // Empty result metadata:
-                .int_(0x0004)
+                .int_(0x0000)
                 .int_(0));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
@@ -229,14 +227,14 @@ public class PreparedTest extends MessageTestBase<Prepared> {
   }
 
   @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
-  public void should_decode_with_result_metadata_in_protocol_v4_or_above(int protocolVersion) {
-    RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), 0, null, null);
+  public void should_encode_and_decode_with_non_empty_result_in_protocol_v4_or_above(
+      int protocolVersion) {
+    RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null);
     RowsMetadata resultMetadata =
         new RowsMetadata(
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
-            2,
             null,
             null);
     Prepared initial = new Prepared(PREPARED_QUERY_ID, variablesMetadata, resultMetadata);
@@ -249,7 +247,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
                 .int_(ProtocolConstants.ResultKind.PREPARED)
                 .shortBytes("0xcafebabe") // query id
                 // Variables metadata with no variables:
-                .int_(0x0004)
+                .int_(0x0000)
                 .int_(0)
                 .int_(0)
                 // Result metadata with 2 columns:
