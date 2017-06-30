@@ -1,6 +1,6 @@
-# Native protocol layer compatible with Apache Cassandra™
+# Native protocol layer compatible with Apache Cassandra®
  
-A set of Java types representing the frames and messages of the Apache Cassandra™ native protocol,
+A set of Java types representing the frames and messages of the Apache Cassandra® native protocol,
 with the associated serialization and deserialization logic (this is a third-party implementation,
 not related to the Apache Cassandra project).
 
@@ -8,15 +8,15 @@ Native protocol versions 3 and above are supported.
 
 ## Usage
 
-The code is agnostic about the underlying binary representation: start by implementing a 
-`PrimitiveCodec` for your target type `B` (which could be `ByteBuffer`, Netty's `ByteBuf`, 
+The code is agnostic about the underlying binary representation: start by implementing a
+`PrimitiveCodec` for your target type `B` (which could be `ByteBuffer`, Netty's `ByteBuf`,
 `byte[]`, etc.)
 
 You may also implement a `Compressor<B>` (it can be `Compressor.none()` if you're not going to
 compress frames).
- 
-Finally, build a `FrameCodec<B>` that will allow you to encode and decode frames. 
-`Frame.defaultClient` and `Frame.defaultServer` give you the default sets of codecs for the 
+
+Finally, build a `FrameCodec<B>` that will allow you to encode and decode frames.
+`Frame.defaultClient` and `Frame.defaultServer` give you the default sets of codecs for the
 protocol versions that are currently supported; alternatively, you can use the constructor
 to register an arbitrary set of codecs.
 
@@ -42,7 +42,7 @@ supported. Examples:
 * 1.5.0: v5 stable.
 
 All the types in this project are considered low-level and intended for framework developers, not
-end users. We'll try to preserve binary compatibility (in particular for `Frame` and `Message` 
+end users. We'll try to preserve binary compatibility (in particular for `Frame` and `Message`
 implementations), but we reserve the right to introduce breaking changes at any time.
 
 ## License
@@ -63,9 +63,9 @@ limitations under the License.
 
 ----
 
-DataStax is a registered trademark of DataStax, Inc. and its subsidiaries in the United States 
+DataStax is a registered trademark of DataStax, Inc. and its subsidiaries in the United States
 and/or other countries.
 
-Apache Cassandra, Apache, Tomcat, Lucene, Solr, Hadoop, Spark, TinkerPop, and Cassandra are 
+Apache Cassandra, Apache, Tomcat, Lucene, Solr, Hadoop, Spark, TinkerPop, and Cassandra are
 trademarks of the [Apache Software Foundation](http://www.apache.org/) or its subsidiaries in
-Canada, the United States and/or other countries. 
+Canada, the United States and/or other countries.
