@@ -27,8 +27,10 @@
 
   <name>An implementation of the Apache Cassandra™ native protocol</name>
   <description>
-    A set of Java types representing the frames and messages of the Apache Cassandra® native protocol,
-    with the associated serialization and deserialization logic (this is a third-party implementation,
+    A set of Java types representing the frames and messages of the Apache Cassandra® native
+    protocol,
+    with the associated serialization and deserialization logic (this is a third-party
+    implementation,
     not related to the Apache Cassandra project)
   </description>
   <url>https://github.com/datastax/native-protocol</url>
@@ -88,6 +90,19 @@
         <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>2.10.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.8</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.5</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -174,12 +189,35 @@ limitations under the License.]]>
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+          <skipLocalStaging>true</skipLocalStaging>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <additionalparam>-Xdoclint:none</additionalparam>
         </configuration>
         <executions>
           <execution>
+            <id>attach-javadocs</id>
             <goals>
               <goal>jar</goal>
             </goals>
@@ -187,15 +225,52 @@ limitations under the License.]]>
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-source-plugin</artifactId>
+        <artifactId>maven-gpg-plugin</artifactId>
         <executions>
           <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
             <goals>
-              <goal>jar</goal>
+              <goal>sign</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <tagNameFormat>@{project.version}</tagNameFormat>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>false</useReleaseProfile>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+  <distributionManagement>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>Apache License Version 2.0</comments>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git@github.com:riptano/native-protocol.git</connection>
+    <developerConnection>scm:git:git@github.com:riptano/native-protocol.git</developerConnection>
+    <url>https://github.com/riptano/native-protocol</url>
+    <tag>HEAD</tag>
+  </scm>
+  <developers>
+    <developer>
+      <name>Various</name>
+      <organization>DataStax</organization>
+    </developer>
+  </developers>
 </project>
