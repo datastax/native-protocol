@@ -43,6 +43,17 @@ public class SchemaChange extends Result {
     this.arguments = arguments;
   }
 
+  @Override
+  public String toString() {
+    return String.format(
+        "SCHEMA_CHANGE(%s %s %s%s%s)",
+        changeType,
+        target,
+        keyspace,
+        (object == null) ? "" : "." + object,
+        (arguments == null || arguments.isEmpty()) ? "" : arguments);
+  }
+
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
       super(ProtocolConstants.ResultKind.SCHEMA_CHANGE, protocolVersion);

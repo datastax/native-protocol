@@ -25,6 +25,11 @@ public class Ready extends Message {
     super(true, ProtocolConstants.Opcode.READY);
   }
 
+  @Override
+  public String toString() {
+    return "READY";
+  }
+
   public static class Codec extends Message.Codec {
     public Codec(int protocolVersion) {
       super(ProtocolConstants.Opcode.READY, protocolVersion);

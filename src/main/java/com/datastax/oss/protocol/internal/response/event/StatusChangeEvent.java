@@ -37,7 +37,7 @@ public class StatusChangeEvent extends Event {
 
   @Override
   public String toString() {
-    return String.format("StatusChangeEvent(%s, %s)", changeType, address);
+    return String.format("EVENT STATUS_CHANGE(%s %s)", changeType, address);
   }
 
   public static class SubCodec extends Event.SubCodec {

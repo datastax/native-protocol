@@ -48,6 +48,11 @@ public class Error extends Message {
     this.message = message;
   }
 
+  @Override
+  public String toString() {
+    return "ERROR(" + message + ")";
+  }
+
   public static class Codec extends Message.Codec {
     private final IntMap<SubCodec> subCodecs;
 

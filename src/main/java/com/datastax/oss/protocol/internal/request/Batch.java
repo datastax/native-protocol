@@ -77,6 +77,11 @@ public class Batch extends Message {
         defaultTimestamp);
   }
 
+  @Override
+  public String toString() {
+    return "BATCH(" + queriesOrIds.size() + " statements)";
+  }
+
   private static EnumSet<QueryFlag> computeFlags(int serialConsistency, long defaultTimestamp) {
     EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
     if (serialConsistency != ProtocolConstants.ConsistencyLevel.SERIAL) {

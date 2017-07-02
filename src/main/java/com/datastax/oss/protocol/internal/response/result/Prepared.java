@@ -20,6 +20,7 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.response.Result;
+import com.datastax.oss.protocol.internal.util.Bytes;
 
 import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
 
@@ -34,6 +35,11 @@ public class Prepared extends Result {
     this.preparedQueryId = preparedQueryId;
     this.variablesMetadata = variablesMetadata;
     this.resultMetadata = resultMetadata;
+  }
+
+  @Override
+  public String toString() {
+    return "PREPARED(" + Bytes.toHexString(preparedQueryId) + ')';
   }
 
   public static class SubCodec extends Result.SubCodec {

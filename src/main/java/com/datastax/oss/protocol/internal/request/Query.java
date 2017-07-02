@@ -37,7 +37,7 @@ public class Query extends Message {
 
   @Override
   public String toString() {
-    return "QUERY " + query + '(' + options + ')';
+    return "QUERY (" + query + ')';
   }
 
   public static class Codec extends Message.Codec {

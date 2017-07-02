@@ -36,6 +36,11 @@ public class Rows extends Result {
     this.data = data;
   }
 
+  @Override
+  public String toString() {
+    return "ROWS(" + data.size() + " x " + metadata.columnCount + " columns)";
+  }
+
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
       super(ProtocolConstants.ResultKind.ROWS, protocolVersion);

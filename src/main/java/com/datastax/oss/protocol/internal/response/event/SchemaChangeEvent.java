@@ -47,21 +47,13 @@ public class SchemaChangeEvent extends Event {
 
   @Override
   public String toString() {
-    switch (target) {
-      case ProtocolConstants.SchemaChangeTarget.KEYSPACE:
-        return String.format("SchemaChangeEvent(%s, %s, %s)", changeType, target, keyspace);
-      case ProtocolConstants.SchemaChangeTarget.TABLE:
-      case ProtocolConstants.SchemaChangeTarget.TYPE:
-        return String.format(
-            "SchemaChangeEvent(%s, %s, %s, %s)", changeType, target, keyspace, object);
-      case ProtocolConstants.SchemaChangeTarget.FUNCTION:
-      case ProtocolConstants.SchemaChangeTarget.AGGREGATE:
-        return String.format(
-            "SchemaChangeEvent(%s, %s, %s, %s, %s)",
-            changeType, target, keyspace, object, (arguments == null) ? "[]" : arguments);
-      default:
-        return String.format("SchemaChangeEvent(%s, UNSUPPORTED TARGET! %s)", changeType, target);
-    }
+    return String.format(
+        "EVENT SCHEMA_CHANGE(%s %s %s%s%s)",
+        changeType,
+        target,
+        keyspace,
+        (object == null) ? "" : "." + object,
+        (arguments == null) ? "" : arguments);
   }
 
   public static class SubCodec extends Event.SubCodec {

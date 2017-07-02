@@ -29,6 +29,11 @@ public class SetKeyspace extends Result {
     this.keyspace = keyspace;
   }
 
+  @Override
+  public String toString() {
+    return "SET_KEYSPACE(" + keyspace + ')';
+  }
+
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
       super(ProtocolConstants.ResultKind.SET_KEYSPACE, protocolVersion);

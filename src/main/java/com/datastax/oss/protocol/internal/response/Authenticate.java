@@ -28,6 +28,11 @@ public class Authenticate extends Message {
     this.authenticator = authenticator;
   }
 
+  @Override
+  public String toString() {
+    return "AUTHENTICATE";
+  }
+
   public static class Codec extends Message.Codec {
     public Codec(int protocolVersion) {
       super(ProtocolConstants.Opcode.AUTHENTICATE, protocolVersion);

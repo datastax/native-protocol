@@ -31,6 +31,11 @@ public class Register extends Message {
     this.eventTypes = eventTypes;
   }
 
+  @Override
+  public String toString() {
+    return "REGISTER " + eventTypes;
+  }
+
   public static class Codec extends Message.Codec {
 
     public Codec(int protocolVersion) {

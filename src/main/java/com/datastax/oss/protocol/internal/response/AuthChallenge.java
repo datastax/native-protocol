@@ -30,6 +30,11 @@ public class AuthChallenge extends Message {
     this.token = token;
   }
 
+  @Override
+  public String toString() {
+    return "AUTH_CHALLENGE";
+  }
+
   public static class Codec extends Message.Codec {
     public Codec(int protocolVersion) {
       super(ProtocolConstants.Opcode.AUTH_CHALLENGE, protocolVersion);

@@ -28,6 +28,11 @@ public class Prepare extends Message {
     this.cqlQuery = cqlQuery;
   }
 
+  @Override
+  public String toString() {
+    return "PREPARE(" + cqlQuery + ')';
+  }
+
   public static class Codec extends Message.Codec {
     public Codec(int protocolVersion) {
       super(ProtocolConstants.Opcode.PREPARE, protocolVersion);

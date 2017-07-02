@@ -29,6 +29,11 @@ public class AuthSuccess extends Message {
     this.token = token;
   }
 
+  @Override
+  public String toString() {
+    return "AUTH_SUCCESS";
+  }
+
   public static class Codec extends Message.Codec {
     public Codec(int protocolVersion) {
       super(ProtocolConstants.Opcode.AUTH_SUCCESS, protocolVersion);

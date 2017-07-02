@@ -31,6 +31,11 @@ public class Supported extends Message {
     this.options = options;
   }
 
+  @Override
+  public String toString() {
+    return "SUPPORTED " + options;
+  }
+
   public static class Codec extends Message.Codec {
     public Codec(int protocolVersion) {
       super(ProtocolConstants.Opcode.SUPPORTED, protocolVersion);

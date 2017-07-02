@@ -20,6 +20,7 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
+import com.datastax.oss.protocol.internal.util.Bytes;
 
 public class Execute extends Message {
 
@@ -30,6 +31,11 @@ public class Execute extends Message {
     super(false, ProtocolConstants.Opcode.EXECUTE);
     this.queryId = queryId;
     this.options = options;
+  }
+
+  @Override
+  public String toString() {
+    return "EXECUTE(" + Bytes.toHexString(queryId) + ')';
   }
 
   public static class Codec extends Message.Codec {

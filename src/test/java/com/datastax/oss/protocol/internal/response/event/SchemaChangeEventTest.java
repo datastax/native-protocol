@@ -284,7 +284,7 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
                     null,
                     null)
                 .toString())
-        .isEqualTo("SchemaChangeEvent(CREATED, KEYSPACE, ks)");
+        .isEqualTo("EVENT SCHEMA_CHANGE(CREATED KEYSPACE ks)");
     assertThat(
             new SchemaChangeEvent(
                     ProtocolConstants.SchemaChangeType.CREATED,
@@ -293,7 +293,7 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
                     "table",
                     null)
                 .toString())
-        .isEqualTo("SchemaChangeEvent(CREATED, TABLE, ks, table)");
+        .isEqualTo("EVENT SCHEMA_CHANGE(CREATED TABLE ks.table)");
     assertThat(
             new SchemaChangeEvent(
                     ProtocolConstants.SchemaChangeType.CREATED,
@@ -302,7 +302,7 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
                     "fn",
                     Arrays.asList("int", "int"))
                 .toString())
-        .isEqualTo("SchemaChangeEvent(CREATED, FUNCTION, ks, fn, [int, int])");
+        .isEqualTo("EVENT SCHEMA_CHANGE(CREATED FUNCTION ks.fn[int, int])");
 
     // Null argument list should never happen, but make sure it's handled gracefully:
     assertThat(
@@ -313,6 +313,6 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
                     "fn",
                     null)
                 .toString())
-        .isEqualTo("SchemaChangeEvent(CREATED, FUNCTION, ks, fn, [])");
+        .isEqualTo("EVENT SCHEMA_CHANGE(CREATED FUNCTION ks.fn)");
   }
 }

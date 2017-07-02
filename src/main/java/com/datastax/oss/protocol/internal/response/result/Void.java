@@ -27,6 +27,11 @@ public class Void extends Result {
     super(ProtocolConstants.ResultKind.VOID);
   }
 
+  @Override
+  public String toString() {
+    return "VOID";
+  }
+
   public static class SubCodec extends Result.SubCodec {
     public SubCodec(int protocolVersion) {
       super(ProtocolConstants.ResultKind.VOID, protocolVersion);
