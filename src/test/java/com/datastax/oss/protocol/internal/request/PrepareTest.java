@@ -20,10 +20,14 @@ import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
-import org.testng.annotations.Test;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class PrepareTest extends MessageTestBase<Prepare> {
 
   public PrepareTest() {
@@ -35,7 +39,8 @@ public class PrepareTest extends MessageTestBase<Prepare> {
     return new Prepare.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
     Prepare initial = new Prepare("SELECT * FROM foo");
 

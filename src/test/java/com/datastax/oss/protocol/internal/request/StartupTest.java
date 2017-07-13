@@ -20,10 +20,14 @@ import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
-import org.testng.annotations.Test;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class StartupTest extends MessageTestBase<Startup> {
 
   public StartupTest() {
@@ -35,7 +39,8 @@ public class StartupTest extends MessageTestBase<Startup> {
     return new Startup.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_with_compression(int protocolVersion) {
     Startup initial = new Startup("LZ4");
 
@@ -66,7 +71,8 @@ public class StartupTest extends MessageTestBase<Startup> {
         .containsEntry("CQL_VERSION", "3.0.0");
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_without_compression(int protocolVersion) {
     Startup initial = new Startup();
 

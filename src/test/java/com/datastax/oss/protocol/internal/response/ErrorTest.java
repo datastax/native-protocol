@@ -30,20 +30,24 @@ import com.datastax.oss.protocol.internal.response.error.Unprepared;
 import com.datastax.oss.protocol.internal.response.error.WriteFailure;
 import com.datastax.oss.protocol.internal.response.error.WriteTimeout;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class ErrorTest extends MessageTestBase<Error> {
 
   private static final String MOCK_MESSAGE = "mock message";
 
-  protected ErrorTest() {
+  public ErrorTest() {
     super(Error.class);
   }
 
@@ -52,7 +56,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     return new Error.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_simple_error(int protocolVersion) {
     int[] simpleErrorCodes = {
       ProtocolConstants.ErrorCode.SERVER_ERROR,
@@ -82,7 +87,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     }
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_unprepared(int protocolVersion) {
     Unprepared initial =
         new Unprepared(MOCK_MESSAGE, Bytes.getArray(Bytes.fromHexString("0xcafebabe")));
@@ -110,7 +116,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(Bytes.toHexString(unprepared.id)).isEqualTo("0xcafebabe");
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_already_exists(int protocolVersion) {
     AlreadyExists initial = new AlreadyExists(MOCK_MESSAGE, "ks", "table");
 
@@ -140,7 +147,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(alreadyExists.table).isEqualTo("table");
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_unavailable(int protocolVersion) {
     Unavailable initial =
         new Unavailable(MOCK_MESSAGE, ProtocolConstants.ConsistencyLevel.QUORUM, 2, 1);
@@ -174,7 +182,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(unavailable.alive).isEqualTo(1);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_read_timeout(int protocolVersion) {
     ReadTimeout initial =
         new ReadTimeout(MOCK_MESSAGE, ProtocolConstants.ConsistencyLevel.QUORUM, 2, 3, false);
@@ -211,7 +220,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(readTimeout.dataPresent).isFalse();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_read_failure_v3_v4(int protocolVersion) {
     ReadFailure initial =
         new ReadFailure(
@@ -253,7 +263,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(readFailure.dataPresent).isFalse();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_read_failure(int protocolVersion)
       throws UnknownHostException {
     Map<InetAddress, Integer> reasonMap = new HashMap<>();
@@ -303,7 +314,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(readFailure.dataPresent).isFalse();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_write_timeout(int protocolVersion) {
     WriteTimeout initial =
         new WriteTimeout(
@@ -345,7 +357,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(writeTimeout.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_write_failure_v3_v4(int protocolVersion) {
     WriteFailure initial =
         new WriteFailure(
@@ -393,7 +406,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(writeFailure.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_write_failure(int protocolVersion)
       throws UnknownHostException {
     Map<InetAddress, Integer> reasonMap = new HashMap<>();
@@ -450,7 +464,8 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(writeFailure.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_function_failure(int protocolVersion) {
     FunctionFailure initial =
         new FunctionFailure(MOCK_MESSAGE, "keyspace", "function", Arrays.asList("int", "varchar"));

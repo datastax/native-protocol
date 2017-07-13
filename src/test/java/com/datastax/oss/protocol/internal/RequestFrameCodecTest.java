@@ -19,29 +19,34 @@ import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockCompressor;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.oss.protocol.internal.request.Options;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class RequestFrameCodecTest extends FrameCodecTestBase {
 
   private MockPrimitiveCodec primitiveCodec;
   private List<Integer> expectedAllocations;
 
-  @BeforeMethod
+  @Before
   public void setup() {
     primitiveCodec = Mockito.spy(new MockPrimitiveCodec());
     expectedAllocations = new ArrayList<>();
   }
 
-  @Test(dataProvider = "requestParameters")
+  @Test
+  @UseDataProvider("requestParameters")
   public void should_encode_request_frame(
       int protocolVersion,
       Compressor<MockBinaryString> compressor,
@@ -67,7 +72,8 @@ public class RequestFrameCodecTest extends FrameCodecTestBase {
     }
   }
 
-  @Test(dataProvider = "requestParameters")
+  @Test
+  @UseDataProvider("requestParameters")
   public void should_decode_request_frame(
       int protocolVersion,
       Compressor<MockBinaryString> compressor,
@@ -188,8 +194,8 @@ public class RequestFrameCodecTest extends FrameCodecTestBase {
     }
   }
 
-  @DataProvider(name = "requestParameters")
-  public static Object[][] getRequestParameters() {
+  @DataProvider
+  public static Object[][] requestParameters() {
     // before v4: no payload
     Object[][] v3Parameters =
         TestDataProviders.combine(

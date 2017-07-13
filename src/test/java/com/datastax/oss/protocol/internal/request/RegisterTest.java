@@ -21,12 +21,16 @@ import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.Arrays;
 import java.util.List;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class RegisterTest extends MessageTestBase<Register> {
 
   public RegisterTest() {
@@ -38,7 +42,8 @@ public class RegisterTest extends MessageTestBase<Register> {
     return new Register.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
     List<String> eventTypes =
         Arrays.asList(

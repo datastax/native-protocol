@@ -21,18 +21,23 @@ import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.Arrays;
 import java.util.Collections;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class RowsMetadataTest {
   private static final RawType INT_TYPE = RawType.PRIMITIVES.get(ProtocolConstants.DataType.INT);
   private static final RawType VARCHAR_TYPE =
       RawType.PRIMITIVES.get(ProtocolConstants.DataType.VARCHAR);
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_metadata_with_zero_columns(int protocolVersion) {
     RowsMetadata initial = new RowsMetadata(Collections.emptyList(), null, null);
 
@@ -51,7 +56,8 @@ public class RowsMetadataTest {
     assertThat(decoded).hasNoPagingState().hasNoColumnSpecs().hasColumnCount(0).hasNoPkIndices();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_metadata_with_no_metadata_flag(int protocolVersion) {
     RowsMetadata initial = new RowsMetadata(3, null, null);
 
@@ -70,7 +76,8 @@ public class RowsMetadataTest {
     assertThat(decoded).hasNoPagingState().hasNoColumnSpecs().hasColumnCount(3).hasNoPkIndices();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_column_specs(int protocolVersion) {
     RowsMetadata initial =
         new RowsMetadata(
@@ -117,7 +124,8 @@ public class RowsMetadataTest {
         .hasNoPkIndices();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_column_specs_with_global_table(int protocolVersion) {
     RowsMetadata initial =
         new RowsMetadata(
@@ -158,7 +166,8 @@ public class RowsMetadataTest {
         .hasNoPkIndices();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_paging_state(int protocolVersion) {
     RowsMetadata initial =
         new RowsMetadata(

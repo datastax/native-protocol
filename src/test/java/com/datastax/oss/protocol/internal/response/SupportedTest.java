@@ -20,17 +20,21 @@ import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class SupportedTest extends MessageTestBase<Supported> {
-  protected SupportedTest() {
+  public SupportedTest() {
     super(Supported.class);
   }
 
@@ -39,7 +43,8 @@ public class SupportedTest extends MessageTestBase<Supported> {
     return new Supported.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_without_options(int protocolVersion) {
     Supported initial = new Supported(Collections.emptyMap());
 
@@ -53,7 +58,8 @@ public class SupportedTest extends MessageTestBase<Supported> {
     assertThat(decoded.options).isEmpty();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_with_options(int protocolVersion) {
     Map<String, List<String>> options = new LinkedHashMap<>();
     options.put("option1", Arrays.asList("value11", "value12"));

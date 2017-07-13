@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 

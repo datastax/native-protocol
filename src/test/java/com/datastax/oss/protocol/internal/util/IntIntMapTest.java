@@ -15,7 +15,7 @@
  */
 package com.datastax.oss.protocol.internal.util;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 

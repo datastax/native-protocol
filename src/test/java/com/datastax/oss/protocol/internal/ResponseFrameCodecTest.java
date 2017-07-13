@@ -19,29 +19,34 @@ import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockCompressor;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.oss.protocol.internal.response.Ready;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class ResponseFrameCodecTest extends FrameCodecTestBase {
 
   private MockPrimitiveCodec primitiveCodec;
   private List<Integer> expectedAllocations;
 
-  @BeforeMethod
+  @Before
   public void setup() {
     primitiveCodec = Mockito.spy(new MockPrimitiveCodec());
     expectedAllocations = new ArrayList<>();
   }
 
-  @Test(dataProvider = "responseParameters")
+  @Test
+  @UseDataProvider("responseParameters")
   public void should_encode_response_frame(
       int protocolVersion,
       int streamId,
@@ -76,7 +81,8 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
     }
   }
 
-  @Test(dataProvider = "responseParameters")
+  @Test
+  @UseDataProvider("responseParameters")
   public void should_decode_response_frame(
       int protocolVersion,
       int streamId,
@@ -219,8 +225,8 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
     }
   }
 
-  @DataProvider(name = "responseParameters")
-  public static Object[][] getResponseParameters() {
+  @DataProvider
+  public static Object[][] responseParameters() {
     // before v4: no payload, no warnings
     Object[][] v3Parameters =
         TestDataProviders.combine(

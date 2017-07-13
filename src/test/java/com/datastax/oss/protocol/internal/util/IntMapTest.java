@@ -15,13 +15,13 @@
  */
 package com.datastax.oss.protocol.internal.util;
 
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
 public class IntMapTest {
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void should_not_allow_negative_keys() {
     IntMap.builder().put(-1, "a");
   }
@@ -36,7 +36,7 @@ public class IntMapTest {
     assertThat(map.get(4)).isNull();
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void should_fail_if_key_already_exists() {
     IntMap.builder().put(1, "foo").put(1, "bar");
   }

@@ -24,10 +24,14 @@ import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
 import com.datastax.oss.protocol.internal.response.QueryOptionsBuilder;
 import com.datastax.oss.protocol.internal.util.Bytes;
-import org.testng.annotations.Test;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class QueryTest extends MessageTestBase<Query> {
   private String queryString = "select * from system.local";
 
@@ -40,7 +44,8 @@ public class QueryTest extends MessageTestBase<Query> {
     return new Query.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_query_with_default_options_v3_v4(int protocolVersion) {
     Query initial = new Query(queryString);
 
@@ -74,7 +79,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_query_with_default_options(int protocolVersion) {
     Query initial = new Query(queryString);
 
@@ -107,7 +113,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_query_with_different_CL_v3_v4(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
@@ -144,7 +151,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_query_with_different_CL(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
@@ -180,7 +188,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_positional_values_v3_v4(int protocolVersion) {
     QueryOptions options = new QueryOptionsBuilder().positionalValue("0xcafebabe").build();
     Query initial = new Query(queryString, options);
@@ -219,7 +228,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_positional_values(int protocolVersion) {
     QueryOptions options = new QueryOptionsBuilder().positionalValue("0xcafebabe").build();
     Query initial = new Query(queryString, options);
@@ -257,7 +267,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_non_default_options_v3_v4(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
@@ -305,7 +316,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(42);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_non_default_options(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
@@ -353,7 +365,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(42);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_named_values_v3_v4(int protocolVersion) {
     QueryOptions options = new QueryOptionsBuilder().namedValue("foo", "0xcafebabe").build();
     Query initial = new Query(queryString, options);
@@ -395,7 +408,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_named_values(int protocolVersion) {
     QueryOptions options = new QueryOptionsBuilder().namedValue("foo", "0xcafebabe").build();
     Query initial = new Query(queryString, options);
@@ -437,11 +451,8 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(
-    dataProviderClass = TestDataProviders.class,
-    dataProvider = "protocolV3OrAbove",
-    expectedExceptions = IllegalArgumentException.class
-  )
+  @Test(expected = IllegalArgumentException.class)
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_not_allow_both_named_and_positional_values(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()

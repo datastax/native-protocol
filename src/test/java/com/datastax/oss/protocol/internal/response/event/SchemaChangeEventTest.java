@@ -22,14 +22,18 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Event;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.Arrays;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
 
-  protected SchemaChangeEventTest() {
+  public SchemaChangeEventTest() {
     super(SchemaChangeEvent.class);
   }
 
@@ -38,7 +42,8 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
     return new Event.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_keyspace_change(int protocolVersion) {
     SchemaChangeEvent initial =
         new SchemaChangeEvent(
@@ -74,7 +79,8 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
     assertThat(decoded.arguments).isNull();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_table_change(int protocolVersion) {
     SchemaChangeEvent initial =
         new SchemaChangeEvent(
@@ -112,7 +118,8 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
     assertThat(decoded.arguments).isNull();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_type_change(int protocolVersion) {
     SchemaChangeEvent initial =
         new SchemaChangeEvent(
@@ -150,11 +157,8 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
     assertThat(decoded.arguments).isNull();
   }
 
-  @Test(
-    dataProviderClass = TestDataProviders.class,
-    dataProvider = "protocolV3OrBelow",
-    expectedExceptions = IllegalArgumentException.class
-  )
+  @Test(expected = IllegalArgumentException.class)
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrBelow")
   public void should_fail_to_decode_function_change_in_v3_or_below(int protocolVersion) {
     decode(
         new MockBinaryString()
@@ -169,11 +173,8 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
         protocolVersion);
   }
 
-  @Test(
-    dataProviderClass = TestDataProviders.class,
-    dataProvider = "protocolV3OrBelow",
-    expectedExceptions = IllegalArgumentException.class
-  )
+  @Test(expected = IllegalArgumentException.class)
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrBelow")
   public void should_fail_to_decode_aggregate_change_in_v3_or_below(int protocolVersion) {
     decode(
         new MockBinaryString()
@@ -188,7 +189,8 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
         protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV4OrAbove")
   public void should_encode_and_decode_function_change_in_v4_or_above(int protocolVersion) {
     SchemaChangeEvent initial =
         new SchemaChangeEvent(
@@ -231,7 +233,8 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
     assertThat(decoded.arguments).containsExactly("int", "int");
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV4OrAbove")
   public void should_encode_and_decode_aggregate_change_in_v4_or_above(int protocolVersion) {
     SchemaChangeEvent initial =
         new SchemaChangeEvent(

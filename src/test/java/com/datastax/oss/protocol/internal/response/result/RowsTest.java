@@ -23,15 +23,19 @@ import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class RowsTest extends MessageTestBase<Rows> {
   private static final RawType BLOB_TYPE = RawType.PRIMITIVES.get(ProtocolConstants.DataType.BLOB);
 
@@ -44,7 +48,8 @@ public class RowsTest extends MessageTestBase<Rows> {
     return new Result.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
     RowsMetadata metadata =
         new RowsMetadata(
@@ -107,7 +112,8 @@ public class RowsTest extends MessageTestBase<Rows> {
         .hasNextRow("0x31", "0x32");
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_when_no_metadata(int protocolVersion) {
     RowsMetadata emptyMetadata = new RowsMetadata(2, null, null);
     Queue<List<ByteBuffer>> data = new LinkedList<>();

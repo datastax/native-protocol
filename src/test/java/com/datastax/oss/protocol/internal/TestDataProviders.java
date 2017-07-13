@@ -15,35 +15,36 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
 import java.util.ArrayList;
 import java.util.List;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestDataProviders {
-  @DataProvider(name = "protocolV3OrAbove")
+  @DataProvider
   public static Object[][] protocolV3OrAbove() {
     return protocolVersions(3, null);
   }
 
-  @DataProvider(name = "protocolV3OrBelow")
+  @DataProvider
   public static Object[][] protocolV3OrBelow() {
     return protocolVersions(null, 3);
   }
 
-  @DataProvider(name = "protocolV4OrAbove")
+  @DataProvider
   public static Object[][] protocolV4OrAbove() {
     return protocolVersions(4, null);
   }
 
-  @DataProvider(name = "protocolV5OrAbove")
+  @DataProvider
   public static Object[][] protocolV5OrAbove() {
     return protocolVersions(5, null);
   }
 
-  @DataProvider(name = "protocolV3OrV4")
+  @DataProvider
   public static Object[][] protocolV3OrV4() {
     return protocolVersions(3, 4);
   }

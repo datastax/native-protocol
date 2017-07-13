@@ -22,14 +22,18 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Event;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.net.InetSocketAddress;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class StatusChangeEventTest extends MessageTestBase<StatusChangeEvent> {
 
-  protected StatusChangeEventTest() {
+  public StatusChangeEventTest() {
     super(StatusChangeEvent.class);
   }
 
@@ -38,7 +42,8 @@ public class StatusChangeEventTest extends MessageTestBase<StatusChangeEvent> {
     return new Event.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
     InetSocketAddress addr = new InetSocketAddress("127.0.0.1", 9042);
     StatusChangeEvent initial = new StatusChangeEvent(ProtocolConstants.StatusChangeType.UP, addr);

@@ -23,10 +23,14 @@ import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
 import com.datastax.oss.protocol.internal.util.Bytes;
-import org.testng.annotations.Test;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class ExecuteTest extends MessageTestBase<Execute> {
 
   private byte[] queryId = Bytes.getArray(Bytes.fromHexString("0xcafebabe"));
@@ -40,7 +44,8 @@ public class ExecuteTest extends MessageTestBase<Execute> {
     return new Execute.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_with_default_options_v3_v4(int protocolVersion) {
     Execute initial = new Execute(queryId, QueryOptions.DEFAULT);
 
@@ -71,7 +76,8 @@ public class ExecuteTest extends MessageTestBase<Execute> {
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_with_default_options(int protocolVersion) {
     Execute initial = new Execute(queryId, QueryOptions.DEFAULT);
 

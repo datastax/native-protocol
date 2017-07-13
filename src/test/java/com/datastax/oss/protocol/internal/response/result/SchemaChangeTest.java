@@ -22,11 +22,15 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Result;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.Arrays;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
   public SchemaChangeTest() {
     super(SchemaChange.class);
@@ -37,7 +41,8 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
     return new Result.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_keyspace_change(int protocolVersion) {
     SchemaChange initial =
         new SchemaChange(
@@ -72,7 +77,8 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
     assertThat(decoded.arguments).isNull();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_table_change(int protocolVersion) {
     SchemaChange initial =
         new SchemaChange(
@@ -109,7 +115,8 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
     assertThat(decoded.arguments).isNull();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_type_change(int protocolVersion) {
     SchemaChange initial =
         new SchemaChange(
@@ -146,11 +153,8 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
     assertThat(decoded.arguments).isNull();
   }
 
-  @Test(
-    dataProviderClass = TestDataProviders.class,
-    dataProvider = "protocolV3OrBelow",
-    expectedExceptions = IllegalArgumentException.class
-  )
+  @Test(expected = IllegalArgumentException.class)
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrBelow")
   public void should_fail_to_decode_function_change_in_v3_or_below(int protocolVersion) {
     decode(
         new MockBinaryString()
@@ -165,11 +169,8 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
         protocolVersion);
   }
 
-  @Test(
-    dataProviderClass = TestDataProviders.class,
-    dataProvider = "protocolV3OrBelow",
-    expectedExceptions = IllegalArgumentException.class
-  )
+  @Test(expected = IllegalArgumentException.class)
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrBelow")
   public void should_fail_to_decode_aggregate_change_in_v3_or_below(int protocolVersion) {
     decode(
         new MockBinaryString()
@@ -184,7 +185,8 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
         protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV4OrAbove")
   public void should_encode_and_decode_function_change_in_v4_or_above(int protocolVersion) {
     SchemaChange initial =
         new SchemaChange(
@@ -226,7 +228,8 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
     assertThat(decoded.arguments).containsExactly("int", "int");
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV4OrAbove")
   public void should_encode_and_decode_aggregate_change_in_v4_or_above(int protocolVersion) {
     SchemaChange initial =
         new SchemaChange(

@@ -23,13 +23,17 @@ import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.Arrays;
 import java.util.Collections;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V3;
 
+@RunWith(DataProviderRunner.class)
 public class PreparedTest extends MessageTestBase<Prepared> {
   private static final RawType BLOB_TYPE = RawType.PRIMITIVES.get(ProtocolConstants.DataType.BLOB);
   private static final byte[] PREPARED_QUERY_ID = Bytes.getArray(Bytes.fromHexString("0xcafebabe"));
@@ -161,7 +165,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
         .hasNoPkIndices();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV4OrAbove")
   public void should_encode_and_decode_with_empty_result_in_protocol_v4_or_above(
       int protocolVersion) {
     RowsMetadata variablesMetadata =
@@ -226,7 +231,8 @@ public class PreparedTest extends MessageTestBase<Prepared> {
         .hasNoPkIndices();
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV4OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV4OrAbove")
   public void should_encode_and_decode_with_non_empty_result_in_protocol_v4_or_above(
       int protocolVersion) {
     RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null);

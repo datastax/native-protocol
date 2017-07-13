@@ -22,12 +22,16 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.util.Arrays;
 import java.util.Collections;
-import org.testng.annotations.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class BatchTest extends MessageTestBase<Batch> {
   private final byte[] queryId = Bytes.getArray(Bytes.fromHexString("0xcafebabe"));
 
@@ -40,7 +44,8 @@ public class BatchTest extends MessageTestBase<Batch> {
     return new Batch.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_with_default_options_v3_v4(int protocolVersion) {
     Batch initial =
         new Batch(
@@ -102,7 +107,8 @@ public class BatchTest extends MessageTestBase<Batch> {
     assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_with_default_options(int protocolVersion) {
     Batch initial =
         new Batch(
@@ -165,7 +171,8 @@ public class BatchTest extends MessageTestBase<Batch> {
     assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrV4")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_with_custom_options_v3_v4(int protocolVersion) {
     long timestamp = 1234L;
     Batch initial =
@@ -230,7 +237,8 @@ public class BatchTest extends MessageTestBase<Batch> {
     assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV5OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_with_custom_options(int protocolVersion) {
     long timestamp = 1234L;
     Batch initial =

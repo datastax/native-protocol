@@ -19,12 +19,16 @@ import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
-import org.testng.annotations.Test;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class ReadyTest extends MessageTestBase<Ready> {
-  protected ReadyTest() {
+  public ReadyTest() {
     super(Ready.class);
   }
 
@@ -33,7 +37,8 @@ public class ReadyTest extends MessageTestBase<Ready> {
     return new Ready.Codec(protocolVersion);
   }
 
-  @Test(dataProviderClass = TestDataProviders.class, dataProvider = "protocolV3OrAbove")
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
     Ready initial = new Ready();
 
