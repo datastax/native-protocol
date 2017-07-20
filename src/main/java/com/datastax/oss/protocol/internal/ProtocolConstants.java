@@ -99,6 +99,8 @@ public class ProtocolConstants {
     public static final String UNLOGGED_BATCH = "UNLOGGED_BATCH";
     public static final String COUNTER = "COUNTER";
     public static final String BATCH_LOG = "BATCH_LOG";
+    public static final String VIEW = "VIEW";
+    public static final String CDC = "CDC";
   }
 
   public static class DataType {
