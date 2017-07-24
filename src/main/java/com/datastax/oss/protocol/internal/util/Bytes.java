@@ -15,7 +15,6 @@
  */
 package com.datastax.oss.protocol.internal.util;
 
-import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -38,38 +37,6 @@ public final class Bytes {
     for (int i = 0; i < 16; ++i) {
       byteToChar[i] = Integer.toHexString(i).charAt(0);
     }
-  }
-
-  /*
-   * We use reflexion to get access to a String protected constructor
-   * (if available) so we can build avoid copy when creating hex strings.
-   * That's stolen from Cassandra's code.
-   */
-  private static final Constructor<String> stringConstructor;
-
-  static {
-    Constructor<String> c;
-    try {
-      c = String.class.getDeclaredConstructor(int.class, int.class, char[].class);
-      c.setAccessible(true);
-    } catch (Exception e) {
-      c = null;
-    }
-    stringConstructor = c;
-  }
-
-  private static String wrapCharArray(char[] c) {
-    if (c == null) return null;
-
-    String s = null;
-    if (stringConstructor != null) {
-      try {
-        s = stringConstructor.newInstance(0, c.length, c);
-      } catch (Exception e) {
-        // Swallowing as we'll just use a copying constructor
-      }
-    }
-    return s == null ? new String(c) : s;
   }
 
   /**
@@ -102,7 +69,7 @@ public final class Bytes {
       array[offset + i * 2] = byteToChar[(bint & 0xf0) >> 4];
       array[offset + 1 + i * 2] = byteToChar[bint & 0x0f];
     }
-    return wrapCharArray(array);
+    return new String(array);
   }
 
   /**
