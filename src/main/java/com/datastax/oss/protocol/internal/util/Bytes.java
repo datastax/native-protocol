@@ -28,10 +28,15 @@ public final class Bytes {
 
   static {
     for (char c = 0; c < charToByte.length; ++c) {
-      if (c >= '0' && c <= '9') charToByte[c] = (byte) (c - '0');
-      else if (c >= 'A' && c <= 'F') charToByte[c] = (byte) (c - 'A' + 10);
-      else if (c >= 'a' && c <= 'f') charToByte[c] = (byte) (c - 'a' + 10);
-      else charToByte[c] = (byte) -1;
+      if (c >= '0' && c <= '9') {
+        charToByte[c] = (byte) (c - '0');
+      } else if (c >= 'A' && c <= 'F') {
+        charToByte[c] = (byte) (c - 'A' + 10);
+      } else if (c >= 'a' && c <= 'f') {
+        charToByte[c] = (byte) (c - 'a' + 10);
+      } else {
+        charToByte[c] = (byte) -1;
+      }
     }
 
     for (int i = 0; i < 16; ++i) {
@@ -50,9 +55,13 @@ public final class Bytes {
    *     method returns {@code null}.
    */
   public static String toHexString(ByteBuffer bytes) {
-    if (bytes == null) return null;
+    if (bytes == null) {
+      return null;
+    }
 
-    if (bytes.remaining() == 0) return "0x";
+    if (bytes.remaining() == 0) {
+      return "0x";
+    }
 
     char[] array = new char[2 * (bytes.remaining() + 1)];
     array[0] = '0';
@@ -98,12 +107,14 @@ public final class Bytes {
    * @throws IllegalArgumentException if {@code str} is not a valid CQL blob string.
    */
   public static ByteBuffer fromHexString(String str) {
-    if ((str.length() & 1) == 1)
+    if ((str.length() & 1) == 1) {
       throw new IllegalArgumentException(
           "A CQL blob string must have an even length (since one byte is always 2 hexadecimal character)");
+    }
 
-    if (str.charAt(0) != '0' || str.charAt(1) != 'x')
+    if (str.charAt(0) != '0' || str.charAt(1) != 'x') {
       throw new IllegalArgumentException("A CQL blob string must start with \"0x\"");
+    }
 
     return ByteBuffer.wrap(fromRawHexString(str, 2));
   }
@@ -113,8 +124,9 @@ public final class Bytes {
     for (int i = 0; i < bytes.length; i++) {
       byte halfByte1 = charToByte[str.charAt(strOffset + i * 2)];
       byte halfByte2 = charToByte[str.charAt(strOffset + i * 2 + 1)];
-      if (halfByte1 == -1 || halfByte2 == -1)
+      if (halfByte1 == -1 || halfByte2 == -1) {
         throw new IllegalArgumentException("Non-hex characters in " + str);
+      }
       bytes[i] = (byte) ((halfByte1 << 4) | halfByte2);
     }
     return bytes;
@@ -136,8 +148,11 @@ public final class Bytes {
 
     if (bytes.hasArray()) {
       int boff = bytes.arrayOffset() + bytes.position();
-      if (boff == 0 && length == bytes.array().length) return bytes.array();
-      else return Arrays.copyOfRange(bytes.array(), boff, boff + length);
+      if (boff == 0 && length == bytes.array().length) {
+        return bytes.array();
+      } else {
+        return Arrays.copyOfRange(bytes.array(), boff, boff + length);
+      }
     }
     // else, DirectByteBuffer.get() is the fastest route
     byte[] array = new byte[length];
