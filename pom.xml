@@ -25,13 +25,11 @@
   <version>1.4.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>An implementation of the Apache Cassandra™ native protocol</name>
+  <name>An implementation of the Apache Cassandra® native protocol</name>
   <description>
     A set of Java types representing the frames and messages of the Apache Cassandra® native
-    protocol,
-    with the associated serialization and deserialization logic (this is a third-party
-    implementation,
-    not related to the Apache Cassandra project)
+    protocol, with the associated serialization and deserialization logic (this is a third-party
+    implementation, not related to the Apache Cassandra project)
   </description>
   <url>https://github.com/datastax/native-protocol</url>
   <inceptionYear>2017</inceptionYear>
