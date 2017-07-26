@@ -62,7 +62,7 @@ public class RowsTest extends MessageTestBase<Rows> {
     data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
     data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
     data.add(Arrays.asList(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
-    Rows initial = new Rows(metadata, data);
+    Rows initial = new DefaultRows(metadata, data);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -120,7 +120,7 @@ public class RowsTest extends MessageTestBase<Rows> {
     data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
     data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
     data.add(Arrays.asList(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
-    Rows initial = new Rows(emptyMetadata, data);
+    Rows initial = new DefaultRows(emptyMetadata, data);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 

@@ -34,7 +34,7 @@ public class RowsAssert extends AbstractAssert<RowsAssert, Rows> {
     for (int i = 0; i < columnHexStrings.length; i++)
       buffers[i] = Bytes.fromHexString(columnHexStrings[i]);
 
-    List<ByteBuffer> row = actual.data.poll();
+    List<ByteBuffer> row = actual.getData().poll();
     assertThat(row).containsExactly(buffers);
     return this;
   }

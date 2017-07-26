@@ -20,8 +20,8 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.ProtocolErrors;
+import com.datastax.oss.protocol.internal.response.result.DefaultRows;
 import com.datastax.oss.protocol.internal.response.result.Prepared;
-import com.datastax.oss.protocol.internal.response.result.Rows;
 import com.datastax.oss.protocol.internal.response.result.SchemaChange;
 import com.datastax.oss.protocol.internal.response.result.SetKeyspace;
 import com.datastax.oss.protocol.internal.response.result.Void;
@@ -54,7 +54,7 @@ public abstract class Result extends Message {
       this(
           protocolVersion,
           new Void.SubCodec(protocolVersion),
-          new Rows.SubCodec(protocolVersion),
+          new DefaultRows.SubCodec(protocolVersion),
           new SetKeyspace.SubCodec(protocolVersion),
           new Prepared.SubCodec(protocolVersion),
           new SchemaChange.SubCodec(protocolVersion));
