@@ -276,9 +276,9 @@ limitations under the License.]]>
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:riptano/native-protocol.git</connection>
-    <developerConnection>scm:git:git@github.com:riptano/native-protocol.git</developerConnection>
-    <url>https://github.com/riptano/native-protocol</url>
+    <connection>scm:git:git@github.com:datastax/native-protocol.git</connection>
+    <developerConnection>scm:git:git@github.com:datastax/native-protocol.git</developerConnection>
+    <url>https://github.com/datastax/native-protocol</url>
     <tag>HEAD</tag>
   </scm>
   <developers>
