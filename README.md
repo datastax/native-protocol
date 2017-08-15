@@ -1,8 +1,10 @@
 # Native protocol layer compatible with Apache Cassandra®
- 
+
 A set of Java types representing the frames and messages of the Apache Cassandra® native protocol,
 with the associated serialization and deserialization logic (this is a third-party implementation,
-not related to the Apache Cassandra project).
+not related to the Apache Cassandra project). It is used by [Datastax
+Java driver 4](https://github.com/datastax/java-driver/tree/4.x) and
+[Simulacron](https://github.com/datastax/simulacron).
 
 Native protocol versions 3 and above are supported.
 
