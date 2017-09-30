@@ -19,6 +19,7 @@ import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class Startup extends Message {
     super(false, ProtocolConstants.Opcode.STARTUP);
     this.options = new HashMap<>();
     this.options.put(CQL_VERSION_KEY, CQL_VERSION);
-    if (compressionAlgorithm != null) {
+    if (compressionAlgorithm != null && !compressionAlgorithm.isEmpty()) {
       this.options.put(COMPRESSION_KEY, compressionAlgorithm);
     }
   }

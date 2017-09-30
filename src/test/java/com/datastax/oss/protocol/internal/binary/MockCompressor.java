@@ -25,6 +25,12 @@ public class MockCompressor implements Compressor<MockBinaryString> {
   public static final String END = "end compression";
 
   @Override
+  public String algorithm() {
+    // Implemented for consistency, but the tests don't call this method
+    return "MOCK";
+  }
+
+  @Override
   public MockBinaryString compress(MockBinaryString uncompressed) {
     return new MockBinaryString().string(START).append(uncompressed).string(END);
   }

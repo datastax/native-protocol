@@ -21,6 +21,14 @@ public interface Compressor<B> {
     return new NoopCompressor<>();
   }
 
+  /**
+   * The name of the algorithm used.
+   *
+   * <p>It's the string that will be used in the {@code STARTUP} message. Null or empty means no
+   * compression.
+   */
+  String algorithm();
+
   B compress(B uncompressed);
 
   B decompress(B compressed);

@@ -16,6 +16,12 @@
 package com.datastax.oss.protocol.internal;
 
 public class NoopCompressor<B> implements Compressor<B> {
+
+  @Override
+  public String algorithm() {
+    return null;
+  }
+
   @Override
   public B compress(B uncompressed) {
     return uncompressed;
