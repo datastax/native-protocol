@@ -20,17 +20,25 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 public class Prepare extends Message {
   public final String cqlQuery;
+  public final String keyspace;
 
-  public Prepare(String cqlQuery) {
+  public Prepare(String cqlQuery, String keyspace) {
     super(false, ProtocolConstants.Opcode.PREPARE);
     this.cqlQuery = cqlQuery;
+    this.keyspace = keyspace;
+  }
+
+  public Prepare(String cqlQuery) {
+    this(cqlQuery, null);
   }
 
   @Override
   public String toString() {
-    return "PREPARE(" + cqlQuery + ')';
+    return "PREPARE(" + cqlQuery + ", " + keyspace + ')';
   }
 
   public static class Codec extends Message.Codec {
@@ -42,18 +50,39 @@ public class Prepare extends Message {
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Prepare prepare = (Prepare) message;
       encoder.writeLongString(prepare.cqlQuery, dest);
+      if (protocolVersion >= V5) {
+        // There is only one PREPARE flag for now, so hard-code for simplicity:
+        encoder.writeInt((prepare.keyspace == null) ? 0x00 : 0x01, dest);
+        if (prepare.keyspace != null) {
+          encoder.writeString(prepare.keyspace, dest);
+        }
+      }
     }
 
     @Override
     public int encodedSize(Message message) {
       Prepare prepare = (Prepare) message;
-      return PrimitiveSizes.sizeOfLongString(prepare.cqlQuery);
+      int size = PrimitiveSizes.sizeOfLongString(prepare.cqlQuery);
+      if (protocolVersion >= V5) {
+        size += PrimitiveSizes.INT; // flags
+        if (prepare.keyspace != null) {
+          size += PrimitiveSizes.sizeOfString(prepare.keyspace);
+        }
+      }
+      return size;
     }
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       String cqlQuery = decoder.readLongString(source);
-      return new Prepare(cqlQuery);
+      String keyspace = null;
+      if (protocolVersion >= V5) {
+        int flags = decoder.readInt(source);
+        if ((flags & 0x01) == 0x01) {
+          keyspace = decoder.readString(source);
+        }
+      }
+      return new Prepare(cqlQuery, keyspace);
     }
   }
 }

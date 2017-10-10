@@ -56,7 +56,8 @@ public class BatchTest extends MessageTestBase<Batch> {
                 Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.SERIAL,
-            Long.MIN_VALUE);
+            Long.MIN_VALUE,
+            null);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -105,6 +106,7 @@ public class BatchTest extends MessageTestBase<Batch> {
     assertThat(decoded.consistency).isEqualTo(initial.consistency);
     assertThat(decoded.serialConsistency).isEqualTo(initial.serialConsistency);
     assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
+    assertThat(decoded.keyspace).isEqualTo(initial.keyspace);
   }
 
   @Test
@@ -119,7 +121,8 @@ public class BatchTest extends MessageTestBase<Batch> {
                 Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.SERIAL,
-            Long.MIN_VALUE);
+            Long.MIN_VALUE,
+            null);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -169,6 +172,7 @@ public class BatchTest extends MessageTestBase<Batch> {
     assertThat(decoded.consistency).isEqualTo(initial.consistency);
     assertThat(decoded.serialConsistency).isEqualTo(initial.serialConsistency);
     assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
+    assertThat(decoded.keyspace).isEqualTo(initial.keyspace);
   }
 
   @Test
@@ -184,7 +188,8 @@ public class BatchTest extends MessageTestBase<Batch> {
                 Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL, // non-default serial CL
-            timestamp);
+            timestamp,
+            null);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
     assertThat(encoded)
@@ -235,6 +240,7 @@ public class BatchTest extends MessageTestBase<Batch> {
     assertThat(decoded.consistency).isEqualTo(initial.consistency);
     assertThat(decoded.serialConsistency).isEqualTo(initial.serialConsistency);
     assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
+    assertThat(decoded.keyspace).isEqualTo(initial.keyspace);
   }
 
   @Test
@@ -250,7 +256,8 @@ public class BatchTest extends MessageTestBase<Batch> {
                 Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL, // non-default serial CL
-            timestamp);
+            timestamp,
+            "ks");
 
     MockBinaryString encoded = encode(initial, protocolVersion);
     assertThat(encoded)
@@ -269,9 +276,10 @@ public class BatchTest extends MessageTestBase<Batch> {
                 .bytes("0x0a")
                 .bytes("0x0b")
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
-                .int_(0x10 | 0x20) // flags (serial CL and timestamp)
+                .int_(0x10 | 0x20 | 0x80) // flags (serial CL, timestamp and keyspace)
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL)
-                .long_(timestamp));
+                .long_(timestamp)
+                .string("ks"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             PrimitiveSizes.BYTE // batch type
@@ -289,7 +297,8 @@ public class BatchTest extends MessageTestBase<Batch> {
                 + PrimitiveSizes.SHORT
                 + PrimitiveSizes.INT // flags
                 + PrimitiveSizes.SHORT
-                + PrimitiveSizes.LONG);
+                + PrimitiveSizes.LONG
+                + (PrimitiveSizes.SHORT + "ks".length()));
 
     Batch decoded = decode(encoded, protocolVersion);
 
@@ -301,5 +310,6 @@ public class BatchTest extends MessageTestBase<Batch> {
     assertThat(decoded.consistency).isEqualTo(initial.consistency);
     assertThat(decoded.serialConsistency).isEqualTo(initial.serialConsistency);
     assertThat(decoded.defaultTimestamp).isEqualTo(initial.defaultTimestamp);
+    assertThat(decoded.keyspace).isEqualTo(initial.keyspace);
   }
 }

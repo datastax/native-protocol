@@ -77,6 +77,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -111,6 +112,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -149,6 +151,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -186,6 +189,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -226,6 +230,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -265,6 +270,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -314,6 +320,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(42);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -363,6 +370,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(42);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -406,6 +414,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test
@@ -449,6 +458,7 @@ public class QueryTest extends MessageTestBase<Query> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isNull();
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -462,5 +472,42 @@ public class QueryTest extends MessageTestBase<Query> {
     Query query = new Query(queryString, options);
 
     encode(query, protocolVersion);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_with_keyspace(int protocolVersion) {
+    QueryOptions options = new QueryOptionsBuilder().withKeyspace("ks").build();
+    Query initial = new Query(queryString, options);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .longString("select * from system.local")
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
+                .int_(0x80) // WITH_KEYSPACE
+                .string("ks"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + "ks".length()));
+
+    Query decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.query).isEqualTo(initial.query);
+    assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
+    assertThat(decoded.options.positionalValues).isEmpty();
+    assertThat(decoded.options.namedValues).isEmpty();
+    assertThat(decoded.options.skipMetadata).isFalse();
+    assertThat(decoded.options.pageSize).isEqualTo(-1);
+    assertThat(decoded.options.pagingState).isNull();
+    assertThat(decoded.options.serialConsistency)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+    assertThat(decoded.options.keyspace).isEqualTo(initial.options.keyspace);
   }
 }

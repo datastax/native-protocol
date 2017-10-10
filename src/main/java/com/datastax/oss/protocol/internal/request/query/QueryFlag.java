@@ -28,7 +28,8 @@ public enum QueryFlag {
   PAGING_STATE(0x08),
   SERIAL_CONSISTENCY(0x10),
   DEFAULT_TIMESTAMP(0x20),
-  VALUE_NAMES(0x40);
+  VALUE_NAMES(0x40),
+  WITH_KEYSPACE(0x80);
 
   private int mask;
 

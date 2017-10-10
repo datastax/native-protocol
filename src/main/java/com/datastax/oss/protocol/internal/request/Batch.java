@@ -39,6 +39,7 @@ public class Batch extends Message {
   public final int consistency;
   public final int serialConsistency;
   public final long defaultTimestamp;
+  public final String keyspace;
 
   private final EnumSet<QueryFlag> flags;
 
@@ -49,7 +50,8 @@ public class Batch extends Message {
       List<List<ByteBuffer>> values,
       int consistency,
       int serialConsistency,
-      long defaultTimestamp) {
+      long defaultTimestamp,
+      String keyspace) {
     super(false, ProtocolConstants.Opcode.BATCH);
     this.type = type;
     this.queriesOrIds = queriesOrIds;
@@ -57,6 +59,7 @@ public class Batch extends Message {
     this.consistency = consistency;
     this.serialConsistency = serialConsistency;
     this.defaultTimestamp = defaultTimestamp;
+    this.keyspace = keyspace;
     this.flags = flags;
   }
 
@@ -66,15 +69,17 @@ public class Batch extends Message {
       List<List<ByteBuffer>> values,
       int consistency,
       int serialConsistency,
-      long defaultTimestamp) {
+      long defaultTimestamp,
+      String keyspace) {
     this(
-        computeFlags(serialConsistency, defaultTimestamp),
+        computeFlags(serialConsistency, defaultTimestamp, keyspace),
         type,
         queriesOrIds,
         values,
         consistency,
         serialConsistency,
-        defaultTimestamp);
+        defaultTimestamp,
+        keyspace);
   }
 
   @Override
@@ -82,13 +87,17 @@ public class Batch extends Message {
     return "BATCH(" + queriesOrIds.size() + " statements)";
   }
 
-  private static EnumSet<QueryFlag> computeFlags(int serialConsistency, long defaultTimestamp) {
+  private static EnumSet<QueryFlag> computeFlags(
+      int serialConsistency, long defaultTimestamp, String keyspace) {
     EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
     if (serialConsistency != ProtocolConstants.ConsistencyLevel.SERIAL) {
       flags.add(QueryFlag.SERIAL_CONSISTENCY);
     }
     if (defaultTimestamp != Long.MIN_VALUE) {
       flags.add(QueryFlag.DEFAULT_TIMESTAMP);
+    }
+    if (keyspace != null) {
+      flags.add(QueryFlag.WITH_KEYSPACE);
     }
     return flags;
   }
@@ -125,6 +134,9 @@ public class Batch extends Message {
       if (batch.flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
         encoder.writeLong(batch.defaultTimestamp, dest);
       }
+      if (batch.flags.contains(QueryFlag.WITH_KEYSPACE)) {
+        encoder.writeString(batch.keyspace, dest);
+      }
     }
 
     @Override
@@ -160,6 +172,9 @@ public class Batch extends Message {
       if (batch.flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
         size += PrimitiveSizes.LONG;
       }
+      if (batch.flags.contains(QueryFlag.WITH_KEYSPACE)) {
+        size += PrimitiveSizes.sizeOfString(batch.keyspace);
+      }
       return size;
     }
 
@@ -183,9 +198,18 @@ public class Batch extends Message {
               : ProtocolConstants.ConsistencyLevel.SERIAL;
       long defaultTimestamp =
           (flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) ? decoder.readLong(source) : Long.MIN_VALUE;
+      String keyspace =
+          (flags.contains(QueryFlag.WITH_KEYSPACE)) ? decoder.readString(source) : null;
 
       return new Batch(
-          flags, type, queriesOrIds, values, consistency, serialConsistency, defaultTimestamp);
+          flags,
+          type,
+          queriesOrIds,
+          values,
+          consistency,
+          serialConsistency,
+          defaultTimestamp,
+          keyspace);
     }
   }
 }

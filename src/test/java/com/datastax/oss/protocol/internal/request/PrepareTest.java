@@ -40,8 +40,8 @@ public class PrepareTest extends MessageTestBase<Prepare> {
   }
 
   @Test
-  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
-  public void should_encode_and_decode(int protocolVersion) {
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
+  public void should_encode_and_decode_in_protocol_v3_or_v4(int protocolVersion) {
     Prepare initial = new Prepare("SELECT * FROM foo");
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -53,5 +53,45 @@ public class PrepareTest extends MessageTestBase<Prepare> {
     Prepare decoded = decode(encoded, protocolVersion);
 
     assertThat(decoded.cqlQuery).isEqualTo(initial.cqlQuery);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_with_keyspace_in_protocol_v5_or_above(int protocolVersion) {
+    Prepare initial = new Prepare("SELECT * FROM foo", "ks");
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(new MockBinaryString().longString("SELECT * FROM foo").int_(0x01).string("ks"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.INT + "SELECT * FROM foo".length())
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + "ks".length()));
+
+    Prepare decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.cqlQuery).isEqualTo(initial.cqlQuery);
+    assertThat(decoded.keyspace).isEqualTo(initial.keyspace);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_without_keyspace_in_protocol_v5_or_above(
+      int protocolVersion) {
+    Prepare initial = new Prepare("SELECT * FROM foo");
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(new MockBinaryString().longString("SELECT * FROM foo").int_(0x00));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo((PrimitiveSizes.INT + "SELECT * FROM foo".length()) + PrimitiveSizes.INT);
+
+    Prepare decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.cqlQuery).isEqualTo(initial.cqlQuery);
+    assertThat(decoded.keyspace).isEqualTo(initial.keyspace);
   }
 }

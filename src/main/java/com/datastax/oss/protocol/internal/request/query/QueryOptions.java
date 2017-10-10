@@ -36,7 +36,8 @@ public class QueryOptions {
           -1,
           null,
           ProtocolConstants.ConsistencyLevel.SERIAL,
-          Long.MIN_VALUE);
+          Long.MIN_VALUE,
+          null);
 
   private final EnumSet<QueryFlag> flags;
   /** @see ProtocolConstants.ConsistencyLevel */
@@ -51,6 +52,7 @@ public class QueryOptions {
   public final int serialConsistency;
 
   public final long defaultTimestamp;
+  public final String keyspace;
 
   private QueryOptions(
       EnumSet<QueryFlag> flags,
@@ -61,7 +63,8 @@ public class QueryOptions {
       int pageSize,
       ByteBuffer pagingState,
       int serialConsistency,
-      long defaultTimestamp) {
+      long defaultTimestamp,
+      String keyspace) {
 
     ProtocolErrors.check(
         positionalValues.isEmpty() || namedValues.isEmpty(),
@@ -76,6 +79,7 @@ public class QueryOptions {
     this.pagingState = pagingState;
     this.serialConsistency = serialConsistency;
     this.defaultTimestamp = defaultTimestamp;
+    this.keyspace = keyspace;
   }
 
   public QueryOptions(
@@ -86,7 +90,8 @@ public class QueryOptions {
       int pageSize,
       ByteBuffer pagingState,
       int serialConsistency,
-      long defaultTimestamp) {
+      long defaultTimestamp,
+      String keyspace) {
     this(
         computeFlags(
             positionalValues,
@@ -95,7 +100,8 @@ public class QueryOptions {
             pageSize,
             pagingState,
             serialConsistency,
-            defaultTimestamp),
+            defaultTimestamp,
+            keyspace),
         consistency,
         positionalValues,
         namedValues,
@@ -103,7 +109,8 @@ public class QueryOptions {
         pageSize,
         pagingState,
         serialConsistency,
-        defaultTimestamp);
+        defaultTimestamp,
+        keyspace);
   }
 
   private static EnumSet<QueryFlag> computeFlags(
@@ -113,7 +120,8 @@ public class QueryOptions {
       int pageSize,
       ByteBuffer pagingState,
       int serialConsistency,
-      long defaultTimestamp) {
+      long defaultTimestamp,
+      String keyspace) {
     EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
     if (!positionalValues.isEmpty()) {
       flags.add(QueryFlag.VALUES);
@@ -136,6 +144,9 @@ public class QueryOptions {
     }
     if (defaultTimestamp != Long.MIN_VALUE) {
       flags.add(QueryFlag.DEFAULT_TIMESTAMP);
+    }
+    if (keyspace != null) {
+      flags.add(QueryFlag.WITH_KEYSPACE);
     }
     return flags;
   }
@@ -162,6 +173,9 @@ public class QueryOptions {
     if (flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
       encoder.writeLong(defaultTimestamp, dest);
     }
+    if (flags.contains(QueryFlag.WITH_KEYSPACE)) {
+      encoder.writeString(keyspace, dest);
+    }
   }
 
   public int encodedSize(int protocolVersion) {
@@ -186,6 +200,9 @@ public class QueryOptions {
     }
     if (flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
       size += PrimitiveSizes.LONG;
+    }
+    if (flags.contains(QueryFlag.WITH_KEYSPACE)) {
+      size += PrimitiveSizes.sizeOfString(keyspace);
     }
     return size;
   }
@@ -213,6 +230,7 @@ public class QueryOptions {
             : ProtocolConstants.ConsistencyLevel.SERIAL;
     long defaultTimestamp =
         flags.contains(QueryFlag.DEFAULT_TIMESTAMP) ? decoder.readLong(source) : Long.MIN_VALUE;
+    String keyspace = flags.contains(QueryFlag.WITH_KEYSPACE) ? decoder.readString(source) : null;
 
     return new QueryOptions(
         flags,
@@ -223,7 +241,8 @@ public class QueryOptions {
         pageSize,
         pagingState,
         serialConsistency,
-        defaultTimestamp);
+        defaultTimestamp,
+        keyspace);
   }
 
   @Override

@@ -34,6 +34,7 @@ public class QueryOptionsBuilder {
   private ByteBuffer pagingState = null;
   private int serialConsistency = ProtocolConstants.ConsistencyLevel.SERIAL;
   private long defaultTimestamp = Long.MIN_VALUE;
+  private String keyspace = null;
 
   public QueryOptionsBuilder consistencyLevel(int consistency) {
     this.consistency = consistency;
@@ -65,6 +66,11 @@ public class QueryOptionsBuilder {
     return this;
   }
 
+  public QueryOptionsBuilder withKeyspace(String keyspace) {
+    this.keyspace = keyspace;
+    return this;
+  }
+
   public QueryOptionsBuilder positionalValue(String hexString) {
     positionalValues.add(Bytes.fromHexString(hexString));
     return this;
@@ -84,6 +90,7 @@ public class QueryOptionsBuilder {
         pageSize,
         pagingState,
         serialConsistency,
-        defaultTimestamp);
+        defaultTimestamp,
+        keyspace);
   }
 }
