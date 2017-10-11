@@ -34,6 +34,7 @@ import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 public class ExecuteTest extends MessageTestBase<Execute> {
 
   private byte[] queryId = Bytes.getArray(Bytes.fromHexString("0xcafebabe"));
+  private byte[] resultMetadataId = Bytes.getArray(Bytes.fromHexString("0xdeadbeef"));
 
   public ExecuteTest() {
     super(Execute.class);
@@ -79,7 +80,7 @@ public class ExecuteTest extends MessageTestBase<Execute> {
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_with_default_options(int protocolVersion) {
-    Execute initial = new Execute(queryId, QueryOptions.DEFAULT);
+    Execute initial = new Execute(queryId, resultMetadataId, QueryOptions.DEFAULT);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -87,16 +88,21 @@ public class ExecuteTest extends MessageTestBase<Execute> {
         .isEqualTo(
             new MockBinaryString()
                 .shortBytes("0xcafebabe")
+                .shortBytes("0xdeadbeef")
                 .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
                 .int_(0) // no flags
             );
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
-            (PrimitiveSizes.SHORT + queryId.length) + PrimitiveSizes.SHORT + PrimitiveSizes.INT);
+            (PrimitiveSizes.SHORT + queryId.length)
+                + (PrimitiveSizes.SHORT + resultMetadataId.length)
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT);
 
     Execute decoded = decode(encoded, protocolVersion);
 
     assertThat(decoded.queryId).isEqualTo(initial.queryId);
+    assertThat(decoded.resultMetadataId).isEqualTo(initial.resultMetadataId);
     assertThat(decoded.options.consistency).isEqualTo(ProtocolConstants.ConsistencyLevel.ONE);
     assertThat(decoded.options.positionalValues).isEmpty();
     assertThat(decoded.options.namedValues).isEmpty();

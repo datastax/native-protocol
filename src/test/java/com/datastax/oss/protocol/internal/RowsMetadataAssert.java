@@ -67,4 +67,14 @@ public class RowsMetadataAssert extends AbstractAssert<RowsMetadataAssert, RowsM
     assertThat(actual.pkIndices).isNull();
     return this;
   }
+
+  public RowsMetadataAssert hasNewResultMetadataId(String expected) {
+    assertThat(Bytes.toHexString(actual.newResultMetadataId)).isEqualTo(expected);
+    return this;
+  }
+
+  public RowsMetadataAssert hasNoNewResultMetadataId() {
+    assertThat(actual.newResultMetadataId).isNull();
+    return this;
+  }
 }

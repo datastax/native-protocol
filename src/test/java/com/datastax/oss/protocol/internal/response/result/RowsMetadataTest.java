@@ -35,11 +35,12 @@ public class RowsMetadataTest {
   private static final RawType INT_TYPE = RawType.PRIMITIVES.get(ProtocolConstants.DataType.INT);
   private static final RawType VARCHAR_TYPE =
       RawType.PRIMITIVES.get(ProtocolConstants.DataType.VARCHAR);
+  private byte[] newResultMetadataId = Bytes.getArray(Bytes.fromHexString("0xdeadbeef"));
 
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_metadata_with_zero_columns(int protocolVersion) {
-    RowsMetadata initial = new RowsMetadata(Collections.emptyList(), null, null);
+    RowsMetadata initial = new RowsMetadata(Collections.emptyList(), null, null, null);
 
     MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
 
@@ -53,13 +54,18 @@ public class RowsMetadataTest {
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 
-    assertThat(decoded).hasNoPagingState().hasNoColumnSpecs().hasColumnCount(0).hasNoPkIndices();
+    assertThat(decoded)
+        .hasNoPagingState()
+        .hasNoColumnSpecs()
+        .hasColumnCount(0)
+        .hasNoPkIndices()
+        .hasNoNewResultMetadataId();
   }
 
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_metadata_with_no_metadata_flag(int protocolVersion) {
-    RowsMetadata initial = new RowsMetadata(3, null, null);
+    RowsMetadata initial = new RowsMetadata(3, null, null, null);
 
     MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
 
@@ -73,7 +79,12 @@ public class RowsMetadataTest {
 
     RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
 
-    assertThat(decoded).hasNoPagingState().hasNoColumnSpecs().hasColumnCount(3).hasNoPkIndices();
+    assertThat(decoded)
+        .hasNoPagingState()
+        .hasNoColumnSpecs()
+        .hasColumnCount(3)
+        .hasNoPkIndices()
+        .hasNoNewResultMetadataId();
   }
 
   @Test
@@ -84,6 +95,7 @@ public class RowsMetadataTest {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks2", "table2", "column2", 1, VARCHAR_TYPE)),
+            null,
             null,
             null);
 
@@ -121,7 +133,8 @@ public class RowsMetadataTest {
         .hasNoPagingState()
         .hasColumnSpecs(initial.columnSpecs)
         .hasColumnCount(2)
-        .hasNoPkIndices();
+        .hasNoPkIndices()
+        .hasNoNewResultMetadataId();
   }
 
   @Test
@@ -132,6 +145,7 @@ public class RowsMetadataTest {
             Arrays.asList(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
+            null,
             null,
             null);
 
@@ -163,7 +177,8 @@ public class RowsMetadataTest {
         .hasNoPagingState()
         .hasColumnSpecs(initial.columnSpecs)
         .hasColumnCount(2)
-        .hasNoPkIndices();
+        .hasNoPkIndices()
+        .hasNoNewResultMetadataId();
   }
 
   @Test
@@ -175,6 +190,7 @@ public class RowsMetadataTest {
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
             Bytes.fromHexString("0xcafebabe"),
+            null,
             null);
 
     MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
@@ -207,7 +223,35 @@ public class RowsMetadataTest {
         .hasPagingState("0xcafebabe")
         .hasColumnSpecs(initial.columnSpecs)
         .hasColumnCount(2)
-        .hasNoPkIndices();
+        .hasNoPkIndices()
+        .hasNoNewResultMetadataId();
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_metadata_with_new_result_metadata_id(int protocolVersion) {
+    RowsMetadata initial =
+        new RowsMetadata(Collections.emptyList(), null, null, newResultMetadataId);
+
+    MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(0x0008) // metadata changed
+                .int_(0) // column count
+                .shortBytes("0xdeadbeef"));
+    assertThat(encodedSizeWithoutPkIndices(initial, protocolVersion))
+        .isEqualTo(4 + 4 + (PrimitiveSizes.SHORT + "deadbeef".length() / 2));
+
+    RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
+
+    assertThat(decoded)
+        .hasNoPagingState()
+        .hasNoColumnSpecs()
+        .hasColumnCount(0)
+        .hasNoPkIndices()
+        .hasNewResultMetadataId("0xdeadbeef");
   }
 
   private MockBinaryString encodeWithoutPkIndices(RowsMetadata metadata, int protocolVersion) {

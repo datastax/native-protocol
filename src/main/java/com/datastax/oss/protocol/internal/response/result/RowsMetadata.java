@@ -28,7 +28,8 @@ public class RowsMetadata {
   private enum Flag {
     GLOBAL_TABLES_SPEC(0x0001),
     HAS_MORE_PAGES(0x0002),
-    NO_METADATA(0x0004);
+    NO_METADATA(0x0004),
+    METADATA_CHANGED(0x0008);
 
     private final int mask;
 
@@ -71,6 +72,7 @@ public class RowsMetadata {
   public final int columnCount;
   public final ByteBuffer pagingState;
   public final int[] pkIndices;
+  public final byte[] newResultMetadataId;
 
   private final EnumSet<Flag> flags;
 
@@ -78,13 +80,18 @@ public class RowsMetadata {
    * Builds a new instance with {@code NO_METADATA == false}; the column count is set to the number
    * of column specifications in the provided list.
    */
-  public RowsMetadata(List<ColumnSpec> columnSpecs, ByteBuffer pagingState, int[] pkIndices) {
-    this(columnSpecs, columnSpecs.size(), false, pagingState, pkIndices);
+  public RowsMetadata(
+      List<ColumnSpec> columnSpecs,
+      ByteBuffer pagingState,
+      int[] pkIndices,
+      byte[] newResultMetadataId) {
+    this(columnSpecs, columnSpecs.size(), false, pagingState, pkIndices, newResultMetadataId);
   }
 
   /** Builds a new instance with {@code NO_METADATA == true}. */
-  public RowsMetadata(int columnCount, ByteBuffer pagingState, int[] pkIndices) {
-    this(Collections.emptyList(), columnCount, true, pagingState, pkIndices);
+  public RowsMetadata(
+      int columnCount, ByteBuffer pagingState, int[] pkIndices, byte[] newResultMetadataId) {
+    this(Collections.emptyList(), columnCount, true, pagingState, pkIndices, newResultMetadataId);
   }
 
   private RowsMetadata(
@@ -92,13 +99,15 @@ public class RowsMetadata {
       int columnCount,
       boolean noMetadata,
       ByteBuffer pagingState,
-      int[] pkIndices) {
+      int[] pkIndices,
+      byte[] newResultMetadataId) {
     this(
-        computeFlags(noMetadata, columnSpecs, pagingState),
+        computeFlags(noMetadata, columnSpecs, pagingState, newResultMetadataId),
         columnSpecs,
         columnCount,
         pagingState,
-        pkIndices);
+        pkIndices,
+        newResultMetadataId);
   }
 
   private RowsMetadata(
@@ -106,16 +115,21 @@ public class RowsMetadata {
       List<ColumnSpec> columnSpecs,
       int columnCount,
       ByteBuffer pagingState,
-      int[] pkIndices) {
+      int[] pkIndices,
+      byte[] newResultMetadataId) {
     this.columnSpecs = columnSpecs;
     this.columnCount = columnCount;
     this.pagingState = pagingState;
     this.pkIndices = pkIndices;
+    this.newResultMetadataId = newResultMetadataId;
     this.flags = flags;
   }
 
   private static EnumSet<Flag> computeFlags(
-      boolean noMetadata, List<ColumnSpec> columnSpecs, ByteBuffer pagingState) {
+      boolean noMetadata,
+      List<ColumnSpec> columnSpecs,
+      ByteBuffer pagingState,
+      byte[] newResultMetadataId) {
     EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     if (noMetadata) {
       flags.add(Flag.NO_METADATA);
@@ -125,6 +139,9 @@ public class RowsMetadata {
     if (pagingState != null) {
       flags.add(Flag.HAS_MORE_PAGES);
     }
+    if (newResultMetadataId != null) {
+      flags.add(Flag.METADATA_CHANGED);
+    }
     return flags;
   }
 
@@ -132,6 +149,9 @@ public class RowsMetadata {
       B dest, PrimitiveCodec<B> encoder, boolean withPkIndices, int protocolVersion) {
     Flag.encode(flags, dest, encoder, protocolVersion);
     encoder.writeInt(columnCount, dest);
+    if (flags.contains(Flag.METADATA_CHANGED)) {
+      encoder.writeShortBytes(newResultMetadataId, dest);
+    }
     if (withPkIndices) {
       if (pkIndices == null) {
         encoder.writeInt(0, dest);
@@ -166,6 +186,9 @@ public class RowsMetadata {
   public int encodedSize(boolean withPkIndices, int protocolVersion) {
     int size = Flag.encodedSize(protocolVersion);
     size += PrimitiveSizes.INT; // column count
+    if (flags.contains(Flag.METADATA_CHANGED)) {
+      size += PrimitiveSizes.sizeOfShortBytes(newResultMetadataId);
+    }
     if (withPkIndices) {
       size += PrimitiveSizes.INT;
       if (pkIndices != null) {
@@ -198,6 +221,9 @@ public class RowsMetadata {
       B source, PrimitiveCodec<B> decoder, boolean withPkIndices, int protocolVersion) {
     EnumSet<Flag> flags = Flag.decode(source, decoder, protocolVersion);
     int columnCount = decoder.readInt(source);
+
+    byte[] newResultMetadataId =
+        (flags.contains(Flag.METADATA_CHANGED)) ? decoder.readShortBytes(source) : null;
 
     int[] pkIndices = null;
     int pkCount;
@@ -232,7 +258,7 @@ public class RowsMetadata {
       }
       columnSpecs = Collections.unmodifiableList(tmpSpecs);
     }
-    return new RowsMetadata(flags, columnSpecs, columnCount, state, pkIndices);
+    return new RowsMetadata(flags, columnSpecs, columnCount, state, pkIndices, newResultMetadataId);
   }
 
   private static boolean haveSameTable(List<ColumnSpec> specs) {

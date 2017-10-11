@@ -23,16 +23,22 @@ import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
 
 import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class Prepared extends Result {
   public final byte[] preparedQueryId;
+  public final byte[] resultMetadataId;
   public final RowsMetadata variablesMetadata;
   public final RowsMetadata resultMetadata;
 
   public Prepared(
-      byte[] preparedQueryId, RowsMetadata variablesMetadata, RowsMetadata resultMetadata) {
+      byte[] preparedQueryId,
+      byte[] resultMetadataId,
+      RowsMetadata variablesMetadata,
+      RowsMetadata resultMetadata) {
     super(ProtocolConstants.ResultKind.PREPARED);
     this.preparedQueryId = preparedQueryId;
+    this.resultMetadataId = resultMetadataId;
     this.variablesMetadata = variablesMetadata;
     this.resultMetadata = resultMetadata;
   }
@@ -51,6 +57,9 @@ public class Prepared extends Result {
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Prepared prepared = (Prepared) message;
       encoder.writeShortBytes(prepared.preparedQueryId, dest);
+      if (protocolVersion >= V5) {
+        encoder.writeShortBytes(prepared.resultMetadataId, dest);
+      }
       boolean hasPkIndices = (protocolVersion >= V4);
       prepared.variablesMetadata.encode(dest, encoder, hasPkIndices, protocolVersion);
       prepared.resultMetadata.encode(dest, encoder, false, protocolVersion);
@@ -60,6 +69,10 @@ public class Prepared extends Result {
     public int encodedSize(Message message) {
       Prepared prepared = (Prepared) message;
       int size = PrimitiveSizes.sizeOfShortBytes(prepared.preparedQueryId);
+      if (protocolVersion >= V5) {
+        assert prepared.resultMetadataId != null;
+        size += PrimitiveSizes.sizeOfShortBytes(prepared.resultMetadataId);
+      }
       boolean hasPkIndices = (protocolVersion >= V4);
       size += prepared.variablesMetadata.encodedSize(hasPkIndices, protocolVersion);
       size += prepared.resultMetadata.encodedSize(false, protocolVersion);
@@ -69,11 +82,12 @@ public class Prepared extends Result {
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       byte[] preparedQueryId = decoder.readShortBytes(source);
+      byte[] resultMetadataId = (protocolVersion >= V5) ? decoder.readShortBytes(source) : null;
       boolean hasPkIndices = (protocolVersion >= V4);
       RowsMetadata variablesMetadata =
           RowsMetadata.decode(source, decoder, hasPkIndices, protocolVersion);
       RowsMetadata resultMetadata = RowsMetadata.decode(source, decoder, false, protocolVersion);
-      return new Prepared(preparedQueryId, variablesMetadata, resultMetadata);
+      return new Prepared(preparedQueryId, resultMetadataId, variablesMetadata, resultMetadata);
     }
   }
 }

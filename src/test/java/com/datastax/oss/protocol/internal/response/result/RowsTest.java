@@ -57,6 +57,7 @@ public class RowsTest extends MessageTestBase<Rows> {
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
+            null,
             null);
     Queue<List<ByteBuffer>> data = new LinkedList<>();
     data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
@@ -115,7 +116,7 @@ public class RowsTest extends MessageTestBase<Rows> {
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_when_no_metadata(int protocolVersion) {
-    RowsMetadata emptyMetadata = new RowsMetadata(2, null, null);
+    RowsMetadata emptyMetadata = new RowsMetadata(2, null, null, null);
     Queue<List<ByteBuffer>> data = new LinkedList<>();
     data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
     data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));

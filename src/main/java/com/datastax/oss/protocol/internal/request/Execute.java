@@ -22,15 +22,23 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
 import com.datastax.oss.protocol.internal.util.Bytes;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 public class Execute extends Message {
 
   public final byte[] queryId;
+  public final byte[] resultMetadataId;
   public final QueryOptions options;
 
-  public Execute(byte[] queryId, QueryOptions options) {
+  public Execute(byte[] queryId, byte[] resultMetadataId, QueryOptions options) {
     super(false, ProtocolConstants.Opcode.EXECUTE);
     this.queryId = queryId;
+    this.resultMetadataId = resultMetadataId;
     this.options = options;
+  }
+
+  public Execute(byte[] queryId, QueryOptions options) {
+    this(queryId, null, options);
   }
 
   @Override
@@ -48,21 +56,30 @@ public class Execute extends Message {
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Execute execute = (Execute) message;
       encoder.writeShortBytes(execute.queryId, dest);
+      if (protocolVersion >= V5) {
+        encoder.writeShortBytes(execute.resultMetadataId, dest);
+      }
       execute.options.encode(dest, encoder, protocolVersion);
     }
 
     @Override
     public int encodedSize(Message message) {
       Execute execute = (Execute) message;
-      return PrimitiveSizes.sizeOfShortBytes(execute.queryId)
-          + execute.options.encodedSize(protocolVersion);
+      int size = PrimitiveSizes.sizeOfShortBytes(execute.queryId);
+      if (protocolVersion >= V5) {
+        assert execute.resultMetadataId != null;
+        size += PrimitiveSizes.sizeOfShortBytes(execute.resultMetadataId);
+      }
+      size += execute.options.encodedSize(protocolVersion);
+      return size;
     }
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       byte[] queryId = decoder.readShortBytes(source);
+      byte[] resultMetadataId = (protocolVersion >= V5) ? decoder.readShortBytes(source) : null;
       QueryOptions options = QueryOptions.decode(source, decoder, protocolVersion);
-      return new Execute(queryId, options);
+      return new Execute(queryId, resultMetadataId, options);
     }
   }
 }
