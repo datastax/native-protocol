@@ -233,8 +233,14 @@ public class FrameCodec<B> {
         length,
         actualLength);
 
+    boolean decompressed = false;
     if (flags.contains(Flag.COMPRESSED)) {
-      source = compressor.decompress(source);
+      B newSource = compressor.decompress(source);
+      // if decompress returns a different object, track this so we know to release it when done.
+      if (newSource != source) {
+        decompressed = true;
+        source = newSource;
+      }
     }
 
     boolean isTracing = flags.contains(Flag.TRACING);
@@ -254,6 +260,10 @@ public class FrameCodec<B> {
     ProtocolErrors.check(
         decoder != null, "Unsupported request opcode: %s in protocol %d", opcode, protocolVersion);
     Message response = decoder.decode(source, primitiveCodec);
+
+    if (decompressed) {
+      primitiveCodec.release(source);
+    }
 
     return new Frame(
         protocolVersion, beta, streamId, isTracing, tracingId, customPayload, warnings, response);
