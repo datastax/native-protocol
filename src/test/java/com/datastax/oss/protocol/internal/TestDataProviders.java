@@ -19,7 +19,6 @@ import com.tngtech.java.junit.dataprovider.DataProvider;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

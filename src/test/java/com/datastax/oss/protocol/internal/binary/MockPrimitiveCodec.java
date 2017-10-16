@@ -18,7 +18,6 @@ package com.datastax.oss.protocol.internal.binary;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import static org.assertj.core.api.Assertions.assertThat;
