@@ -149,9 +149,6 @@ public class RowsMetadata {
       B dest, PrimitiveCodec<B> encoder, boolean withPkIndices, int protocolVersion) {
     Flag.encode(flags, dest, encoder, protocolVersion);
     encoder.writeInt(columnCount, dest);
-    if (flags.contains(Flag.METADATA_CHANGED)) {
-      encoder.writeShortBytes(newResultMetadataId, dest);
-    }
     if (withPkIndices) {
       if (pkIndices == null) {
         encoder.writeInt(0, dest);
@@ -164,6 +161,9 @@ public class RowsMetadata {
     }
     if (flags.contains(Flag.HAS_MORE_PAGES)) {
       encoder.writeBytes(pagingState, dest);
+    }
+    if (flags.contains(Flag.METADATA_CHANGED)) {
+      encoder.writeShortBytes(newResultMetadataId, dest);
     }
     if (!flags.contains(Flag.NO_METADATA) && !columnSpecs.isEmpty()) {
       boolean globalTable = flags.contains(Flag.GLOBAL_TABLES_SPEC);
@@ -222,9 +222,6 @@ public class RowsMetadata {
     EnumSet<Flag> flags = Flag.decode(source, decoder, protocolVersion);
     int columnCount = decoder.readInt(source);
 
-    byte[] newResultMetadataId =
-        (flags.contains(Flag.METADATA_CHANGED)) ? decoder.readShortBytes(source) : null;
-
     int[] pkIndices = null;
     int pkCount;
     if (withPkIndices && (pkCount = decoder.readInt(source)) > 0) {
@@ -235,6 +232,9 @@ public class RowsMetadata {
     }
 
     ByteBuffer state = (flags.contains(Flag.HAS_MORE_PAGES)) ? decoder.readBytes(source) : null;
+
+    byte[] newResultMetadataId =
+        (flags.contains(Flag.METADATA_CHANGED)) ? decoder.readShortBytes(source) : null;
 
     List<ColumnSpec> columnSpecs;
     if (flags.contains(Flag.NO_METADATA)) {

@@ -254,6 +254,40 @@ public class RowsMetadataTest {
         .hasNewResultMetadataId("0xdeadbeef");
   }
 
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_metadata_with_paging_state_and_new_result_metadata_id(
+      int protocolVersion) {
+    RowsMetadata initial =
+        new RowsMetadata(
+            Collections.emptyList(), Bytes.fromHexString("0xcafebabe"), null, newResultMetadataId);
+
+    MockBinaryString encoded = encodeWithoutPkIndices(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(0x000A) // has more pages + metadata changed
+                .int_(0) // column count
+                .bytes("0xcafebabe")
+                .shortBytes("0xdeadbeef"));
+    assertThat(encodedSizeWithoutPkIndices(initial, protocolVersion))
+        .isEqualTo(
+            4
+                + 4
+                + (PrimitiveSizes.INT + "cafebabe".length() / 2)
+                + (PrimitiveSizes.SHORT + "deadbeef".length() / 2));
+
+    RowsMetadata decoded = decodeWithoutPkIndices(encoded, protocolVersion);
+
+    assertThat(decoded)
+        .hasPagingState("0xcafebabe")
+        .hasNoColumnSpecs()
+        .hasColumnCount(0)
+        .hasNoPkIndices()
+        .hasNewResultMetadataId("0xdeadbeef");
+  }
+
   private MockBinaryString encodeWithoutPkIndices(RowsMetadata metadata, int protocolVersion) {
     MockBinaryString dest = new MockBinaryString();
     metadata.encode(dest, MockPrimitiveCodec.INSTANCE, false, protocolVersion);
