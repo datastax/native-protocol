@@ -19,11 +19,13 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.ProtocolErrors;
+import com.datastax.oss.protocol.internal.util.Flags;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class QueryOptions {
 
@@ -39,7 +41,7 @@ public class QueryOptions {
           Long.MIN_VALUE,
           null);
 
-  private final EnumSet<QueryFlag> flags;
+  protected final int flags;
   /** @see ProtocolConstants.ConsistencyLevel */
   public final int consistency;
 
@@ -54,8 +56,8 @@ public class QueryOptions {
   public final long defaultTimestamp;
   public final String keyspace;
 
-  private QueryOptions(
-      EnumSet<QueryFlag> flags,
+  protected QueryOptions(
+      int flags,
       int consistency,
       List<ByteBuffer> positionalValues,
       Map<String, ByteBuffer> namedValues,
@@ -113,7 +115,7 @@ public class QueryOptions {
         keyspace);
   }
 
-  private static EnumSet<QueryFlag> computeFlags(
+  protected static int computeFlags(
       List<ByteBuffer> positionalValues,
       Map<String, ByteBuffer> namedValues,
       boolean skipMetadata,
@@ -122,58 +124,62 @@ public class QueryOptions {
       int serialConsistency,
       long defaultTimestamp,
       String keyspace) {
-    EnumSet<QueryFlag> flags = EnumSet.noneOf(QueryFlag.class);
+    int flags = 0;
     if (!positionalValues.isEmpty()) {
-      flags.add(QueryFlag.VALUES);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.VALUES);
     }
     if (!namedValues.isEmpty()) {
-      flags.add(QueryFlag.VALUES);
-      flags.add(QueryFlag.VALUE_NAMES);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.VALUES);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.VALUE_NAMES);
     }
     if (skipMetadata) {
-      flags.add(QueryFlag.SKIP_METADATA);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.SKIP_METADATA);
     }
     if (pageSize > 0) {
-      flags.add(QueryFlag.PAGE_SIZE);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.PAGE_SIZE);
     }
     if (pagingState != null) {
-      flags.add(QueryFlag.PAGING_STATE);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.PAGING_STATE);
     }
     if (serialConsistency != ProtocolConstants.ConsistencyLevel.SERIAL) {
-      flags.add(QueryFlag.SERIAL_CONSISTENCY);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.SERIAL_CONSISTENCY);
     }
     if (defaultTimestamp != Long.MIN_VALUE) {
-      flags.add(QueryFlag.DEFAULT_TIMESTAMP);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP);
     }
     if (keyspace != null) {
-      flags.add(QueryFlag.WITH_KEYSPACE);
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE);
     }
     return flags;
   }
 
   public <B> void encode(B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
     encoder.writeUnsignedShort(consistency, dest);
-    QueryFlag.encode(this.flags, dest, encoder, protocolVersion);
-    if (flags.contains(QueryFlag.VALUES)) {
-      if (flags.contains(QueryFlag.VALUE_NAMES)) {
+    if (protocolVersion >= V5) {
+      encoder.writeInt(flags, dest);
+    } else {
+      encoder.writeByte((byte) flags, dest);
+    }
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.VALUES)) {
+      if (Flags.contains(flags, ProtocolConstants.QueryFlag.VALUE_NAMES)) {
         Values.writeNamedValues(namedValues, dest, encoder);
       } else {
         Values.writePositionalValues(positionalValues, dest, encoder);
       }
     }
-    if (flags.contains(QueryFlag.PAGE_SIZE)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.PAGE_SIZE)) {
       encoder.writeInt(pageSize, dest);
     }
-    if (flags.contains(QueryFlag.PAGING_STATE)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.PAGING_STATE)) {
       encoder.writeBytes(pagingState, dest);
     }
-    if (flags.contains(QueryFlag.SERIAL_CONSISTENCY)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.SERIAL_CONSISTENCY)) {
       encoder.writeUnsignedShort(serialConsistency, dest);
     }
-    if (flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP)) {
       encoder.writeLong(defaultTimestamp, dest);
     }
-    if (flags.contains(QueryFlag.WITH_KEYSPACE)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)) {
       encoder.writeString(keyspace, dest);
     }
   }
@@ -181,27 +187,27 @@ public class QueryOptions {
   public int encodedSize(int protocolVersion) {
     int size = 0;
     size += PrimitiveSizes.SHORT; // consistency level
-    size += QueryFlag.encodedSize(protocolVersion); // flags
-    if (flags.contains(QueryFlag.VALUES)) {
-      if (flags.contains(QueryFlag.VALUE_NAMES)) {
+    size += (protocolVersion >= V5) ? PrimitiveSizes.INT : PrimitiveSizes.BYTE; // flags
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.VALUES)) {
+      if (Flags.contains(flags, ProtocolConstants.QueryFlag.VALUE_NAMES)) {
         size += Values.sizeOfNamedValues(namedValues);
       } else {
         size += Values.sizeOfPositionalValues(positionalValues);
       }
     }
-    if (flags.contains(QueryFlag.PAGE_SIZE)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.PAGE_SIZE)) {
       size += PrimitiveSizes.INT;
     }
-    if (flags.contains(QueryFlag.PAGING_STATE)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.PAGING_STATE)) {
       size += PrimitiveSizes.sizeOfBytes(pagingState);
     }
-    if (flags.contains(QueryFlag.SERIAL_CONSISTENCY)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.SERIAL_CONSISTENCY)) {
       size += PrimitiveSizes.SHORT;
     }
-    if (flags.contains(QueryFlag.DEFAULT_TIMESTAMP)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP)) {
       size += PrimitiveSizes.LONG;
     }
-    if (flags.contains(QueryFlag.WITH_KEYSPACE)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)) {
       size += PrimitiveSizes.sizeOfString(keyspace);
     }
     return size;
@@ -209,28 +215,39 @@ public class QueryOptions {
 
   public static <B> QueryOptions decode(B source, PrimitiveCodec<B> decoder, int protocolVersion) {
     int consistency = decoder.readUnsignedShort(source);
-    EnumSet<QueryFlag> flags = QueryFlag.decode(source, decoder, protocolVersion);
+    int flags =
+        (protocolVersion >= ProtocolConstants.Version.V5)
+            ? decoder.readInt(source)
+            : decoder.readByte(source);
     List<ByteBuffer> positionalValues = Collections.emptyList();
     Map<String, ByteBuffer> namedValues = Collections.emptyMap();
-    if (flags.contains(QueryFlag.VALUES)) {
-      if (flags.contains(QueryFlag.VALUE_NAMES)) {
+    if (Flags.contains(flags, ProtocolConstants.QueryFlag.VALUES)) {
+      if (Flags.contains(flags, ProtocolConstants.QueryFlag.VALUE_NAMES)) {
         namedValues = Values.readNamedValues(source, decoder);
       } else {
         positionalValues = Values.readPositionalValues(source, decoder);
       }
     }
 
-    boolean skipMetadata = flags.contains(QueryFlag.SKIP_METADATA);
-    int pageSize = flags.contains(QueryFlag.PAGE_SIZE) ? decoder.readInt(source) : -1;
+    boolean skipMetadata = Flags.contains(flags, ProtocolConstants.QueryFlag.SKIP_METADATA);
+    int pageSize =
+        Flags.contains(flags, ProtocolConstants.QueryFlag.PAGE_SIZE) ? decoder.readInt(source) : -1;
     ByteBuffer pagingState =
-        flags.contains(QueryFlag.PAGING_STATE) ? decoder.readBytes(source) : null;
+        Flags.contains(flags, ProtocolConstants.QueryFlag.PAGING_STATE)
+            ? decoder.readBytes(source)
+            : null;
     int serialConsistency =
-        flags.contains(QueryFlag.SERIAL_CONSISTENCY)
+        Flags.contains(flags, ProtocolConstants.QueryFlag.SERIAL_CONSISTENCY)
             ? decoder.readUnsignedShort(source)
             : ProtocolConstants.ConsistencyLevel.SERIAL;
     long defaultTimestamp =
-        flags.contains(QueryFlag.DEFAULT_TIMESTAMP) ? decoder.readLong(source) : Long.MIN_VALUE;
-    String keyspace = flags.contains(QueryFlag.WITH_KEYSPACE) ? decoder.readString(source) : null;
+        Flags.contains(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP)
+            ? decoder.readLong(source)
+            : Long.MIN_VALUE;
+    String keyspace =
+        Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)
+            ? decoder.readString(source)
+            : null;
 
     return new QueryOptions(
         flags,

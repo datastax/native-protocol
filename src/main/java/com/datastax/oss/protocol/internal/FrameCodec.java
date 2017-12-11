@@ -15,10 +15,10 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import com.datastax.oss.protocol.internal.util.Flags;
 import com.datastax.oss.protocol.internal.util.IntIntMap;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -105,25 +105,25 @@ public class FrameCodec<B> {
     ProtocolErrors.check(
         encoder != null, "Unsupported opcode %s in protocol v%d", opcode, protocolVersion);
 
-    EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+    int flags = 0;
     if (!(compressor instanceof NoopCompressor) && opcode != ProtocolConstants.Opcode.STARTUP) {
-      flags.add(Flag.COMPRESSED);
+      flags = Flags.add(flags, ProtocolConstants.FrameFlag.COMPRESSED);
     }
     if (frame.tracing || frame.tracingId != null) {
-      flags.add(Flag.TRACING);
+      flags = Flags.add(flags, ProtocolConstants.FrameFlag.TRACING);
     }
     if (!frame.customPayload.isEmpty()) {
-      flags.add(Flag.CUSTOM_PAYLOAD);
+      flags = Flags.add(flags, ProtocolConstants.FrameFlag.CUSTOM_PAYLOAD);
     }
     if (!frame.warnings.isEmpty()) {
-      flags.add(Flag.WARNING);
+      flags = Flags.add(flags, ProtocolConstants.FrameFlag.WARNING);
     }
     if (protocolVersion == ProtocolConstants.Version.BETA) {
-      flags.add(Flag.USE_BETA);
+      flags = Flags.add(flags, ProtocolConstants.FrameFlag.USE_BETA);
     }
 
     int headerSize = headerEncodedSize();
-    if (!flags.contains(Flag.COMPRESSED)) {
+    if (!Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
       // No compression: we can optimize and do everything with a single allocation
       int messageSize = encoder.encodedSize(request);
       if (frame.tracingId != null) {
@@ -177,13 +177,13 @@ public class FrameCodec<B> {
     return 9;
   }
 
-  private void encodeHeader(Frame frame, EnumSet<Flag> flags, int messageSize, B dest) {
+  private void encodeHeader(Frame frame, int flags, int messageSize, B dest) {
     int versionAndDirection = frame.protocolVersion;
     if (frame.message.isResponse) {
       versionAndDirection |= 0b1000_0000;
     }
     primitiveCodec.writeByte((byte) versionAndDirection, dest);
-    Flag.encode(flags, dest, primitiveCodec, frame.protocolVersion);
+    primitiveCodec.writeByte((byte) flags, dest);
     primitiveCodec.writeUnsignedShort(
         frame.streamId & 0xFFFF, // see readStreamId()
         dest);
@@ -213,8 +213,8 @@ public class FrameCodec<B> {
     int directionAndVersion = primitiveCodec.readByte(source);
     boolean isResponse = (directionAndVersion & 0b1000_0000) == 0b1000_0000;
     int protocolVersion = directionAndVersion & 0b0111_1111;
-    EnumSet<Flag> flags = Flag.decode(source, primitiveCodec, protocolVersion);
-    boolean beta = flags.contains(Flag.USE_BETA);
+    int flags = primitiveCodec.readByte(source);
+    boolean beta = Flags.contains(flags, ProtocolConstants.FrameFlag.USE_BETA);
     int streamId = readStreamId(source);
     int opcode = primitiveCodec.readByte(source);
     int length = primitiveCodec.readInt(source);
@@ -227,7 +227,7 @@ public class FrameCodec<B> {
         actualLength);
 
     boolean decompressed = false;
-    if (flags.contains(Flag.COMPRESSED)) {
+    if (Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
       B newSource = compressor.decompress(source);
       // if decompress returns a different object, track this so we know to release it when done.
       if (newSource != source) {
@@ -236,16 +236,16 @@ public class FrameCodec<B> {
       }
     }
 
-    boolean isTracing = flags.contains(Flag.TRACING);
+    boolean isTracing = Flags.contains(flags, ProtocolConstants.FrameFlag.TRACING);
     UUID tracingId = (isResponse && isTracing) ? primitiveCodec.readUuid(source) : null;
 
     Map<String, ByteBuffer> customPayload =
-        (flags.contains(Flag.CUSTOM_PAYLOAD))
+        (Flags.contains(flags, ProtocolConstants.FrameFlag.CUSTOM_PAYLOAD))
             ? primitiveCodec.readBytesMap(source)
             : Collections.emptyMap();
 
     List<String> warnings =
-        (isResponse && flags.contains(Flag.WARNING))
+        (isResponse && Flags.contains(flags, ProtocolConstants.FrameFlag.WARNING))
             ? primitiveCodec.readStringList(source)
             : Collections.emptyList();
 
@@ -268,40 +268,6 @@ public class FrameCodec<B> {
     // is signed. Rather than adding a `readSignedShort` to PrimitiveCodec for this edge case,
     // handle the conversion here.
     return (short) id;
-  }
-
-  enum Flag {
-    COMPRESSED(0x01),
-    TRACING(0x02),
-    CUSTOM_PAYLOAD(0x04),
-    WARNING(0x08),
-    USE_BETA(0x10);
-
-    private int mask;
-
-    Flag(int mask) {
-      this.mask = mask;
-    }
-
-    static <B> EnumSet<Flag> decode(B source, PrimitiveCodec<B> decoder, int protocolVersion) {
-      int bits = decoder.readByte(source);
-      EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
-      for (Flag flag : Flag.values()) {
-        if ((bits & flag.mask) != 0) {
-          set.add(flag);
-        }
-      }
-      return set;
-    }
-
-    static <B> void encode(
-        EnumSet<Flag> flags, B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
-      int bits = 0;
-      for (Flag flag : flags) {
-        bits |= flag.mask;
-      }
-      encoder.writeByte((byte) bits, dest);
-    }
   }
 
   /**

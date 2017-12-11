@@ -17,52 +17,15 @@ package com.datastax.oss.protocol.internal.response.result;
 
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
+import com.datastax.oss.protocol.internal.ProtocolConstants;
+import com.datastax.oss.protocol.internal.util.Flags;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
 public class RowsMetadata {
-  private enum Flag {
-    GLOBAL_TABLES_SPEC(0x0001),
-    HAS_MORE_PAGES(0x0002),
-    NO_METADATA(0x0004),
-    METADATA_CHANGED(0x0008);
-
-    private final int mask;
-
-    Flag(int mask) {
-      this.mask = mask;
-    }
-
-    public static <B> EnumSet<Flag> decode(
-        B source, PrimitiveCodec<B> decoder, int protocolVersion) {
-      int bits = decoder.readInt(source);
-      EnumSet<Flag> set = EnumSet.noneOf(Flag.class);
-      for (Flag flag : Flag.values()) {
-        if ((bits & flag.mask) != 0) {
-          set.add(flag);
-        }
-      }
-      return set;
-    }
-
-    public static <B> void encode(
-        EnumSet<Flag> flags, B dest, PrimitiveCodec<B> encoder, int protocolVersion) {
-      int bits = 0;
-      for (Flag flag : flags) {
-        bits |= flag.mask;
-      }
-      encoder.writeInt(bits, dest);
-    }
-
-    public static int encodedSize(int protocolVersion) {
-      return PrimitiveSizes.INT;
-    }
-  }
-
   /**
    * empty if and only if the SKIP_METADATA flag is present (there is no difference between skipping
    * the column specs, and having the specs but no columns in them)
@@ -74,7 +37,7 @@ public class RowsMetadata {
   public final int[] pkIndices;
   public final byte[] newResultMetadataId;
 
-  private final EnumSet<Flag> flags;
+  protected final int flags;
 
   /**
    * Builds a new instance with {@code NO_METADATA == false}; the column count is set to the number
@@ -85,33 +48,29 @@ public class RowsMetadata {
       ByteBuffer pagingState,
       int[] pkIndices,
       byte[] newResultMetadataId) {
-    this(columnSpecs, columnSpecs.size(), false, pagingState, pkIndices, newResultMetadataId);
+    this(
+        computeFlags(false, columnSpecs, pagingState, newResultMetadataId),
+        columnSpecs,
+        columnSpecs.size(),
+        pagingState,
+        pkIndices,
+        newResultMetadataId);
   }
 
   /** Builds a new instance with {@code NO_METADATA == true}. */
   public RowsMetadata(
       int columnCount, ByteBuffer pagingState, int[] pkIndices, byte[] newResultMetadataId) {
-    this(Collections.emptyList(), columnCount, true, pagingState, pkIndices, newResultMetadataId);
-  }
-
-  private RowsMetadata(
-      List<ColumnSpec> columnSpecs,
-      int columnCount,
-      boolean noMetadata,
-      ByteBuffer pagingState,
-      int[] pkIndices,
-      byte[] newResultMetadataId) {
     this(
-        computeFlags(noMetadata, columnSpecs, pagingState, newResultMetadataId),
-        columnSpecs,
+        computeFlags(true, Collections.emptyList(), pagingState, newResultMetadataId),
+        Collections.emptyList(),
         columnCount,
         pagingState,
         pkIndices,
         newResultMetadataId);
   }
 
-  private RowsMetadata(
-      EnumSet<Flag> flags,
+  protected RowsMetadata(
+      int flags,
       List<ColumnSpec> columnSpecs,
       int columnCount,
       ByteBuffer pagingState,
@@ -125,29 +84,29 @@ public class RowsMetadata {
     this.flags = flags;
   }
 
-  private static EnumSet<Flag> computeFlags(
+  protected static int computeFlags(
       boolean noMetadata,
       List<ColumnSpec> columnSpecs,
       ByteBuffer pagingState,
       byte[] newResultMetadataId) {
-    EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+    int flags = 0;
     if (noMetadata) {
-      flags.add(Flag.NO_METADATA);
+      flags = Flags.add(flags, ProtocolConstants.RowsFlag.NO_METADATA);
     } else if (haveSameTable(columnSpecs)) {
-      flags.add(Flag.GLOBAL_TABLES_SPEC);
+      flags = Flags.add(flags, ProtocolConstants.RowsFlag.GLOBAL_TABLES_SPEC);
     }
     if (pagingState != null) {
-      flags.add(Flag.HAS_MORE_PAGES);
+      flags = Flags.add(flags, ProtocolConstants.RowsFlag.HAS_MORE_PAGES);
     }
     if (newResultMetadataId != null) {
-      flags.add(Flag.METADATA_CHANGED);
+      flags = Flags.add(flags, ProtocolConstants.RowsFlag.METADATA_CHANGED);
     }
     return flags;
   }
 
   public <B> void encode(
       B dest, PrimitiveCodec<B> encoder, boolean withPkIndices, int protocolVersion) {
-    Flag.encode(flags, dest, encoder, protocolVersion);
+    encoder.writeInt(flags, dest);
     encoder.writeInt(columnCount, dest);
     if (withPkIndices) {
       if (pkIndices == null) {
@@ -159,14 +118,14 @@ public class RowsMetadata {
         }
       }
     }
-    if (flags.contains(Flag.HAS_MORE_PAGES)) {
+    if (Flags.contains(flags, ProtocolConstants.RowsFlag.HAS_MORE_PAGES)) {
       encoder.writeBytes(pagingState, dest);
     }
-    if (flags.contains(Flag.METADATA_CHANGED)) {
+    if (Flags.contains(flags, ProtocolConstants.RowsFlag.METADATA_CHANGED)) {
       encoder.writeShortBytes(newResultMetadataId, dest);
     }
-    if (!flags.contains(Flag.NO_METADATA) && !columnSpecs.isEmpty()) {
-      boolean globalTable = flags.contains(Flag.GLOBAL_TABLES_SPEC);
+    if (!Flags.contains(flags, ProtocolConstants.RowsFlag.NO_METADATA) && !columnSpecs.isEmpty()) {
+      boolean globalTable = Flags.contains(flags, ProtocolConstants.RowsFlag.GLOBAL_TABLES_SPEC);
       if (globalTable) {
         ColumnSpec firstSpec = columnSpecs.get(0);
         encoder.writeString(firstSpec.ksName, dest);
@@ -184,9 +143,9 @@ public class RowsMetadata {
   }
 
   public int encodedSize(boolean withPkIndices, int protocolVersion) {
-    int size = Flag.encodedSize(protocolVersion);
+    int size = PrimitiveSizes.INT; // flags
     size += PrimitiveSizes.INT; // column count
-    if (flags.contains(Flag.METADATA_CHANGED)) {
+    if (Flags.contains(flags, ProtocolConstants.RowsFlag.METADATA_CHANGED)) {
       size += PrimitiveSizes.sizeOfShortBytes(newResultMetadataId);
     }
     if (withPkIndices) {
@@ -195,11 +154,11 @@ public class RowsMetadata {
         size += pkIndices.length * PrimitiveSizes.SHORT;
       }
     }
-    if (flags.contains(Flag.HAS_MORE_PAGES)) {
+    if (Flags.contains(flags, ProtocolConstants.RowsFlag.HAS_MORE_PAGES)) {
       size += PrimitiveSizes.sizeOfBytes(pagingState);
     }
-    if (!flags.contains(Flag.NO_METADATA) && !columnSpecs.isEmpty()) {
-      boolean globalTable = flags.contains(Flag.GLOBAL_TABLES_SPEC);
+    if (!Flags.contains(flags, ProtocolConstants.RowsFlag.NO_METADATA) && !columnSpecs.isEmpty()) {
+      boolean globalTable = Flags.contains(flags, ProtocolConstants.RowsFlag.GLOBAL_TABLES_SPEC);
       if (globalTable) {
         ColumnSpec firstSpec = columnSpecs.get(0);
         size += PrimitiveSizes.sizeOfString(firstSpec.ksName);
@@ -219,7 +178,7 @@ public class RowsMetadata {
 
   public static <B> RowsMetadata decode(
       B source, PrimitiveCodec<B> decoder, boolean withPkIndices, int protocolVersion) {
-    EnumSet<Flag> flags = Flag.decode(source, decoder, protocolVersion);
+    int flags = decoder.readInt(source);
     int columnCount = decoder.readInt(source);
 
     int[] pkIndices = null;
@@ -231,16 +190,22 @@ public class RowsMetadata {
       }
     }
 
-    ByteBuffer state = (flags.contains(Flag.HAS_MORE_PAGES)) ? decoder.readBytes(source) : null;
+    ByteBuffer state =
+        (Flags.contains(flags, ProtocolConstants.RowsFlag.HAS_MORE_PAGES))
+            ? decoder.readBytes(source)
+            : null;
 
     byte[] newResultMetadataId =
-        (flags.contains(Flag.METADATA_CHANGED)) ? decoder.readShortBytes(source) : null;
+        (Flags.contains(flags, ProtocolConstants.RowsFlag.METADATA_CHANGED))
+            ? decoder.readShortBytes(source)
+            : null;
 
     List<ColumnSpec> columnSpecs;
-    if (flags.contains(Flag.NO_METADATA)) {
+    if (Flags.contains(flags, ProtocolConstants.RowsFlag.NO_METADATA)) {
       columnSpecs = Collections.emptyList();
     } else {
-      boolean globalTablesSpec = flags.contains(Flag.GLOBAL_TABLES_SPEC);
+      boolean globalTablesSpec =
+          Flags.contains(flags, ProtocolConstants.RowsFlag.GLOBAL_TABLES_SPEC);
 
       String globalKsName = null;
       String globalCfName = null;

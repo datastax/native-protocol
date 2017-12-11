@@ -167,4 +167,30 @@ public class ProtocolConstants {
     public static final byte UNLOGGED = 0x01;
     public static final byte COUNTER = 0x02;
   }
+
+  public static class FrameFlag {
+    public static final int COMPRESSED = 0x01;
+    public static final int TRACING = 0x02;
+    public static final int CUSTOM_PAYLOAD = 0x04;
+    public static final int WARNING = 0x08;
+    public static final int USE_BETA = 0x10;
+  }
+
+  public static final class QueryFlag {
+    public static final int VALUES = 0x00000001;
+    public static final int SKIP_METADATA = 0x00000002;
+    public static final int PAGE_SIZE = 0x00000004;
+    public static final int PAGING_STATE = 0x00000008;
+    public static final int SERIAL_CONSISTENCY = 0x00000010;
+    public static final int DEFAULT_TIMESTAMP = 0x00000020;
+    public static final int VALUE_NAMES = 0x00000040;
+    public static final int WITH_KEYSPACE = 0x00000080;
+  }
+
+  public static final class RowsFlag {
+    public static final int GLOBAL_TABLES_SPEC = 0x00000001;
+    public static final int HAS_MORE_PAGES = 0x00000002;
+    public static final int NO_METADATA = 0x00000004;
+    public static final int METADATA_CHANGED = 0x00000008;
+  }
 }
