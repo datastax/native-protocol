@@ -22,7 +22,7 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
-import com.datastax.oss.protocol.internal.response.QueryOptionsBuilder;
+import com.datastax.oss.protocol.internal.request.query.QueryOptionsBuilder;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -120,7 +120,7 @@ public class QueryTest extends MessageTestBase<Query> {
   public void should_encode_and_decode_query_with_different_CL_v3_v4(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
-            .consistencyLevel(ProtocolConstants.ConsistencyLevel.QUORUM)
+            .withConsistencyLevel(ProtocolConstants.ConsistencyLevel.QUORUM)
             .build();
     Query initial = new Query(queryString, options);
 
@@ -159,7 +159,7 @@ public class QueryTest extends MessageTestBase<Query> {
   public void should_encode_and_decode_query_with_different_CL(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
-            .consistencyLevel(ProtocolConstants.ConsistencyLevel.QUORUM)
+            .withConsistencyLevel(ProtocolConstants.ConsistencyLevel.QUORUM)
             .build();
     Query initial = new Query(queryString, options);
 
@@ -195,7 +195,7 @@ public class QueryTest extends MessageTestBase<Query> {
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_and_decode_positional_values_v3_v4(int protocolVersion) {
-    QueryOptions options = new QueryOptionsBuilder().positionalValue("0xcafebabe").build();
+    QueryOptions options = new QueryOptionsBuilder().withPositionalValue("0xcafebabe").build();
     Query initial = new Query(queryString, options);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -236,7 +236,7 @@ public class QueryTest extends MessageTestBase<Query> {
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_positional_values(int protocolVersion) {
-    QueryOptions options = new QueryOptionsBuilder().positionalValue("0xcafebabe").build();
+    QueryOptions options = new QueryOptionsBuilder().withPositionalValue("0xcafebabe").build();
     Query initial = new Query(queryString, options);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -376,7 +376,7 @@ public class QueryTest extends MessageTestBase<Query> {
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
   public void should_encode_named_values_v3_v4(int protocolVersion) {
-    QueryOptions options = new QueryOptionsBuilder().namedValue("foo", "0xcafebabe").build();
+    QueryOptions options = new QueryOptionsBuilder().withNamedValue("foo", "0xcafebabe").build();
     Query initial = new Query(queryString, options);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -420,7 +420,7 @@ public class QueryTest extends MessageTestBase<Query> {
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_named_values(int protocolVersion) {
-    QueryOptions options = new QueryOptionsBuilder().namedValue("foo", "0xcafebabe").build();
+    QueryOptions options = new QueryOptionsBuilder().withNamedValue("foo", "0xcafebabe").build();
     Query initial = new Query(queryString, options);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -466,8 +466,8 @@ public class QueryTest extends MessageTestBase<Query> {
   public void should_not_allow_both_named_and_positional_values(int protocolVersion) {
     QueryOptions options =
         new QueryOptionsBuilder()
-            .positionalValue("0xcafebabe")
-            .namedValue("foo", "0xcafebabe")
+            .withPositionalValue("0xcafebabe")
+            .withNamedValue("foo", "0xcafebabe")
             .build();
     Query query = new Query(queryString, options);
 
