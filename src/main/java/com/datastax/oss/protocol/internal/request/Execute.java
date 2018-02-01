@@ -48,8 +48,15 @@ public class Execute extends Message {
 
   public static class Codec extends Message.Codec {
 
-    public Codec(int protocolVersion) {
+    private final QueryOptions.Codec optionsCodec;
+
+    public Codec(int protocolVersion, QueryOptions.Codec optionsCodec) {
       super(ProtocolConstants.Opcode.EXECUTE, protocolVersion);
+      this.optionsCodec = optionsCodec;
+    }
+
+    public Codec(int protocolVersion) {
+      this(protocolVersion, new QueryOptions.Codec(protocolVersion));
     }
 
     @Override
@@ -59,7 +66,7 @@ public class Execute extends Message {
       if (protocolVersion >= V5) {
         encoder.writeShortBytes(execute.resultMetadataId, dest);
       }
-      execute.options.encode(dest, encoder, protocolVersion);
+      optionsCodec.encode(dest, execute.options, encoder);
     }
 
     @Override
@@ -70,7 +77,7 @@ public class Execute extends Message {
         assert execute.resultMetadataId != null;
         size += PrimitiveSizes.sizeOfShortBytes(execute.resultMetadataId);
       }
-      size += execute.options.encodedSize(protocolVersion);
+      size += optionsCodec.encodedSize(execute.options);
       return size;
     }
 
@@ -78,7 +85,7 @@ public class Execute extends Message {
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       byte[] queryId = decoder.readShortBytes(source);
       byte[] resultMetadataId = (protocolVersion >= V5) ? decoder.readShortBytes(source) : null;
-      QueryOptions options = QueryOptions.decode(source, decoder, protocolVersion);
+      QueryOptions options = optionsCodec.decode(source, decoder);
       return new Execute(queryId, resultMetadataId, options);
     }
   }

@@ -41,28 +41,35 @@ public class Query extends Message {
   }
 
   public static class Codec extends Message.Codec {
-    public Codec(int protocolVersion) {
+
+    private final QueryOptions.Codec optionsCodec;
+
+    public Codec(int protocolVersion, QueryOptions.Codec optionsCodec) {
       super(ProtocolConstants.Opcode.QUERY, protocolVersion);
+      this.optionsCodec = optionsCodec;
+    }
+
+    public Codec(int protocolVersion) {
+      this(protocolVersion, new QueryOptions.Codec(protocolVersion));
     }
 
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       Query query = (Query) message;
       encoder.writeLongString(query.query, dest);
-      query.options.encode(dest, encoder, protocolVersion);
+      optionsCodec.encode(dest, query.options, encoder);
     }
 
     @Override
     public int encodedSize(Message message) {
       Query query = (Query) message;
-      return PrimitiveSizes.sizeOfLongString(query.query)
-          + query.options.encodedSize(protocolVersion);
+      return PrimitiveSizes.sizeOfLongString(query.query) + optionsCodec.encodedSize(query.options);
     }
 
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       String query = decoder.readLongString(source);
-      QueryOptions options = QueryOptions.decode(source, decoder, protocolVersion);
+      QueryOptions options = optionsCodec.decode(source, decoder);
       return new Query(query, options);
     }
   }
