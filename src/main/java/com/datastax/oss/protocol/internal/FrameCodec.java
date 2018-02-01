@@ -69,14 +69,21 @@ public class FrameCodec<B> {
     CodecGroup.Registry registry =
         new CodecGroup.Registry() {
           @Override
-          public CodecGroup.Registry addEncoder(int protocolVersion, Message.Codec codec) {
-            encodersBuilder.put(protocolVersion, codec.opcode, codec);
+          public CodecGroup.Registry addCodec(Message.Codec codec) {
+            addEncoder(codec);
+            addDecoder(codec);
             return this;
           }
 
           @Override
-          public CodecGroup.Registry addDecoder(int protocolVersion, Message.Codec codec) {
-            decodersBuilder.put(protocolVersion, codec.opcode, codec);
+          public CodecGroup.Registry addEncoder(Message.Codec codec) {
+            encodersBuilder.put(codec.protocolVersion, codec.opcode, codec);
+            return this;
+          }
+
+          @Override
+          public CodecGroup.Registry addDecoder(Message.Codec codec) {
+            decodersBuilder.put(codec.protocolVersion, codec.opcode, codec);
             return this;
           }
         };
@@ -277,34 +284,19 @@ public class FrameCodec<B> {
    */
   public interface CodecGroup {
     interface Registry {
-      default Registry addCodec(Message.Codec codec) {
-        return addCodec(codec.protocolVersion, codec);
-      }
-
-      /** Add a codec with a different protocol version than the one it declares. */
-      default Registry addCodec(int protocolVersion, Message.Codec codec) {
-        return addEncoder(protocolVersion, codec).addDecoder(protocolVersion, codec);
-      }
+      Registry addCodec(Message.Codec codec);
 
       /**
        * Add a codec for encoding only; this helps catch programming errors if the client is only
        * supposed to send a subset of the existing messages.
        */
-      default Registry addEncoder(Message.Codec codec) {
-        return addEncoder(codec.protocolVersion, codec);
-      }
-
-      Registry addEncoder(int protocolVersion, Message.Codec codec);
+      Registry addEncoder(Message.Codec codec);
 
       /**
        * Add a codec for decoding only; this helps catch programming errors if the client is only
        * supposed to receive a subset of the existing messages.
        */
-      default Registry addDecoder(Message.Codec codec) {
-        return addDecoder(codec.protocolVersion, codec);
-      }
-
-      Registry addDecoder(int protocolVersion, Message.Codec codec);
+      Registry addDecoder(Message.Codec codec);
     }
 
     void registerCodecs(Registry registry);
