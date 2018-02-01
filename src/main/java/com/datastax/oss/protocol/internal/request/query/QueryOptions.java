@@ -41,7 +41,7 @@ public class QueryOptions {
           Long.MIN_VALUE,
           null);
 
-  protected final int flags;
+  public final int flags;
   /** @see ProtocolConstants.ConsistencyLevel */
   public final int consistency;
 
@@ -56,7 +56,12 @@ public class QueryOptions {
   public final long defaultTimestamp;
   public final String keyspace;
 
-  protected QueryOptions(
+  /**
+   * This constructor should only be used in message codecs. To build an outgoing message from
+   * client code, use {@link #QueryOptions(int, List, Map, boolean, int, ByteBuffer, int, long,
+   * String)} so that the flags are computed automatically.
+   */
+  public QueryOptions(
       int flags,
       int consistency,
       List<ByteBuffer> positionalValues,

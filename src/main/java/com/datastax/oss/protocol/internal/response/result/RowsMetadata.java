@@ -37,7 +37,7 @@ public class RowsMetadata {
   public final int[] pkIndices;
   public final byte[] newResultMetadataId;
 
-  protected final int flags;
+  public final int flags;
 
   /**
    * Builds a new instance with {@code NO_METADATA == false}; the column count is set to the number
@@ -69,7 +69,12 @@ public class RowsMetadata {
         newResultMetadataId);
   }
 
-  protected RowsMetadata(
+  /**
+   * This constructor should only be used in message codecs. To build an outgoing message from
+   * client code, use {@link #RowsMetadata(int, ByteBuffer, int[], byte[])} or {@link
+   * #RowsMetadata(List, ByteBuffer, int[], byte[])} so that the flags are computed automatically.
+   */
+  public RowsMetadata(
       int flags,
       List<ColumnSpec> columnSpecs,
       int columnCount,

@@ -42,9 +42,14 @@ public class Batch extends Message {
   public final long defaultTimestamp;
   public final String keyspace;
 
-  protected final int flags;
+  public final int flags;
 
-  protected Batch(
+  /**
+   * This constructor should only be used in message codecs. To build an outgoing message from
+   * client code, use {@link #Batch(byte, List, List, int, int, long, String)} so that the flags are
+   * computed automatically.
+   */
+  public Batch(
       int flags,
       byte type,
       List<Object> queriesOrIds,
