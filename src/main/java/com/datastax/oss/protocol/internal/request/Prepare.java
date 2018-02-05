@@ -15,12 +15,12 @@
  */
 package com.datastax.oss.protocol.internal.request;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class Prepare extends Message {
   public final String cqlQuery;

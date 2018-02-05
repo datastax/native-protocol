@@ -15,6 +15,10 @@
  */
 package com.datastax.oss.protocol.internal.response.result;
 
+import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V3;
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
@@ -29,10 +33,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.datastax.oss.protocol.internal.Assertions.assertThat;
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V3;
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
 
 @RunWith(DataProviderRunner.class)
 public class PreparedTest extends MessageTestBase<Prepared> {

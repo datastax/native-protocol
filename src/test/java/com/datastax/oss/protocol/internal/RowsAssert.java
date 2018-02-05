@@ -15,13 +15,13 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.response.result.Rows;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.nio.ByteBuffer;
 import java.util.List;
 import org.assertj.core.api.AbstractAssert;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class RowsAssert extends AbstractAssert<RowsAssert, Rows> {
   public RowsAssert(Rows actual) {

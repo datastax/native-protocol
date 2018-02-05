@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.response.result;
 
+import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
@@ -32,8 +34,6 @@ import java.util.List;
 import java.util.Queue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class RowsTest extends MessageTestBase<Rows> {

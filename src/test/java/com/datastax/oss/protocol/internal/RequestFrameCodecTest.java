@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockCompressor;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
@@ -30,8 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-
-import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class RequestFrameCodecTest extends FrameCodecTestBase {

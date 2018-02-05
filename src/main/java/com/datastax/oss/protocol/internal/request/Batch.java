@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.request;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
@@ -25,8 +27,6 @@ import com.datastax.oss.protocol.internal.util.Flags;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class Batch extends Message {
   /** @see ProtocolConstants.BatchType */

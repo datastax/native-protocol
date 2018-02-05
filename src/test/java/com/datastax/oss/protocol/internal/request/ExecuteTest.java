@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.request;
 
+import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
@@ -27,8 +29,6 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ExecuteTest extends MessageTestBase<Execute> {

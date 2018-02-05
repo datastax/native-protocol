@@ -15,9 +15,9 @@
  */
 package com.datastax.oss.protocol.internal.binary;
 
-import com.datastax.oss.protocol.internal.Compressor;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.datastax.oss.protocol.internal.Compressor;
 
 public class MockCompressor implements Compressor<MockBinaryString> {
 

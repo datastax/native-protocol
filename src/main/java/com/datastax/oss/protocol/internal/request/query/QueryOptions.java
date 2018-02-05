@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.request.query;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
@@ -24,8 +26,6 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class QueryOptions {
 

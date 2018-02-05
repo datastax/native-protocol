@@ -15,14 +15,14 @@
  */
 package com.datastax.oss.protocol.internal.request;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
 import com.datastax.oss.protocol.internal.util.Bytes;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class Execute extends Message {
 

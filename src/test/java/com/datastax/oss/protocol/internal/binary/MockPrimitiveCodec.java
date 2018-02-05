@@ -15,12 +15,12 @@
  */
 package com.datastax.oss.protocol.internal.binary;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   public static final MockPrimitiveCodec INSTANCE = new MockPrimitiveCodec();

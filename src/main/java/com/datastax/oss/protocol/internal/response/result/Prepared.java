@@ -15,15 +15,15 @@
  */
 package com.datastax.oss.protocol.internal.response.result;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class Prepared extends Result {
   public final byte[] preparedQueryId;

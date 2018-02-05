@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.request.AuthResponse;
 import com.datastax.oss.protocol.internal.request.Batch;
 import com.datastax.oss.protocol.internal.request.Execute;
@@ -31,8 +33,6 @@ import com.datastax.oss.protocol.internal.response.Event;
 import com.datastax.oss.protocol.internal.response.Ready;
 import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.response.Supported;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class ProtocolV5ClientCodecs implements FrameCodec.CodecGroup {
   @Override

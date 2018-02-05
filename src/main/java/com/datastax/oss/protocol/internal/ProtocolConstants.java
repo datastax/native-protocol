@@ -124,7 +124,7 @@ public class ProtocolConstants {
     public static final int TIME = 0x0012;
     public static final int SMALLINT = 0x0013;
     public static final int TINYINT = 0x0014;
-    public static final int DURATION = 0x0015; //v5+
+    public static final int DURATION = 0x0015; // v5+
     public static final int LIST = 0x0020;
     public static final int MAP = 0x0021;
     public static final int SET = 0x0022;

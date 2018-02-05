@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.response.event;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
@@ -22,8 +24,6 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.ProtocolErrors;
 import com.datastax.oss.protocol.internal.response.Event;
 import java.util.List;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V4;
 
 public class SchemaChangeEvent extends Event {
   /** @see ProtocolConstants.SchemaChangeType */

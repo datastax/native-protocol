@@ -15,10 +15,10 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class MessageTestBase<M extends Message> {
 

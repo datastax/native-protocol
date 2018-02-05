@@ -15,13 +15,13 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.response.result.ColumnSpec;
 import com.datastax.oss.protocol.internal.response.result.RowsMetadata;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.util.List;
 import org.assertj.core.api.AbstractAssert;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class RowsMetadataAssert extends AbstractAssert<RowsMetadataAssert, RowsMetadata> {
   public RowsMetadataAssert(RowsMetadata actual) {

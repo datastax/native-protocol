@@ -15,9 +15,9 @@
  */
 package com.datastax.oss.protocol.internal.util;
 
-import org.junit.Test;
-
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+
+import org.junit.Test;
 
 public class IntMapTest {
 

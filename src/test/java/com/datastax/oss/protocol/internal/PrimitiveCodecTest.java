@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.oss.protocol.internal.util.Bytes;
@@ -28,8 +30,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import org.junit.Test;
-
-import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
 public class PrimitiveCodecTest {
   static final Random RANDOM = new Random();

@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.response.result;
 
+import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
@@ -27,8 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class RowsMetadataTest {

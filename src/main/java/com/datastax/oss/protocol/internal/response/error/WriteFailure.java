@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.response.error;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
@@ -23,8 +25,6 @@ import com.datastax.oss.protocol.internal.response.Error;
 import java.net.InetAddress;
 import java.util.Collections;
 import java.util.Map;
-
-import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 public class WriteFailure extends Error {
   /** The consistency level of the query that triggered the exception. */
