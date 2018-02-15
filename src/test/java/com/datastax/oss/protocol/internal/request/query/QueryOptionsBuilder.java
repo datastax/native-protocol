@@ -18,6 +18,7 @@ package com.datastax.oss.protocol.internal.request.query;
 public class QueryOptionsBuilder
     extends QueryOptionsBuilderBase<QueryOptions, QueryOptionsBuilder> {
 
+  @Override
   public QueryOptions build() {
     return new QueryOptions(
         consistency,

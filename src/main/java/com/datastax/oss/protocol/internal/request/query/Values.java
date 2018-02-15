@@ -61,6 +61,7 @@ public class Values {
     return size;
   }
 
+  @SuppressWarnings("ReferenceEquality")
   private static <B> void writeValue(ByteBuffer value, B dest, PrimitiveCodec<B> encoder) {
     if (value == null) {
       encoder.writeInt(-1, dest);
@@ -71,6 +72,7 @@ public class Values {
     }
   }
 
+  @SuppressWarnings("ReferenceEquality")
   private static int sizeOfValue(ByteBuffer value) {
     return (value == null || value == ProtocolConstants.UNSET_VALUE)
         ? PrimitiveSizes.INT

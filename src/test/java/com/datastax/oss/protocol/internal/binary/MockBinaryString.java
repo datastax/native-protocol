@@ -17,9 +17,14 @@ package com.datastax.oss.protocol.internal.binary;
 
 import java.net.InetAddress;
 import java.util.LinkedList;
+import java.util.Objects;
 
 /** A DSL that simulates a mock binary string for reading and writing, to use in our unit tests. */
 public class MockBinaryString {
+
+  // The suggested alternative is ArrayDeque, but it does not override equals. Keeping LinkedList
+  // here since performance is not crucial in tests.
+  @SuppressWarnings("JdkObsolete")
   private final LinkedList<Element> elements = new LinkedList<>();
 
   public MockBinaryString byte_(int value) {
@@ -100,6 +105,11 @@ public class MockBinaryString {
   }
 
   @Override
+  public int hashCode() {
+    return this.elements.hashCode();
+  }
+
+  @Override
   public String toString() {
     return elements.toString();
   }
@@ -134,6 +144,11 @@ public class MockBinaryString {
             && (this.value == null ? that.value == null : this.value.equals(that.value));
       }
       return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(type, value);
     }
 
     @Override

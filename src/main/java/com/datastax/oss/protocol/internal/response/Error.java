@@ -35,6 +35,7 @@ import com.datastax.oss.protocol.internal.util.IntMap;
  * Error responses that only contain a code and a single message will be represented as direct
  * instances of this class; those that have more information will be subclasses.
  */
+@SuppressWarnings("JavaLangClash")
 public class Error extends Message {
 
   /** @see ErrorCode */

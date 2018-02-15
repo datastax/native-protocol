@@ -20,6 +20,7 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.response.Result;
 
+@SuppressWarnings("JavaLangClash")
 public class Void extends Result {
   public static final Void INSTANCE = new Void();
 

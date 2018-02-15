@@ -15,10 +15,19 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import com.datastax.oss.protocol.internal.request.Execute;
+import com.datastax.oss.protocol.internal.request.Query;
 import java.nio.ByteBuffer;
 
 public class ProtocolConstants {
 
+  /**
+   * The unique instance that represents an unset value in {@link Query} and {@link Execute}
+   * messages.
+   *
+   * <p>This is tested with reference equality, so clients MUST use this instance (no other instance
+   * will work, even if it's equal to this one).
+   */
   public static final ByteBuffer UNSET_VALUE = ByteBuffer.allocate(0);
 
   public static class Version {

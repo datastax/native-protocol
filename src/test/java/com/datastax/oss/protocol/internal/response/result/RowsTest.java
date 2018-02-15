@@ -28,8 +28,8 @@ import com.datastax.oss.protocol.internal.util.Bytes;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import org.junit.Test;
@@ -59,7 +59,7 @@ public class RowsTest extends MessageTestBase<Rows> {
             null,
             null,
             null);
-    Queue<List<ByteBuffer>> data = new LinkedList<>();
+    Queue<List<ByteBuffer>> data = new ArrayDeque<>();
     data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
     data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
     data.add(Arrays.asList(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
@@ -117,7 +117,7 @@ public class RowsTest extends MessageTestBase<Rows> {
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_when_no_metadata(int protocolVersion) {
     RowsMetadata emptyMetadata = new RowsMetadata(2, null, null, null);
-    Queue<List<ByteBuffer>> data = new LinkedList<>();
+    Queue<List<ByteBuffer>> data = new ArrayDeque<>();
     data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
     data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
     data.add(Arrays.asList(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));

@@ -45,7 +45,7 @@ public class ColumnSpec {
       return Objects.equals(this.ksName, that.ksName)
           && Objects.equals(this.tableName, that.tableName)
           && Objects.equals(this.name, that.name)
-          && this.type == that.type;
+          && Objects.equals(this.type, that.type);
     } else {
       return false;
     }

@@ -91,8 +91,8 @@ public class SchemaChange extends Result {
 
       ProtocolErrors.check(
           protocolVersion >= ProtocolConstants.Version.V4
-              || !ProtocolConstants.SchemaChangeTarget.AGGREGATE.equals(schemaChange.target)
-                  && !ProtocolConstants.SchemaChangeTarget.FUNCTION.equals(schemaChange.target),
+              || (!ProtocolConstants.SchemaChangeTarget.AGGREGATE.equals(schemaChange.target)
+                  && !ProtocolConstants.SchemaChangeTarget.FUNCTION.equals(schemaChange.target)),
           "%s schema change events are not supported in protocol version %d",
           schemaChange.target,
           protocolVersion);
@@ -125,8 +125,8 @@ public class SchemaChange extends Result {
       String target = decoder.readString(source);
       ProtocolErrors.check(
           protocolVersion >= ProtocolConstants.Version.V4
-              || !ProtocolConstants.SchemaChangeTarget.AGGREGATE.equals(target)
-                  && !ProtocolConstants.SchemaChangeTarget.FUNCTION.equals(target),
+              || (!ProtocolConstants.SchemaChangeTarget.AGGREGATE.equals(target)
+                  && !ProtocolConstants.SchemaChangeTarget.FUNCTION.equals(target)),
           "%s schema change events are not supported in protocol version %d",
           target,
           protocolVersion);
