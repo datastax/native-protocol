@@ -180,7 +180,7 @@ public class FrameCodec<B> {
     }
   }
 
-  private static int headerEncodedSize() {
+  public static int headerEncodedSize() {
     return 9;
   }
 

@@ -213,7 +213,7 @@ public class QueryOptions {
     public int encodedSize(QueryOptions options) {
       int size = 0;
       size += PrimitiveSizes.SHORT; // consistency level
-      size += (protocolVersion >= V5) ? PrimitiveSizes.INT : PrimitiveSizes.BYTE; // flags
+      size += queryFlagsSize(protocolVersion);
       if (Flags.contains(options.flags, ProtocolConstants.QueryFlag.VALUES)) {
         if (Flags.contains(options.flags, ProtocolConstants.QueryFlag.VALUE_NAMES)) {
           size += Values.sizeOfNamedValues(options.namedValues);
@@ -289,5 +289,11 @@ public class QueryOptions {
           defaultTimestamp,
           keyspace);
     }
+  }
+
+  public static int queryFlagsSize(int protocolVersion) {
+    return protocolVersion >= ProtocolConstants.Version.V5
+        ? PrimitiveSizes.INT
+        : PrimitiveSizes.BYTE;
   }
 }
