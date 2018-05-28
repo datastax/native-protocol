@@ -24,8 +24,8 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.ProtocolErrors;
 import com.datastax.oss.protocol.internal.request.query.Values;
 import com.datastax.oss.protocol.internal.util.Flags;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Batch extends Message {
@@ -191,8 +191,10 @@ public class Batch extends Message {
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       byte type = decoder.readByte(source);
       int queryCount = decoder.readUnsignedShort(source);
-      List<Object> queriesOrIds = new ArrayList<>();
-      List<List<ByteBuffer>> values = new ArrayList<>();
+      NullAllowingImmutableList.Builder<Object> queriesOrIds =
+          NullAllowingImmutableList.builder(queryCount);
+      NullAllowingImmutableList.Builder<List<ByteBuffer>> values =
+          NullAllowingImmutableList.builder(queryCount);
       for (int i = 0; i < queryCount; i++) {
         boolean isQueryString = (decoder.readByte(source) == 0);
         queriesOrIds.add(
@@ -220,8 +222,8 @@ public class Batch extends Message {
       return new Batch(
           flags,
           type,
-          queriesOrIds,
-          values,
+          queriesOrIds.build(),
+          values.build(),
           consistency,
           serialConsistency,
           defaultTimestamp,

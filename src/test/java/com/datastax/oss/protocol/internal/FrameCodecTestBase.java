@@ -16,8 +16,8 @@
 package com.datastax.oss.protocol.internal;
 
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,7 +29,8 @@ public abstract class FrameCodecTestBase {
   protected static final UUID TRACING_ID = UUID.randomUUID();
   protected static final Map<String, ByteBuffer> SOME_PAYLOAD;
   protected static final List<String> NO_WARNINGS = Collections.emptyList();
-  protected static final List<String> SOME_WARNINGS = Arrays.asList("warning 1", "warning 2");
+  protected static final List<String> SOME_WARNINGS =
+      NullAllowingImmutableList.of("warning 1", "warning 2");
 
   static {
     Map<String, ByteBuffer> tmp = new LinkedHashMap<>();

@@ -51,24 +51,24 @@ public class StartupTest extends MessageTestBase<Startup> {
             new MockBinaryString()
                 .unsignedShort(2) // size of string map
                 // string map entries
-                .string("COMPRESSION")
-                .string("LZ4")
                 .string("CQL_VERSION")
-                .string("3.0.0"));
+                .string("3.0.0")
+                .string("COMPRESSION")
+                .string("LZ4"));
     assertThat(encodedSize(initial, protocolVersion))
         .isEqualTo(
             PrimitiveSizes.SHORT
-                + (PrimitiveSizes.SHORT + "COMPRESSION".length())
-                + (PrimitiveSizes.SHORT + "LZ4".length())
                 + (PrimitiveSizes.SHORT + "CQL_VERSION".length())
-                + (PrimitiveSizes.SHORT + "3.0.0".length()));
+                + (PrimitiveSizes.SHORT + "3.0.0".length())
+                + (PrimitiveSizes.SHORT + "COMPRESSION".length())
+                + (PrimitiveSizes.SHORT + "LZ4".length()));
 
     Startup decoded = decode(encoded, protocolVersion);
 
     assertThat(decoded.options)
         .hasSize(2)
-        .containsEntry("COMPRESSION", "LZ4")
-        .containsEntry("CQL_VERSION", "3.0.0");
+        .containsEntry("CQL_VERSION", "3.0.0")
+        .containsEntry("COMPRESSION", "LZ4");
   }
 
   @Test

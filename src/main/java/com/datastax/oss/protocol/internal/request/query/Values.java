@@ -18,10 +18,10 @@ package com.datastax.oss.protocol.internal.request.query;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,30 +80,32 @@ public class Values {
   }
 
   public static <B> List<ByteBuffer> readPositionalValues(B source, PrimitiveCodec<B> decoder) {
-    int len = decoder.readUnsignedShort(source);
-    if (len == 0) {
+    int size = decoder.readUnsignedShort(source);
+    if (size == 0) {
       return Collections.emptyList();
     } else {
-      List<ByteBuffer> values = new ArrayList<>(len);
-      for (int i = 0; i < len; i++) {
+      NullAllowingImmutableList.Builder<ByteBuffer> values =
+          NullAllowingImmutableList.builder(size);
+      for (int i = 0; i < size; i++) {
         values.add(readValue(source, decoder));
       }
-      return Collections.unmodifiableList(values);
+      return values.build();
     }
   }
 
   public static <B> Map<String, ByteBuffer> readNamedValues(B source, PrimitiveCodec<B> decoder) {
-    int len = decoder.readUnsignedShort(source);
-    if (len == 0) {
+    int size = decoder.readUnsignedShort(source);
+    if (size == 0) {
       return Collections.emptyMap();
     } else {
-      Map<String, ByteBuffer> values = new HashMap<>(len);
-      for (int i = 0; i < len; i++) {
+      NullAllowingImmutableMap.Builder<String, ByteBuffer> values =
+          NullAllowingImmutableMap.builder(size);
+      for (int i = 0; i < size; i++) {
         String key = decoder.readString(source);
         ByteBuffer value = readValue(source, decoder);
         values.put(key, value);
       }
-      return Collections.unmodifiableMap(values);
+      return values.build();
     }
   }
 

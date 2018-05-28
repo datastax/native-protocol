@@ -20,9 +20,9 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.response.Error;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import java.net.InetAddress;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ReadFailure extends Error {
@@ -134,14 +134,19 @@ public class ReadFailure extends Error {
     }
 
     static <B> Map<InetAddress, Integer> readReasonMap(B source, PrimitiveCodec<B> decoder) {
-      int length = decoder.readInt(source);
-      Map<InetAddress, Integer> m = new HashMap<>(length);
-      for (int i = 0; i < length; i++) {
-        InetAddress key = decoder.readInetAddr(source);
-        int value = decoder.readUnsignedShort(source);
-        m.put(key, value);
+      int size = decoder.readInt(source);
+      if (size == 0) {
+        return Collections.emptyMap();
+      } else {
+        NullAllowingImmutableMap.Builder<InetAddress, Integer> builder =
+            NullAllowingImmutableMap.builder(size);
+        for (int i = 0; i < size; i++) {
+          InetAddress key = decoder.readInetAddr(source);
+          int value = decoder.readUnsignedShort(source);
+          builder.put(key, value);
+        }
+        return builder.build();
       }
-      return Collections.unmodifiableMap(m);
     }
   }
 }

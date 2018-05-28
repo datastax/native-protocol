@@ -25,11 +25,11 @@ import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 import org.junit.Test;
@@ -53,16 +53,19 @@ public class RowsTest extends MessageTestBase<Rows> {
   public void should_encode_and_decode(int protocolVersion) {
     RowsMetadata metadata =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
             null,
             null);
     Queue<List<ByteBuffer>> data = new ArrayDeque<>();
-    data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
-    data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
-    data.add(Arrays.asList(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
+    data.add(
+        NullAllowingImmutableList.of(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
+    data.add(
+        NullAllowingImmutableList.of(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
+    data.add(
+        NullAllowingImmutableList.of(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
     Rows initial = new DefaultRows(metadata, data);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
@@ -118,9 +121,12 @@ public class RowsTest extends MessageTestBase<Rows> {
   public void should_encode_and_decode_when_no_metadata(int protocolVersion) {
     RowsMetadata emptyMetadata = new RowsMetadata(2, null, null, null);
     Queue<List<ByteBuffer>> data = new ArrayDeque<>();
-    data.add(Arrays.asList(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
-    data.add(Arrays.asList(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
-    data.add(Arrays.asList(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
+    data.add(
+        NullAllowingImmutableList.of(Bytes.fromHexString("0x11"), Bytes.fromHexString("0x12")));
+    data.add(
+        NullAllowingImmutableList.of(Bytes.fromHexString("0x21"), Bytes.fromHexString("0x22")));
+    data.add(
+        NullAllowingImmutableList.of(Bytes.fromHexString("0x31"), Bytes.fromHexString("0x32")));
     Rows initial = new DefaultRows(emptyMetadata, data);
 
     MockBinaryString encoded = encode(initial, protocolVersion);

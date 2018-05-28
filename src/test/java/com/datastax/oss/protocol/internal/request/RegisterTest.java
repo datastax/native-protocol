@@ -23,9 +23,9 @@ import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +46,7 @@ public class RegisterTest extends MessageTestBase<Register> {
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
     List<String> eventTypes =
-        Arrays.asList(
+        NullAllowingImmutableList.of(
             ProtocolConstants.EventType.SCHEMA_CHANGE, ProtocolConstants.EventType.STATUS_CHANGE);
     Register initial = new Register(eventTypes);
 

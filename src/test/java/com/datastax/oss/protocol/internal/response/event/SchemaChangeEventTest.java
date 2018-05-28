@@ -24,9 +24,9 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Event;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -198,7 +198,7 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
             ProtocolConstants.SchemaChangeTarget.FUNCTION,
             "test",
             "myfunction",
-            Arrays.asList("int", "int"));
+            NullAllowingImmutableList.of("int", "int"));
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -242,7 +242,7 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
             ProtocolConstants.SchemaChangeTarget.AGGREGATE,
             "test",
             "myaggregate",
-            Arrays.asList("int", "int"));
+            NullAllowingImmutableList.of("int", "int"));
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -303,7 +303,7 @@ public class SchemaChangeEventTest extends MessageTestBase<SchemaChangeEvent> {
                     ProtocolConstants.SchemaChangeTarget.FUNCTION,
                     "ks",
                     "fn",
-                    Arrays.asList("int", "int"))
+                    NullAllowingImmutableList.of("int", "int"))
                 .toString())
         .isEqualTo("EVENT SCHEMA_CHANGE(CREATED FUNCTION ks.fn[int, int])");
 

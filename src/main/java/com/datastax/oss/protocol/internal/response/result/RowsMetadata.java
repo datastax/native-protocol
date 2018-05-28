@@ -19,8 +19,8 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.util.Flags;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -218,15 +218,16 @@ public class RowsMetadata {
         globalKsName = decoder.readString(source);
         globalCfName = decoder.readString(source);
       }
-      List<ColumnSpec> tmpSpecs = new ArrayList<>(columnCount);
+      NullAllowingImmutableList.Builder<ColumnSpec> builder =
+          NullAllowingImmutableList.builder(columnCount);
       for (int i = 0; i < columnCount; i++) {
         String ksName = globalTablesSpec ? globalKsName : decoder.readString(source);
         String cfName = globalTablesSpec ? globalCfName : decoder.readString(source);
         String name = decoder.readString(source);
         RawType type = RawType.decode(source, decoder, protocolVersion);
-        tmpSpecs.add(new ColumnSpec(ksName, cfName, name, i, type));
+        builder.add(new ColumnSpec(ksName, cfName, name, i, type));
       }
-      columnSpecs = Collections.unmodifiableList(tmpSpecs);
+      columnSpecs = builder.build();
     }
     return new RowsMetadata(flags, columnSpecs, columnCount, state, pkIndices, newResultMetadataId);
   }

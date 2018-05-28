@@ -24,9 +24,9 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,10 +50,11 @@ public class BatchTest extends MessageTestBase<Batch> {
     Batch initial =
         new Batch(
             ProtocolConstants.BatchType.LOGGED,
-            Arrays.asList("SELECT * FROM foo", queryId),
-            Arrays.asList(
+            NullAllowingImmutableList.of("SELECT * FROM foo", queryId),
+            NullAllowingImmutableList.of(
                 Collections.emptyList(),
-                Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
+                NullAllowingImmutableList.of(
+                    Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.SERIAL,
             Long.MIN_VALUE,
@@ -115,10 +116,11 @@ public class BatchTest extends MessageTestBase<Batch> {
     Batch initial =
         new Batch(
             ProtocolConstants.BatchType.LOGGED,
-            Arrays.asList("SELECT * FROM foo", queryId),
-            Arrays.asList(
+            NullAllowingImmutableList.of("SELECT * FROM foo", queryId),
+            NullAllowingImmutableList.of(
                 Collections.emptyList(),
-                Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
+                NullAllowingImmutableList.of(
+                    Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.SERIAL,
             Long.MIN_VALUE,
@@ -182,10 +184,11 @@ public class BatchTest extends MessageTestBase<Batch> {
     Batch initial =
         new Batch(
             ProtocolConstants.BatchType.LOGGED,
-            Arrays.asList("SELECT * FROM foo", queryId),
-            Arrays.asList(
+            NullAllowingImmutableList.of("SELECT * FROM foo", queryId),
+            NullAllowingImmutableList.of(
                 Collections.emptyList(),
-                Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
+                NullAllowingImmutableList.of(
+                    Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL, // non-default serial CL
             timestamp,
@@ -250,10 +253,11 @@ public class BatchTest extends MessageTestBase<Batch> {
     Batch initial =
         new Batch(
             ProtocolConstants.BatchType.LOGGED,
-            Arrays.asList("SELECT * FROM foo", queryId),
-            Arrays.asList(
+            NullAllowingImmutableList.of("SELECT * FROM foo", queryId),
+            NullAllowingImmutableList.of(
                 Collections.emptyList(),
-                Arrays.asList(Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
+                NullAllowingImmutableList.of(
+                    Bytes.fromHexString("0x0a"), Bytes.fromHexString("0x0b"))),
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.LOCAL_SERIAL, // non-default serial CL
             timestamp,

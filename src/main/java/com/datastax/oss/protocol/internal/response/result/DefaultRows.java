@@ -20,9 +20,9 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.response.Result;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
@@ -86,11 +86,12 @@ public class DefaultRows extends Rows {
 
       Queue<List<ByteBuffer>> data = new ArrayDeque<>(rowCount);
       for (int i = 0; i < rowCount; i++) {
-        List<ByteBuffer> row = new ArrayList<>(metadata.columnCount);
+        NullAllowingImmutableList.Builder<ByteBuffer> row =
+            NullAllowingImmutableList.builder(metadata.columnCount);
         for (int j = 0; j < metadata.columnCount; j++) {
           row.add(decoder.readBytes(source));
         }
-        data.add(row);
+        data.add(row.build());
       }
 
       return new DefaultRows(metadata, data);

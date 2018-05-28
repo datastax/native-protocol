@@ -27,9 +27,9 @@ import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Result;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +54,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
   public void should_encode_and_decode_with_empty_result_in_protocol_v3() {
     RowsMetadata variablesMetadata =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
@@ -115,7 +115,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null, null);
     RowsMetadata resultMetadata =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
@@ -174,7 +174,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
   public void should_encode_and_decode_with_empty_result_in_protocol_v4() {
     RowsMetadata variablesMetadata =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
@@ -240,7 +240,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null, null);
     RowsMetadata resultMetadata =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
@@ -303,7 +303,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
       int protocolVersion) {
     RowsMetadata variablesMetadata =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,
@@ -375,7 +375,7 @@ public class PreparedTest extends MessageTestBase<Prepared> {
     RowsMetadata variablesMetadata = new RowsMetadata(Collections.emptyList(), null, null, null);
     RowsMetadata resultMetadata =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, BLOB_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, BLOB_TYPE)),
             null,

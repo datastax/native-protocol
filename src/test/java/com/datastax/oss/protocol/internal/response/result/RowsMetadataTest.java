@@ -23,9 +23,9 @@ import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,7 +92,7 @@ public class RowsMetadataTest {
   public void should_encode_and_decode_column_specs(int protocolVersion) {
     RowsMetadata initial =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks2", "table2", "column2", 1, VARCHAR_TYPE)),
             null,
@@ -142,7 +142,7 @@ public class RowsMetadataTest {
   public void should_encode_and_decode_column_specs_with_global_table(int protocolVersion) {
     RowsMetadata initial =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
             null,
@@ -186,7 +186,7 @@ public class RowsMetadataTest {
   public void should_encode_and_decode_paging_state(int protocolVersion) {
     RowsMetadata initial =
         new RowsMetadata(
-            Arrays.asList(
+            NullAllowingImmutableList.of(
                 new ColumnSpec("ks1", "table1", "column1", 0, INT_TYPE),
                 new ColumnSpec("ks1", "table1", "column2", 1, VARCHAR_TYPE)),
             Bytes.fromHexString("0xcafebabe"),

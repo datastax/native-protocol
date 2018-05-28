@@ -15,12 +15,12 @@
  */
 package com.datastax.oss.protocol.internal;
 
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -71,45 +71,64 @@ public interface PrimitiveCodec<B> {
   }
 
   default List<String> readStringList(B source) {
-    int length = readUnsignedShort(source);
-    List<String> l = new ArrayList<>(length);
-    for (int i = 0; i < length; i++) {
-      l.add(readString(source));
+    int size = readUnsignedShort(source);
+    if (size == 0) {
+      return Collections.emptyList();
+    } else {
+      NullAllowingImmutableList.Builder<String> builder = NullAllowingImmutableList.builder(size);
+      for (int i = 0; i < size; i++) {
+        builder.add(readString(source));
+      }
+      return builder.build();
     }
-    return Collections.unmodifiableList(l);
   }
 
   default Map<String, String> readStringMap(B source) {
-    int length = readUnsignedShort(source);
-    Map<String, String> m = new HashMap<>(length);
-    for (int i = 0; i < length; i++) {
-      String k = readString(source);
-      String v = readString(source);
-      m.put(k, v);
+    int size = readUnsignedShort(source);
+    if (size == 0) {
+      return Collections.emptyMap();
+    } else {
+      NullAllowingImmutableMap.Builder<String, String> builder =
+          NullAllowingImmutableMap.builder(size);
+      for (int i = 0; i < size; i++) {
+        String k = readString(source);
+        String v = readString(source);
+        builder.put(k, v);
+      }
+      return builder.build();
     }
-    return Collections.unmodifiableMap(m);
   }
 
   default Map<String, List<String>> readStringMultimap(B source) {
-    Map<String, List<String>> m = new HashMap<>();
-    int length = readUnsignedShort(source);
-    for (int i = 0; i < length; i++) {
-      String key = readString(source);
-      List<String> value = readStringList(source);
-      m.put(key, value);
+    int size = readUnsignedShort(source);
+    if (size == 0) {
+      return Collections.emptyMap();
+    } else {
+      NullAllowingImmutableMap.Builder<String, List<String>> builder =
+          NullAllowingImmutableMap.builder(size);
+      for (int i = 0; i < size; i++) {
+        String key = readString(source);
+        List<String> value = readStringList(source);
+        builder.put(key, value);
+      }
+      return builder.build();
     }
-    return Collections.unmodifiableMap(m);
   }
 
   default Map<String, ByteBuffer> readBytesMap(B source) {
-    int length = readUnsignedShort(source);
-    Map<String, ByteBuffer> m = new HashMap<>(length * 2);
-    for (int i = 0; i < length; i++) {
-      String key = readString(source);
-      ByteBuffer value = readBytes(source);
-      m.put(key, value);
+    int size = readUnsignedShort(source);
+    if (size == 0) {
+      return Collections.emptyMap();
+    } else {
+      NullAllowingImmutableMap.Builder<String, ByteBuffer> builder =
+          NullAllowingImmutableMap.builder(size);
+      for (int i = 0; i < size; i++) {
+        String key = readString(source);
+        ByteBuffer value = readBytes(source);
+        builder.put(key, value);
+      }
+      return builder.build();
     }
-    return Collections.unmodifiableMap(m);
   }
 
   default InetSocketAddress readInet(B source) {

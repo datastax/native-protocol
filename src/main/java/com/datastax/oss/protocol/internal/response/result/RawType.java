@@ -18,10 +18,8 @@ package com.datastax.oss.protocol.internal.response.result;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,21 +48,23 @@ public abstract class RawType {
       case ProtocolConstants.DataType.UDT:
         String keyspace = decoder.readString(source);
         String typeName = decoder.readString(source);
-        int nFields = decoder.readUnsignedShort(source);
-        Map<String, RawType> fields = new LinkedHashMap<>(nFields * 2);
-        for (int i = 0; i < nFields; i++) {
+        int fieldCount = decoder.readUnsignedShort(source);
+        NullAllowingImmutableMap.Builder<String, RawType> fields =
+            NullAllowingImmutableMap.builder(fieldCount);
+        for (int i = 0; i < fieldCount; i++) {
           String fieldName = decoder.readString(source);
           RawType fieldType = decode(source, decoder, protocolVersion);
           fields.put(fieldName, fieldType);
         }
-        return new RawUdt(keyspace, typeName, Collections.unmodifiableMap(fields));
+        return new RawUdt(keyspace, typeName, fields.build());
       case ProtocolConstants.DataType.TUPLE:
-        nFields = decoder.readUnsignedShort(source);
-        List<RawType> fieldTypes = new ArrayList<>(nFields);
-        for (int i = 0; i < nFields; i++) {
+        fieldCount = decoder.readUnsignedShort(source);
+        NullAllowingImmutableList.Builder<RawType> fieldTypes =
+            NullAllowingImmutableList.builder(fieldCount);
+        for (int i = 0; i < fieldCount; i++) {
           fieldTypes.add(decode(source, decoder, protocolVersion));
         }
-        return new RawTuple(Collections.unmodifiableList(fieldTypes));
+        return new RawTuple(fieldTypes.build());
       default:
         RawType type = PRIMITIVES.get(id);
         if (type == null) {
@@ -424,32 +424,33 @@ public abstract class RawType {
   public static final Map<Integer, RawType> PRIMITIVES;
 
   static {
-    Map<Integer, RawType> tmp = new HashMap<>();
-    for (int id :
-        new int[] {
-          ProtocolConstants.DataType.ASCII,
-          ProtocolConstants.DataType.BIGINT,
-          ProtocolConstants.DataType.BLOB,
-          ProtocolConstants.DataType.BOOLEAN,
-          ProtocolConstants.DataType.COUNTER,
-          ProtocolConstants.DataType.DECIMAL,
-          ProtocolConstants.DataType.DOUBLE,
-          ProtocolConstants.DataType.FLOAT,
-          ProtocolConstants.DataType.INET,
-          ProtocolConstants.DataType.INT,
-          ProtocolConstants.DataType.TIMESTAMP,
-          ProtocolConstants.DataType.UUID,
-          ProtocolConstants.DataType.VARCHAR,
-          ProtocolConstants.DataType.VARINT,
-          ProtocolConstants.DataType.TIMEUUID,
-          ProtocolConstants.DataType.SMALLINT,
-          ProtocolConstants.DataType.TINYINT,
-          ProtocolConstants.DataType.DURATION,
-          ProtocolConstants.DataType.DATE,
-          ProtocolConstants.DataType.TIME
-        }) {
-      tmp.put(id, new RawPrimitive(id));
+    int[] primitiveIds = {
+      ProtocolConstants.DataType.ASCII,
+      ProtocolConstants.DataType.BIGINT,
+      ProtocolConstants.DataType.BLOB,
+      ProtocolConstants.DataType.BOOLEAN,
+      ProtocolConstants.DataType.COUNTER,
+      ProtocolConstants.DataType.DECIMAL,
+      ProtocolConstants.DataType.DOUBLE,
+      ProtocolConstants.DataType.FLOAT,
+      ProtocolConstants.DataType.INET,
+      ProtocolConstants.DataType.INT,
+      ProtocolConstants.DataType.TIMESTAMP,
+      ProtocolConstants.DataType.UUID,
+      ProtocolConstants.DataType.VARCHAR,
+      ProtocolConstants.DataType.VARINT,
+      ProtocolConstants.DataType.TIMEUUID,
+      ProtocolConstants.DataType.SMALLINT,
+      ProtocolConstants.DataType.TINYINT,
+      ProtocolConstants.DataType.DURATION,
+      ProtocolConstants.DataType.DATE,
+      ProtocolConstants.DataType.TIME
+    };
+    NullAllowingImmutableMap.Builder<Integer, RawType> builder =
+        NullAllowingImmutableMap.builder(primitiveIds.length);
+    for (int id : primitiveIds) {
+      builder.put(id, new RawPrimitive(id));
     }
-    PRIMITIVES = Collections.unmodifiableMap(tmp);
+    PRIMITIVES = builder.build();
   }
 }

@@ -24,9 +24,9 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.Result;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -194,7 +194,7 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
             ProtocolConstants.SchemaChangeTarget.FUNCTION,
             "test",
             "myfunction",
-            Arrays.asList("int", "int"));
+            NullAllowingImmutableList.of("int", "int"));
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -237,7 +237,7 @@ public class SchemaChangeTest extends MessageTestBase<SchemaChange> {
             ProtocolConstants.SchemaChangeTarget.AGGREGATE,
             "test",
             "myaggregate",
-            Arrays.asList("int", "int"));
+            NullAllowingImmutableList.of("int", "int"));
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 

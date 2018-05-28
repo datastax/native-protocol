@@ -19,7 +19,7 @@ import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
-import java.util.HashMap;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import java.util.Map;
 
 public class Startup extends Message {
@@ -32,11 +32,11 @@ public class Startup extends Message {
 
   public Startup(String compressionAlgorithm) {
     super(false, ProtocolConstants.Opcode.STARTUP);
-    this.options = new HashMap<>();
-    this.options.put(CQL_VERSION_KEY, CQL_VERSION);
-    if (compressionAlgorithm != null && !compressionAlgorithm.isEmpty()) {
-      this.options.put(COMPRESSION_KEY, compressionAlgorithm);
-    }
+    this.options =
+        (compressionAlgorithm == null || compressionAlgorithm.isEmpty())
+            ? NullAllowingImmutableMap.of(CQL_VERSION_KEY, CQL_VERSION)
+            : NullAllowingImmutableMap.of(
+                CQL_VERSION_KEY, CQL_VERSION, COMPRESSION_KEY, compressionAlgorithm);
   }
 
   public Startup() {

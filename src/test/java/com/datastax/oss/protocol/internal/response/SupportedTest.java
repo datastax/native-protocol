@@ -22,9 +22,9 @@ import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,7 +62,7 @@ public class SupportedTest extends MessageTestBase<Supported> {
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_with_options(int protocolVersion) {
     Map<String, List<String>> options = new LinkedHashMap<>();
-    options.put("option1", Arrays.asList("value11", "value12"));
+    options.put("option1", NullAllowingImmutableList.of("value11", "value12"));
     options.put("option2", Collections.singletonList("value21"));
     Supported initial = new Supported(options);
 

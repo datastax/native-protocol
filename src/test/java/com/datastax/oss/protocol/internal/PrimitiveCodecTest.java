@@ -20,11 +20,9 @@ import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockPrimitiveCodec;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -118,9 +116,7 @@ public class PrimitiveCodecTest {
 
   @Test
   public void should_write_string_list() {
-    List<String> l = new ArrayList<>();
-    l.add("foo");
-    l.add("bar");
+    List<String> l = NullAllowingImmutableList.of("foo", "bar");
 
     MockBinaryString dest = new MockBinaryString();
     MockPrimitiveCodec.INSTANCE.writeStringList(l, dest);
@@ -130,9 +126,10 @@ public class PrimitiveCodecTest {
 
   @Test
   public void should_write_string_map() {
-    Map<String, String> m = new HashMap<>();
-    m.put("foo", "1");
-    m.put("bar", "2");
+    Map<String, String> m =
+        NullAllowingImmutableMap.of(
+            "foo", "1",
+            "bar", "2");
 
     MockBinaryString dest = new MockBinaryString();
     MockPrimitiveCodec.INSTANCE.writeStringMap(m, dest);
@@ -141,17 +138,20 @@ public class PrimitiveCodecTest {
         .isEqualTo(
             new MockBinaryString()
                 .unsignedShort(2)
-                .string("bar")
-                .string("2")
                 .string("foo")
-                .string("1"));
+                .string("1")
+                .string("bar")
+                .string("2"));
   }
 
   @Test
   public void should_write_string_multimap() {
-    Map<String, List<String>> m = new LinkedHashMap<>();
-    m.put("foo", Arrays.asList("1", "2", "3"));
-    m.put("bar", Arrays.asList("4", "5", "6"));
+    Map<String, List<String>> m =
+        NullAllowingImmutableMap.of(
+            "foo",
+            NullAllowingImmutableList.of("1", "2", "3"),
+            "bar",
+            NullAllowingImmutableList.of("4", "5", "6"));
 
     MockBinaryString dest = new MockBinaryString();
     MockPrimitiveCodec.INSTANCE.writeStringMultimap(m, dest);
@@ -174,8 +174,8 @@ public class PrimitiveCodecTest {
 
   @Test
   public void should_write_bytes_map() {
-    Map<String, ByteBuffer> m = new HashMap<>();
-    m.put("key", Bytes.fromHexString("0xcafebabe"));
+    Map<String, ByteBuffer> m =
+        NullAllowingImmutableMap.of("key", Bytes.fromHexString("0xcafebabe"));
 
     MockBinaryString dest = new MockBinaryString();
     MockPrimitiveCodec.INSTANCE.writeBytesMap(m, dest);

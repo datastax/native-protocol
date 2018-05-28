@@ -32,12 +32,12 @@ import com.datastax.oss.protocol.internal.response.error.Unprepared;
 import com.datastax.oss.protocol.internal.response.error.WriteFailure;
 import com.datastax.oss.protocol.internal.response.error.WriteTimeout;
 import com.datastax.oss.protocol.internal.util.Bytes;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -267,9 +267,8 @@ public class ErrorTest extends MessageTestBase<Error> {
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_read_failure(int protocolVersion)
       throws UnknownHostException {
-    Map<InetAddress, Integer> reasonMap = new HashMap<>();
     InetAddress addr = InetAddress.getLoopbackAddress();
-    reasonMap.put(addr, 42);
+    Map<InetAddress, Integer> reasonMap = NullAllowingImmutableMap.of(addr, 42);
     ReadFailure initial =
         new ReadFailure(
             MOCK_MESSAGE, ProtocolConstants.ConsistencyLevel.QUORUM, 2, 3, 1, reasonMap, false);
@@ -410,9 +409,8 @@ public class ErrorTest extends MessageTestBase<Error> {
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode_write_failure(int protocolVersion)
       throws UnknownHostException {
-    Map<InetAddress, Integer> reasonMap = new HashMap<>();
     InetAddress addr = InetAddress.getLoopbackAddress();
-    reasonMap.put(addr, 42);
+    Map<InetAddress, Integer> reasonMap = NullAllowingImmutableMap.of(addr, 42);
     WriteFailure initial =
         new WriteFailure(
             MOCK_MESSAGE,
@@ -468,7 +466,8 @@ public class ErrorTest extends MessageTestBase<Error> {
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode_function_failure(int protocolVersion) {
     FunctionFailure initial =
-        new FunctionFailure(MOCK_MESSAGE, "keyspace", "function", Arrays.asList("int", "varchar"));
+        new FunctionFailure(
+            MOCK_MESSAGE, "keyspace", "function", NullAllowingImmutableList.of("int", "varchar"));
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
