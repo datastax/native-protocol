@@ -21,7 +21,7 @@
   <groupId>com.datastax.oss</groupId>
   <artifactId>native-protocol</artifactId>
   <version>1.4.3-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
 
   <name>An implementation of the Apache Cassandra® native protocol</name>
   <description>
@@ -263,6 +263,18 @@ limitations under the License.]]>
           <useReleaseProfile>false</useReleaseProfile>
           <releaseProfiles>release</releaseProfiles>
           <goals>deploy</goals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>3.5.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>com.datastax.oss.protocol</Bundle-SymbolicName>
+            <Export-Package>*</Export-Package>
+          </instructions>
         </configuration>
       </plugin>
     </plugins>
