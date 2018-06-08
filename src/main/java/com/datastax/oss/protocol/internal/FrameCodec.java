@@ -243,6 +243,16 @@ public class FrameCodec<B> {
       }
     }
 
+    int frameSize;
+    int compressedFrameSize;
+    if (decompressed) {
+      frameSize = headerEncodedSize() + primitiveCodec.sizeOf(source);
+      compressedFrameSize = headerEncodedSize() + length; // what we measured before decompressing
+    } else {
+      frameSize = headerEncodedSize() + length;
+      compressedFrameSize = -1;
+    }
+
     boolean isTracing = Flags.contains(flags, ProtocolConstants.FrameFlag.TRACING);
     UUID tracingId = (isResponse && isTracing) ? primitiveCodec.readUuid(source) : null;
 
@@ -266,7 +276,16 @@ public class FrameCodec<B> {
     }
 
     return new Frame(
-        protocolVersion, beta, streamId, isTracing, tracingId, customPayload, warnings, response);
+        protocolVersion,
+        beta,
+        streamId,
+        isTracing,
+        tracingId,
+        frameSize,
+        compressedFrameSize,
+        customPayload,
+        warnings,
+        response);
   }
 
   private int readStreamId(B source) {

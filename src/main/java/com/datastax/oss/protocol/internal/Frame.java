@@ -36,6 +36,8 @@ public class Frame {
         streamId,
         tracing,
         null,
+        -1,
+        -1,
         customPayload,
         Collections.emptyList(),
         message);
@@ -49,7 +51,16 @@ public class Frame {
       List<String> warnings,
       Message message) {
     return new Frame(
-        protocolVersion, false, streamId, false, tracingId, customPayload, warnings, message);
+        protocolVersion,
+        false,
+        streamId,
+        false,
+        tracingId,
+        -1,
+        -1,
+        customPayload,
+        warnings,
+        message);
   }
 
   public final int protocolVersion;
@@ -71,6 +82,23 @@ public class Frame {
    */
   public final boolean tracing;
 
+  /**
+   * The binary size of the frame in bytes (including the header).
+   *
+   * <p>This is exposed for information purposes, and only for instances returned by the frame
+   * decoder. Otherwise, it is set to -1.
+   */
+  public final int size;
+
+  /**
+   * The binary size of the compressed frame (including the header).
+   *
+   * <p>This is exposed for information purposes, and only for instances returned by the frame
+   * decoder, <b>if compression is enabled and the frame was compressed when it was received</b>.
+   * Otherwise, it is set to -1.
+   */
+  public final int compressedSize;
+
   public final Map<String, ByteBuffer> customPayload;
   public final List<String> warnings;
   public final Message message;
@@ -86,6 +114,8 @@ public class Frame {
       int streamId,
       boolean tracing,
       UUID tracingId,
+      int size,
+      int compressedSize,
       Map<String, ByteBuffer> customPayload,
       List<String> warnings,
       Message message) {
@@ -96,8 +126,34 @@ public class Frame {
     this.streamId = streamId;
     this.tracingId = tracingId;
     this.tracing = tracing;
+    this.size = size;
+    this.compressedSize = compressedSize;
     this.customPayload = customPayload;
     this.warnings = warnings;
     this.message = message;
+  }
+
+  /** @deprecated maintain compatibility while Simulacron upgrades to the latest native-protocol. */
+  @Deprecated
+  public Frame(
+      int protocolVersion,
+      boolean beta,
+      int streamId,
+      boolean tracing,
+      UUID tracingId,
+      Map<String, ByteBuffer> customPayload,
+      List<String> warnings,
+      Message message) {
+    this(
+        protocolVersion,
+        beta,
+        streamId,
+        tracing,
+        tracingId,
+        -1,
+        -1,
+        customPayload,
+        warnings,
+        message);
   }
 }

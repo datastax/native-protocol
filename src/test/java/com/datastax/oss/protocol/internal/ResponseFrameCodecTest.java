@@ -107,6 +107,11 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
     assertThat(frame.streamId).isEqualTo(streamId);
     assertThat(frame.tracing).isEqualTo(tracing);
     assertThat(frame.tracingId).isEqualTo(tracing ? TRACING_ID : null);
+    // Always the same because our mock primitive codec always measures the same size, but in
+    // reality it would change when compressed:
+    assertThat(frame.size).isEqualTo(9 + MockPrimitiveCodec.MOCK_SIZE);
+    assertThat(frame.compressedSize)
+        .isEqualTo((compressor.algorithm() == null) ? -1 : 9 + MockPrimitiveCodec.MOCK_SIZE);
     assertThat(frame.customPayload).isEqualTo(customPayload);
     assertThat(frame.warnings).isEqualTo(warnings);
     assertThat(frame.message).isInstanceOf(Ready.class);

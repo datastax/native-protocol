@@ -26,7 +26,6 @@ public class MockCompressor implements Compressor<MockBinaryString> {
 
   @Override
   public String algorithm() {
-    // Implemented for consistency, but the tests don't call this method
     return "MOCK";
   }
 
@@ -45,6 +44,6 @@ public class MockCompressor implements Compressor<MockBinaryString> {
     assertThat(element.type).isEqualTo(MockBinaryString.Element.Type.STRING);
     assertThat(element.value).isEqualTo(END);
 
-    return compressed;
+    return compressed.copy();
   }
 }
