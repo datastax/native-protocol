@@ -158,6 +158,8 @@ public interface PrimitiveCodec<B> {
 
   void writeBytes(ByteBuffer bytes, B dest);
 
+  void writeBytes(byte[] bytes, B dest);
+
   void writeShortBytes(byte[] bytes, B dest);
 
   default void writeStringList(List<String> l, B dest) {

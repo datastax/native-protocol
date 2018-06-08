@@ -137,6 +137,11 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   }
 
   @Override
+  public void writeBytes(byte[] bytes, MockBinaryString dest) {
+    dest.bytes(Bytes.toHexString(bytes));
+  }
+
+  @Override
   public void writeShortBytes(byte[] bytes, MockBinaryString dest) {
     dest.shortBytes(Bytes.toHexString(bytes));
   }
