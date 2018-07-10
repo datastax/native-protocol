@@ -105,6 +105,7 @@
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
           <version>1.6.8</version>
+          <extensions>true</extensions>
         </plugin>
         <plugin>
           <artifactId>maven-gpg-plugin</artifactId>
@@ -235,17 +236,6 @@ limitations under the License.]]>
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>false</autoReleaseAfterClose>
-          <skipLocalStaging>true</skipLocalStaging>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <additionalparam>-Xdoclint:none</additionalparam>
@@ -299,6 +289,17 @@ limitations under the License.]]>
                 </goals>
               </execution>
             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>false</autoReleaseAfterClose>
+              <skipLocalStaging>true</skipLocalStaging>
+            </configuration>
           </plugin>
         </plugins>
       </build>
