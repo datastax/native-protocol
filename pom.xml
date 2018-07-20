@@ -273,7 +273,7 @@ limitations under the License.]]>
         <configuration>
           <instructions>
             <Bundle-SymbolicName>com.datastax.oss.protocol</Bundle-SymbolicName>
-            <Export-Package>*</Export-Package>
+            <Export-Package>com.datastax.oss.protocol.internal.*</Export-Package>
           </instructions>
         </configuration>
       </plugin>
