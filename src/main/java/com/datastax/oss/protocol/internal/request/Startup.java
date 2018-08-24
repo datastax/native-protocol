@@ -23,24 +23,38 @@ import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableM
 import java.util.Map;
 
 public class Startup extends Message {
-  private static final String CQL_VERSION_KEY = "CQL_VERSION";
-  private static final String COMPRESSION_KEY = "COMPRESSION";
+  public static final String CQL_VERSION_KEY = "CQL_VERSION";
+  public static final String COMPRESSION_KEY = "COMPRESSION";
 
   private static final String CQL_VERSION = "3.0.0";
 
   public final Map<String, String> options;
 
   public Startup(String compressionAlgorithm) {
-    super(false, ProtocolConstants.Opcode.STARTUP);
-    this.options =
+    this(
         (compressionAlgorithm == null || compressionAlgorithm.isEmpty())
             ? NullAllowingImmutableMap.of(CQL_VERSION_KEY, CQL_VERSION)
             : NullAllowingImmutableMap.of(
-                CQL_VERSION_KEY, CQL_VERSION, COMPRESSION_KEY, compressionAlgorithm);
+                CQL_VERSION_KEY, CQL_VERSION, COMPRESSION_KEY, compressionAlgorithm));
   }
 
   public Startup() {
-    this(null);
+    this((Map<String, String>) null);
+  }
+
+  public Startup(Map<String, String> options) {
+    super(false, ProtocolConstants.Opcode.STARTUP);
+    if (options != null) {
+      if (options.containsKey(CQL_VERSION_KEY)) {
+        this.options = NullAllowingImmutableMap.copyOf(options);
+      } else {
+        NullAllowingImmutableMap.Builder<String, String> builder =
+            NullAllowingImmutableMap.builder(options.size() + 1);
+        this.options = builder.put(CQL_VERSION_KEY, CQL_VERSION).putAll(options).build();
+      }
+    } else {
+      this.options = NullAllowingImmutableMap.of(CQL_VERSION_KEY, CQL_VERSION);
+    }
   }
 
   @Override
@@ -69,7 +83,7 @@ public class Startup extends Message {
     @Override
     public <B> Message decode(B source, PrimitiveCodec<B> decoder) {
       Map<String, String> map = decoder.readStringMap(source);
-      return new Startup(map.get(COMPRESSION_KEY));
+      return new Startup(map);
     }
   }
 }
