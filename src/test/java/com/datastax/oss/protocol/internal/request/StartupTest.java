@@ -22,6 +22,7 @@ import com.datastax.oss.protocol.internal.MessageTestBase;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
+import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableMap;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
@@ -89,5 +90,75 @@ public class StartupTest extends MessageTestBase<Startup> {
     Startup decoded = decode(encoded, protocolVersion);
 
     assertThat(decoded.options).hasSize(1).containsEntry("CQL_VERSION", "3.0.0");
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
+  public void should_encode_and_decode_with_custom_options(int protocolVersion) {
+    Startup initial = new Startup(NullAllowingImmutableMap.of("CUSTOM_OPT1", "VALUE1"));
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .unsignedShort(2) // size of string map
+                // string map entries
+                .string("CQL_VERSION")
+                .string("3.0.0")
+                .string("CUSTOM_OPT1")
+                .string("VALUE1"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "CQL_VERSION".length())
+                + (PrimitiveSizes.SHORT + "3.0.0".length())
+                + (PrimitiveSizes.SHORT + "CUSTOM_OPT1".length())
+                + (PrimitiveSizes.SHORT + "VALUE1".length()));
+
+    Startup decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options)
+        .hasSize(2)
+        .containsEntry("CQL_VERSION", "3.0.0")
+        .containsEntry("CUSTOM_OPT1", "VALUE1");
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
+  public void should_encode_and_decode_with_custom_options_and_compression(int protocolVersion) {
+    Startup initial =
+        new Startup(NullAllowingImmutableMap.of("CUSTOM_OPT1", "VALUE1", "COMPRESSION", "LZ4"));
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .unsignedShort(3) // size of string map
+                // string map entries
+                .string("CQL_VERSION")
+                .string("3.0.0")
+                .string("CUSTOM_OPT1")
+                .string("VALUE1")
+                .string("COMPRESSION")
+                .string("LZ4"));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.SHORT
+                + (PrimitiveSizes.SHORT + "CQL_VERSION".length())
+                + (PrimitiveSizes.SHORT + "3.0.0".length())
+                + (PrimitiveSizes.SHORT + "CUSTOM_OPT1".length())
+                + (PrimitiveSizes.SHORT + "VALUE1".length())
+                + (PrimitiveSizes.SHORT + "COMPRESSION".length())
+                + (PrimitiveSizes.SHORT + "Lz4".length()));
+
+    Startup decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options)
+        .hasSize(3)
+        .containsEntry("CQL_VERSION", "3.0.0")
+        .containsEntry("CUSTOM_OPT1", "VALUE1")
+        .containsEntry("COMPRESSION", "LZ4");
   }
 }
