@@ -42,7 +42,7 @@ public class Query extends Message {
 
   public static class Codec extends Message.Codec {
 
-    private final QueryOptions.Codec optionsCodec;
+    protected final QueryOptions.Codec optionsCodec;
 
     public Codec(int protocolVersion, QueryOptions.Codec optionsCodec) {
       super(ProtocolConstants.Opcode.QUERY, protocolVersion);
