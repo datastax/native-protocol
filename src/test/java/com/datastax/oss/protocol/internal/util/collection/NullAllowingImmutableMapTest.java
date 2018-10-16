@@ -93,4 +93,11 @@ public class NullAllowingImmutableMapTest {
         .containsEntry("bar", 2)
         .containsEntry("baz", 3);
   }
+
+  @Test
+  public void should_return_singleton_empty_instance() {
+    NullAllowingImmutableMap<String, Integer> m1 = NullAllowingImmutableMap.of();
+    NullAllowingImmutableMap<String, Integer> m2 = NullAllowingImmutableMap.of();
+    assertThat(m1).isSameAs(m2);
+  }
 }

@@ -30,8 +30,13 @@ import java.util.Set;
  */
 public class NullAllowingImmutableMap<K, V> extends AbstractMap<K, V> implements Serializable {
 
+  @SuppressWarnings("rawtypes")
+  private static final NullAllowingImmutableMap EMPTY =
+      new NullAllowingImmutableMap<>(NullAllowingImmutableSet.of());
+
+  @SuppressWarnings("unchecked")
   public static <K, V> NullAllowingImmutableMap<K, V> of() {
-    return new NullAllowingImmutableMap<>(NullAllowingImmutableSet.of());
+    return ((NullAllowingImmutableMap<K, V>) EMPTY);
   }
 
   public static <K, V> NullAllowingImmutableMap<K, V> of(K key1, V value1) {

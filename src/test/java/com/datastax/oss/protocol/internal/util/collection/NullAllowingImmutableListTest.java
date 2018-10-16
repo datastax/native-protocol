@@ -59,4 +59,11 @@ public class NullAllowingImmutableListTest {
     NullAllowingImmutableList<Integer> out = SerializationHelper.serializeAndDeserialize(in);
     assertThat(out).hasSize(3).containsExactly(1, null, 3);
   }
+
+  @Test
+  public void should_return_singleton_empty_instance() {
+    NullAllowingImmutableList<Integer> l1 = NullAllowingImmutableList.of();
+    NullAllowingImmutableList<Integer> l2 = NullAllowingImmutableList.of();
+    assertThat(l1).isSameAs(l2);
+  }
 }

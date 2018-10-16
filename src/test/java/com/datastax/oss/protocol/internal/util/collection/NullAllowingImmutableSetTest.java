@@ -88,4 +88,11 @@ public class NullAllowingImmutableSetTest {
     NullAllowingImmutableSet<Integer> out = SerializationHelper.serializeAndDeserialize(in);
     assertThat(out).hasSize(3).containsExactly(1, null, 3);
   }
+
+  @Test
+  public void should_return_singleton_empty_instance() {
+    NullAllowingImmutableSet<Integer> s1 = NullAllowingImmutableSet.of();
+    NullAllowingImmutableSet<Integer> s2 = NullAllowingImmutableSet.of();
+    assertThat(s1).isSameAs(s2);
+  }
 }
