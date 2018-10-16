@@ -33,13 +33,18 @@ import java.util.Set;
  */
 public class NullAllowingImmutableSet<E> extends AbstractSet<E> implements Serializable {
 
+  @SuppressWarnings("rawtypes")
+  private static final NullAllowingImmutableSet EMPTY =
+      new NullAllowingImmutableSet<>(new Object[] {});
+
   @SafeVarargs
   public static <E> NullAllowingImmutableSet<E> of(E... elements) {
     return new NullAllowingImmutableSet<>(deduplicate(elements));
   }
 
+  @SuppressWarnings("unchecked")
   public static <E> NullAllowingImmutableSet<E> of() {
-    return new NullAllowingImmutableSet<>(new Object[] {});
+    return ((NullAllowingImmutableSet<E>) EMPTY);
   }
 
   public static <E> NullAllowingImmutableSet<E> of(E element) {

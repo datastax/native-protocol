@@ -24,13 +24,18 @@ import java.util.Collection;
 /** An immutable list that allows null elements. */
 public class NullAllowingImmutableList<E> extends AbstractList<E> implements Serializable {
 
+  @SuppressWarnings("rawtypes")
+  private static final NullAllowingImmutableList EMPTY =
+      new NullAllowingImmutableList<>(new Object[] {});
+
   @SafeVarargs
   public static <E> NullAllowingImmutableList<E> of(E... elements) {
     return new NullAllowingImmutableList<>(Arrays.copyOf(elements, elements.length));
   }
 
+  @SuppressWarnings("unchecked")
   public static <E> NullAllowingImmutableList<E> of() {
-    return new NullAllowingImmutableList<>(new Object[] {});
+    return (NullAllowingImmutableList<E>) EMPTY;
   }
 
   public static <E> NullAllowingImmutableList<E> of(E element) {
