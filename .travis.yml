@@ -1,0 +1,15 @@
+language: java
+sudo: false
+# see https://sormuras.github.io/blog/2018-03-20-jdk-matrix.html
+matrix:
+  include:
+    # 8
+    - env: JDK='OpenJDK 8'
+      jdk: openjdk8
+    # 11
+    - env: JDK='OpenJDK 11'
+      install: . $TRAVIS_BUILD_DIR/ci/install-jdk.sh -F 11 -L GPL
+script: mvn test -B -Dmaven.main.skip=true  -Dmaven.test.skip=true
+cache:
+  directories:
+    - $HOME/.m2
