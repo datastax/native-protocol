@@ -59,6 +59,10 @@ public class PrimitiveSizes {
     return SHORT + bytes.length;
   }
 
+  public static int sizeOfShortBytes(ByteBuffer bytes) {
+    return SHORT + (bytes == null ? 0 : bytes.remaining());
+  }
+
   public static int sizeOfStringMap(Map<String, String> m) {
     int size = SHORT; // length
     for (Map.Entry<String, String> entry : m.entrySet()) {
