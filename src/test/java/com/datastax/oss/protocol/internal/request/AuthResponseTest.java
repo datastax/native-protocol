@@ -17,14 +17,12 @@ package com.datastax.oss.protocol.internal.request;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
-import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTestBase;
-import com.datastax.oss.protocol.internal.PrimitiveSizes;
-import com.datastax.oss.protocol.internal.TestDataProviders;
+import com.datastax.oss.protocol.internal.*;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import java.nio.ByteBuffer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -43,16 +41,33 @@ public class AuthResponseTest extends MessageTestBase<AuthResponse> {
   @Test
   @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
-    AuthResponse initial = new AuthResponse(Bytes.fromHexString("0xcafebabe"));
+    ByteBuffer token = Bytes.fromHexString("0xcafebabe");
+    byte[] tokenBytes = token.array();
+    AuthResponse initial = new AuthResponse(token);
 
+    int encodedSize = encodedSize(initial, protocolVersion);
     MockBinaryString encoded = encode(initial, protocolVersion);
 
     assertThat(encoded).isEqualTo(new MockBinaryString().bytes("0xcafebabe"));
-    assertThat(encodedSize(initial, protocolVersion))
-        .isEqualTo(PrimitiveSizes.INT + "cafebabe".length() / 2);
+    assertThat(encodedSize).isEqualTo(PrimitiveSizes.INT + "cafebabe".length() / 2);
+
+    // Check that the token was consumed, and the contents were cleared
+    assertThat(token.hasRemaining()).isFalse();
+    assertThat(tokenBytes).containsOnly(0);
 
     AuthResponse decoded = decode(encoded, protocolVersion);
 
     assertThat(Bytes.toHexString(decoded.token)).isEqualTo("0xcafebabe");
+  }
+
+  @Test
+  public void should_not_attempt_to_clear_token_if_read_only() {
+    ByteBuffer token = Bytes.fromHexString("0xcafebabe");
+    byte[] tokenBytes = token.array();
+
+    encode(new AuthResponse(token.asReadOnlyBuffer()), ProtocolConstants.Version.V4);
+
+    // Check that the contents are still intact
+    assertThat(tokenBytes).containsExactly(0xca, 0xfe, 0xba, 0xbe);
   }
 }
