@@ -159,4 +159,13 @@ public final class Bytes {
     bytes.duplicate().get(array);
     return array;
   }
+
+  /** Overwrites all the remaining bytes of the given buffer with zeroes. */
+  public static void erase(ByteBuffer bytes) {
+    if (!bytes.isReadOnly()) {
+      while (bytes.hasRemaining()) {
+        bytes.put((byte) 0);
+      }
+    }
+  }
 }

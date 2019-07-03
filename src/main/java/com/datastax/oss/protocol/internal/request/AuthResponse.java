@@ -19,8 +19,15 @@ import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
+import com.datastax.oss.protocol.internal.util.Bytes;
 import java.nio.ByteBuffer;
 
+/**
+ * Note that, if the token is writable, the built-in codec will <b>clear its contents</b>
+ * immediately after writing it (to avoid keeping sensitive information in memory). If you want to
+ * reuse the same buffer across multiple message instances, make it {@linkplain
+ * ByteBuffer#asReadOnlyBuffer() read-only}.
+ */
 public class AuthResponse extends Message {
   public final ByteBuffer token;
 
@@ -43,7 +50,11 @@ public class AuthResponse extends Message {
     @Override
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       AuthResponse authResponse = (AuthResponse) message;
-      encoder.writeBytes(authResponse.token, dest);
+      ByteBuffer token = authResponse.token;
+      token.mark();
+      encoder.writeBytes(token, dest);
+      token.reset();
+      Bytes.erase(token);
     }
 
     @Override
