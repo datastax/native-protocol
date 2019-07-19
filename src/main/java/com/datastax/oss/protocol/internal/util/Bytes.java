@@ -18,7 +18,14 @@ package com.datastax.oss.protocol.internal.util;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-/** Simple utility methods to make working with bytes (blob) easier. */
+/**
+ * Simple utility methods to make working with bytes (blob) easier.
+ *
+ * <p><b>Note that this is an internal class.</b> If you need those methods in a client application
+ * based on the Java driver, {@code com.datastax.oss.driver.api.core.data.ByteUtils} (in {@code
+ * java-driver-core}) is a better alternative: it is part of the public API, and therefore offers
+ * stronger guarantees in terms of backward compatibility.
+ */
 public final class Bytes {
 
   private Bytes() {}
