@@ -144,6 +144,14 @@
         </dependencies>
       </plugin>
       <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive><manifestEntries>
+            <Automatic-Module-Name>com.datastax.oss.protocol</Automatic-Module-Name>
+          </manifestEntries></archive>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <executions>
