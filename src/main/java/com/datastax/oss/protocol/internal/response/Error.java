@@ -57,11 +57,11 @@ public class Error extends Message {
   public static class Codec extends Message.Codec {
     private final IntMap<SubCodec> subCodecs;
 
-    public Codec(int protocolVersion, SubCodec... SubCodecs) {
+    public Codec(int protocolVersion, SubCodec... subCodecs) {
       super(ProtocolConstants.Opcode.ERROR, protocolVersion);
       IntMap.Builder<SubCodec> builder = IntMap.builder();
-      for (SubCodec SubCodec : SubCodecs) {
-        builder.put(SubCodec.errorCode, SubCodec);
+      for (SubCodec subCodec : subCodecs) {
+        builder.put(subCodec.errorCode, subCodec);
       }
       this.subCodecs = builder.build();
     }
