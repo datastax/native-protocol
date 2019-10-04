@@ -90,20 +90,37 @@ public class PrimitiveSizes {
     return size;
   }
 
-  private static int encodedUTF8Length(String st) {
-    int strlen = st.length();
-    int utflen = 0;
-    for (int i = 0; i < strlen; i++) {
-      int c = st.charAt(i);
-      if ((c >= 0x0001) && (c <= 0x007F)) {
-        utflen++;
-      } else if (c > 0x07FF) {
-        utflen += 3;
+  // Visible for testing
+  static int encodedUTF8Length(String st) {
+    int length = 0;
+    for (int i = 0; i < st.length(); i++) {
+      char c = st.charAt(i);
+      if (Character.isHighSurrogate(c)) {
+        if (i < st.length() - 1) {
+          char c1 = st.charAt(i + 1);
+          if (Character.isLowSurrogate(c1)) {
+            // correct surrogate pair: 4 bytes
+            length += 4;
+            i++;
+            continue;
+          }
+        }
+        // wrong high surrogate, not followed by a low surrogate
+        length += 1;
+      } else if (Character.isLowSurrogate(c)) {
+        // wrong low surrogate, not preceded by a high surrogate
+        length += 1;
       } else {
-        utflen += 2;
+        if (c <= 0x7f) {
+          length += 1;
+        } else if (c <= 0x7ff) {
+          length += 2;
+        } else {
+          length += 3;
+        }
       }
     }
-    return utflen;
+    return length;
   }
 
   public static int sizeOfInet(InetSocketAddress address) {
