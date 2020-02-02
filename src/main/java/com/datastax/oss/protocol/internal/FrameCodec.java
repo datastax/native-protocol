@@ -113,7 +113,9 @@ public class FrameCodec<B> {
         encoder != null, "Unsupported opcode %s in protocol v%d", opcode, protocolVersion);
 
     int flags = 0;
-    if (!(compressor instanceof NoopCompressor) && opcode != ProtocolConstants.Opcode.STARTUP) {
+    if (!(compressor instanceof NoopCompressor)
+        && opcode != ProtocolConstants.Opcode.STARTUP
+        && opcode != ProtocolConstants.Opcode.OPTIONS) {
       flags = Flags.add(flags, ProtocolConstants.FrameFlag.COMPRESSED);
     }
     if (frame.tracing || frame.tracingId != null) {
