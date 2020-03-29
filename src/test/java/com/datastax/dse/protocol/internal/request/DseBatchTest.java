@@ -59,7 +59,8 @@ public class DseBatchTest extends MessageTestBase<Batch> {
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.SERIAL,
             Long.MIN_VALUE,
-            null);
+            null,
+            Integer.MIN_VALUE);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -125,7 +126,8 @@ public class DseBatchTest extends MessageTestBase<Batch> {
             ProtocolConstants.ConsistencyLevel.ONE,
             ProtocolConstants.ConsistencyLevel.SERIAL,
             Long.MIN_VALUE,
-            "ks");
+            "ks",
+            Integer.MIN_VALUE);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 

@@ -35,6 +35,7 @@ public abstract class QueryOptionsBuilderBase<
   protected int serialConsistency = ProtocolConstants.ConsistencyLevel.SERIAL;
   protected long defaultTimestamp = Long.MIN_VALUE;
   protected String keyspace = null;
+  protected int nowInSeconds = Integer.MIN_VALUE;
 
   @SuppressWarnings("unchecked")
   private SelfT self() {
@@ -73,6 +74,11 @@ public abstract class QueryOptionsBuilderBase<
 
   public SelfT withKeyspace(String keyspace) {
     this.keyspace = keyspace;
+    return self();
+  }
+
+  public SelfT withNowInSeconds(int nowInSeconds) {
+    this.nowInSeconds = nowInSeconds;
     return self();
   }
 

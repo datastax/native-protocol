@@ -17,13 +17,10 @@ package com.datastax.oss.protocol.internal.request;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
-import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTestBase;
-import com.datastax.oss.protocol.internal.PrimitiveSizes;
-import com.datastax.oss.protocol.internal.ProtocolConstants;
-import com.datastax.oss.protocol.internal.TestDataProviders;
+import com.datastax.oss.protocol.internal.*;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
+import com.datastax.oss.protocol.internal.request.query.QueryOptionsBuilder;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -112,5 +109,35 @@ public class ExecuteTest extends MessageTestBase<Execute> {
     assertThat(decoded.options.serialConsistency)
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_with_now_in_seconds(int protocolVersion) {
+    int nowInSeconds = 123456789;
+    QueryOptions options = new QueryOptionsBuilder().withNowInSeconds(nowInSeconds).build();
+    Execute initial = new Execute(queryId, resultMetadataId, options);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .shortBytes("0xcafebabe")
+                .shortBytes("0xdeadbeef")
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
+                .int_(0x100) // NOW_IN_SECONDS
+                .int_(nowInSeconds));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.SHORT + queryId.length)
+                + (PrimitiveSizes.SHORT + resultMetadataId.length)
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT);
+
+    Execute decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options.nowInSeconds).isEqualTo(nowInSeconds);
   }
 }

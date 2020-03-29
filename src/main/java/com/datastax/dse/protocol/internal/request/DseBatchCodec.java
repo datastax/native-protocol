@@ -17,11 +17,7 @@ package com.datastax.dse.protocol.internal.request;
 
 import static com.datastax.dse.protocol.internal.DseProtocolConstants.Version.DSE_V1;
 
-import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.PrimitiveCodec;
-import com.datastax.oss.protocol.internal.PrimitiveSizes;
-import com.datastax.oss.protocol.internal.ProtocolConstants;
-import com.datastax.oss.protocol.internal.ProtocolErrors;
+import com.datastax.oss.protocol.internal.*;
 import com.datastax.oss.protocol.internal.request.Batch;
 import com.datastax.oss.protocol.internal.request.query.Values;
 import com.datastax.oss.protocol.internal.util.Flags;
@@ -142,6 +138,7 @@ public class DseBatchCodec extends Message.Codec {
         consistency,
         serialConsistency,
         defaultTimestamp,
-        keyspace);
+        keyspace,
+        Integer.MIN_VALUE);
   }
 }
