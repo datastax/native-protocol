@@ -194,6 +194,7 @@ public class ProtocolConstants {
     public static final int DEFAULT_TIMESTAMP = 0x00000020;
     public static final int VALUE_NAMES = 0x00000040;
     public static final int WITH_KEYSPACE = 0x00000080;
+    public static final int NOW_IN_SECONDS = 0x00000100;
   }
 
   public static final class RowsFlag {
