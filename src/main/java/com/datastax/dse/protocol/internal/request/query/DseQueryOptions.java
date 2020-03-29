@@ -89,7 +89,8 @@ public class DseQueryOptions extends QueryOptions {
             pagingState,
             serialConsistency,
             defaultTimestamp,
-            keyspace);
+            keyspace,
+            Integer.MIN_VALUE);
     if (isPageSizeInBytes) {
       flags = Flags.add(flags, DseProtocolConstants.QueryFlag.PAGE_SIZE_BYTES);
     }
@@ -122,7 +123,8 @@ public class DseQueryOptions extends QueryOptions {
         pagingState,
         serialConsistency,
         defaultTimestamp,
-        keyspace);
+        keyspace,
+        Integer.MIN_VALUE);
     this.isPageSizeInBytes = isPageSizeInBytes;
     this.continuousPagingOptions = continuousPagingOptions;
   }

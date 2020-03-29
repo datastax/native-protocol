@@ -39,7 +39,8 @@ public class QueryOptions {
           null,
           ProtocolConstants.ConsistencyLevel.SERIAL,
           Long.MIN_VALUE,
-          null);
+          null,
+          Integer.MIN_VALUE);
 
   public final int flags;
   /** @see ProtocolConstants.ConsistencyLevel */
@@ -55,11 +56,12 @@ public class QueryOptions {
 
   public final long defaultTimestamp;
   public final String keyspace;
+  public final int nowInSeconds;
 
   /**
    * This constructor should only be used in message codecs. To build an outgoing message from
    * client code, use {@link #QueryOptions(int, List, Map, boolean, int, ByteBuffer, int, long,
-   * String)} so that the flags are computed automatically.
+   * String, int)} so that the flags are computed automatically.
    */
   public QueryOptions(
       int flags,
@@ -71,7 +73,8 @@ public class QueryOptions {
       ByteBuffer pagingState,
       int serialConsistency,
       long defaultTimestamp,
-      String keyspace) {
+      String keyspace,
+      int nowInSeconds) {
 
     ProtocolErrors.check(
         positionalValues.isEmpty() || namedValues.isEmpty(),
@@ -87,6 +90,7 @@ public class QueryOptions {
     this.serialConsistency = serialConsistency;
     this.defaultTimestamp = defaultTimestamp;
     this.keyspace = keyspace;
+    this.nowInSeconds = nowInSeconds;
   }
 
   public QueryOptions(
@@ -98,7 +102,8 @@ public class QueryOptions {
       ByteBuffer pagingState,
       int serialConsistency,
       long defaultTimestamp,
-      String keyspace) {
+      String keyspace,
+      int nowInSeconds) {
     this(
         computeFlags(
             positionalValues,
@@ -108,7 +113,8 @@ public class QueryOptions {
             pagingState,
             serialConsistency,
             defaultTimestamp,
-            keyspace),
+            keyspace,
+            nowInSeconds),
         consistency,
         positionalValues,
         namedValues,
@@ -117,7 +123,8 @@ public class QueryOptions {
         pagingState,
         serialConsistency,
         defaultTimestamp,
-        keyspace);
+        keyspace,
+        nowInSeconds);
   }
 
   protected static int computeFlags(
@@ -128,7 +135,8 @@ public class QueryOptions {
       ByteBuffer pagingState,
       int serialConsistency,
       long defaultTimestamp,
-      String keyspace) {
+      String keyspace,
+      int nowInSeconds) {
     int flags = 0;
     if (!positionalValues.isEmpty()) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.VALUES);
@@ -154,6 +162,9 @@ public class QueryOptions {
     }
     if (keyspace != null) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE);
+    }
+    if (nowInSeconds != Integer.MIN_VALUE) {
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS);
     }
     return flags;
   }
@@ -208,6 +219,9 @@ public class QueryOptions {
       if (Flags.contains(options.flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)) {
         encoder.writeString(options.keyspace, dest);
       }
+      if (Flags.contains(options.flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)) {
+        encoder.writeInt(options.nowInSeconds, dest);
+      }
     }
 
     public int encodedSize(QueryOptions options) {
@@ -235,6 +249,9 @@ public class QueryOptions {
       }
       if (Flags.contains(options.flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)) {
         size += PrimitiveSizes.sizeOfString(options.keyspace);
+      }
+      if (Flags.contains(options.flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)) {
+        size += PrimitiveSizes.INT;
       }
       return size;
     }
@@ -276,6 +293,10 @@ public class QueryOptions {
           Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)
               ? decoder.readString(source)
               : null;
+      int nowInSeconds =
+          Flags.contains(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)
+              ? decoder.readInt(source)
+              : Integer.MIN_VALUE;
 
       return new QueryOptions(
           flags,
@@ -287,7 +308,8 @@ public class QueryOptions {
           pagingState,
           serialConsistency,
           defaultTimestamp,
-          keyspace);
+          keyspace,
+          nowInSeconds);
     }
   }
 

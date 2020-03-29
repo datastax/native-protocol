@@ -17,11 +17,7 @@ package com.datastax.oss.protocol.internal.request;
 
 import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
-import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.PrimitiveCodec;
-import com.datastax.oss.protocol.internal.PrimitiveSizes;
-import com.datastax.oss.protocol.internal.ProtocolConstants;
-import com.datastax.oss.protocol.internal.ProtocolErrors;
+import com.datastax.oss.protocol.internal.*;
 import com.datastax.oss.protocol.internal.request.query.Values;
 import com.datastax.oss.protocol.internal.util.Flags;
 import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
@@ -41,13 +37,14 @@ public class Batch extends Message {
   public final int serialConsistency;
   public final long defaultTimestamp;
   public final String keyspace;
+  public final int nowInSeconds;
 
   public final int flags;
 
   /**
    * This constructor should only be used in message codecs. To build an outgoing message from
-   * client code, use {@link #Batch(byte, List, List, int, int, long, String)} so that the flags are
-   * computed automatically.
+   * client code, use {@link #Batch(byte, List, List, int, int, long, String, int)} so that the
+   * flags are computed automatically.
    */
   public Batch(
       int flags,
@@ -57,7 +54,8 @@ public class Batch extends Message {
       int consistency,
       int serialConsistency,
       long defaultTimestamp,
-      String keyspace) {
+      String keyspace,
+      int nowInSeconds) {
     super(false, ProtocolConstants.Opcode.BATCH);
     this.type = type;
     this.queriesOrIds = queriesOrIds;
@@ -66,6 +64,7 @@ public class Batch extends Message {
     this.serialConsistency = serialConsistency;
     this.defaultTimestamp = defaultTimestamp;
     this.keyspace = keyspace;
+    this.nowInSeconds = nowInSeconds;
     this.flags = flags;
   }
 
@@ -76,16 +75,18 @@ public class Batch extends Message {
       int consistency,
       int serialConsistency,
       long defaultTimestamp,
-      String keyspace) {
+      String keyspace,
+      int nowInSeconds) {
     this(
-        computeFlags(serialConsistency, defaultTimestamp, keyspace),
+        computeFlags(serialConsistency, defaultTimestamp, keyspace, nowInSeconds),
         type,
         queriesOrIds,
         values,
         consistency,
         serialConsistency,
         defaultTimestamp,
-        keyspace);
+        keyspace,
+        nowInSeconds);
   }
 
   @Override
@@ -93,7 +94,8 @@ public class Batch extends Message {
     return "BATCH(" + queriesOrIds.size() + " statements)";
   }
 
-  protected static int computeFlags(int serialConsistency, long defaultTimestamp, String keyspace) {
+  protected static int computeFlags(
+      int serialConsistency, long defaultTimestamp, String keyspace, int nowInSeconds) {
     int flags = 0;
     if (serialConsistency != ProtocolConstants.ConsistencyLevel.SERIAL) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.SERIAL_CONSISTENCY);
@@ -103,6 +105,9 @@ public class Batch extends Message {
     }
     if (keyspace != null) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE);
+    }
+    if (nowInSeconds != Integer.MIN_VALUE) {
+      flags = Flags.add(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS);
     }
     return flags;
   }
@@ -146,6 +151,9 @@ public class Batch extends Message {
       if (Flags.contains(batch.flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)) {
         encoder.writeString(batch.keyspace, dest);
       }
+      if (Flags.contains(batch.flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)) {
+        encoder.writeInt(batch.nowInSeconds, dest);
+      }
     }
 
     @Override
@@ -184,6 +192,9 @@ public class Batch extends Message {
       if (Flags.contains(batch.flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)) {
         size += PrimitiveSizes.sizeOfString(batch.keyspace);
       }
+      if (Flags.contains(batch.flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)) {
+        size += PrimitiveSizes.INT;
+      }
       return size;
     }
 
@@ -218,6 +229,10 @@ public class Batch extends Message {
           (Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE))
               ? decoder.readString(source)
               : null;
+      int nowInSeconds =
+          Flags.contains(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)
+              ? decoder.readInt(source)
+              : Integer.MIN_VALUE;
 
       return new Batch(
           flags,
@@ -227,7 +242,8 @@ public class Batch extends Message {
           consistency,
           serialConsistency,
           defaultTimestamp,
-          keyspace);
+          keyspace,
+          nowInSeconds);
     }
   }
 }

@@ -29,6 +29,7 @@ public class QueryOptionsBuilder
         pagingState,
         serialConsistency,
         defaultTimestamp,
-        keyspace);
+        keyspace,
+        nowInSeconds);
   }
 }

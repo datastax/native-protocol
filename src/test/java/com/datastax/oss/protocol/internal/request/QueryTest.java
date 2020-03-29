@@ -17,11 +17,7 @@ package com.datastax.oss.protocol.internal.request;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
 
-import com.datastax.oss.protocol.internal.Message;
-import com.datastax.oss.protocol.internal.MessageTestBase;
-import com.datastax.oss.protocol.internal.PrimitiveSizes;
-import com.datastax.oss.protocol.internal.ProtocolConstants;
-import com.datastax.oss.protocol.internal.TestDataProviders;
+import com.datastax.oss.protocol.internal.*;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.request.query.QueryOptions;
 import com.datastax.oss.protocol.internal.request.query.QueryOptionsBuilder;
@@ -509,5 +505,33 @@ public class QueryTest extends MessageTestBase<Query> {
         .isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
     assertThat(decoded.options.defaultTimestamp).isEqualTo(Long.MIN_VALUE);
     assertThat(decoded.options.keyspace).isEqualTo(initial.options.keyspace);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_with_now_in_seconds(int protocolVersion) {
+    int nowInSeconds = 123456789;
+    QueryOptions options = new QueryOptionsBuilder().withNowInSeconds(nowInSeconds).build();
+    Query initial = new Query(queryString, options);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .longString("select * from system.local")
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.ONE)
+                .int_(0x100) // NOW_IN_SECONDS
+                .int_(nowInSeconds));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            (PrimitiveSizes.INT + queryString.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT);
+
+    Query decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.options.nowInSeconds).isEqualTo(nowInSeconds);
   }
 }
