@@ -33,9 +33,9 @@ public abstract class QueryOptionsBuilderBase<
   protected int pageSize = -1;
   protected ByteBuffer pagingState = null;
   protected int serialConsistency = ProtocolConstants.ConsistencyLevel.SERIAL;
-  protected long defaultTimestamp = Long.MIN_VALUE;
+  protected long defaultTimestamp = QueryOptions.NO_DEFAULT_TIMESTAMP;
   protected String keyspace = null;
-  protected int nowInSeconds = Integer.MIN_VALUE;
+  protected int nowInSeconds = QueryOptions.NO_NOW_IN_SECONDS;
 
   @SuppressWarnings("unchecked")
   private SelfT self() {
