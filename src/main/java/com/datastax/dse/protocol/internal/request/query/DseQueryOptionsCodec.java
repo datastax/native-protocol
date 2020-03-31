@@ -148,7 +148,7 @@ public class DseQueryOptionsCodec extends QueryOptions.Codec {
     long defaultTimestamp =
         Flags.contains(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP)
             ? decoder.readLong(source)
-            : Long.MIN_VALUE;
+            : QueryOptions.NO_DEFAULT_TIMESTAMP;
     String keyspace =
         Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)
             ? decoder.readString(source)

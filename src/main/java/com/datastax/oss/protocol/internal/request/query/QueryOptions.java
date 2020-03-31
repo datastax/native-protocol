@@ -29,6 +29,9 @@ import java.util.Map;
 
 public class QueryOptions {
 
+  public static final long NO_DEFAULT_TIMESTAMP = Long.MIN_VALUE;
+  public static final int NO_NOW_IN_SECONDS = Integer.MIN_VALUE;
+
   public static final QueryOptions DEFAULT =
       new QueryOptions(
           ProtocolConstants.ConsistencyLevel.ONE,
@@ -38,9 +41,9 @@ public class QueryOptions {
           -1,
           null,
           ProtocolConstants.ConsistencyLevel.SERIAL,
-          Long.MIN_VALUE,
+          NO_DEFAULT_TIMESTAMP,
           null,
-          Integer.MIN_VALUE);
+          NO_NOW_IN_SECONDS);
 
   public final int flags;
   /** @see ProtocolConstants.ConsistencyLevel */
@@ -157,13 +160,13 @@ public class QueryOptions {
     if (serialConsistency != ProtocolConstants.ConsistencyLevel.SERIAL) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.SERIAL_CONSISTENCY);
     }
-    if (defaultTimestamp != Long.MIN_VALUE) {
+    if (defaultTimestamp != NO_DEFAULT_TIMESTAMP) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP);
     }
     if (keyspace != null) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE);
     }
-    if (nowInSeconds != Integer.MIN_VALUE) {
+    if (nowInSeconds != NO_NOW_IN_SECONDS) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS);
     }
     return flags;
@@ -288,7 +291,7 @@ public class QueryOptions {
       long defaultTimestamp =
           Flags.contains(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP)
               ? decoder.readLong(source)
-              : Long.MIN_VALUE;
+              : NO_DEFAULT_TIMESTAMP;
       String keyspace =
           Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE)
               ? decoder.readString(source)
@@ -296,7 +299,7 @@ public class QueryOptions {
       int nowInSeconds =
           Flags.contains(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)
               ? decoder.readInt(source)
-              : Integer.MIN_VALUE;
+              : NO_NOW_IN_SECONDS;
 
       return new QueryOptions(
           flags,

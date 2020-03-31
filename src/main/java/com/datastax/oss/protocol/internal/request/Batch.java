@@ -18,6 +18,7 @@ package com.datastax.oss.protocol.internal.request;
 import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
 
 import com.datastax.oss.protocol.internal.*;
+import com.datastax.oss.protocol.internal.request.query.QueryOptions;
 import com.datastax.oss.protocol.internal.request.query.Values;
 import com.datastax.oss.protocol.internal.util.Flags;
 import com.datastax.oss.protocol.internal.util.collection.NullAllowingImmutableList;
@@ -100,13 +101,13 @@ public class Batch extends Message {
     if (serialConsistency != ProtocolConstants.ConsistencyLevel.SERIAL) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.SERIAL_CONSISTENCY);
     }
-    if (defaultTimestamp != Long.MIN_VALUE) {
+    if (defaultTimestamp != QueryOptions.NO_DEFAULT_TIMESTAMP) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP);
     }
     if (keyspace != null) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE);
     }
-    if (nowInSeconds != Integer.MIN_VALUE) {
+    if (nowInSeconds != QueryOptions.NO_NOW_IN_SECONDS) {
       flags = Flags.add(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS);
     }
     return flags;
@@ -224,7 +225,7 @@ public class Batch extends Message {
       long defaultTimestamp =
           (Flags.contains(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP))
               ? decoder.readLong(source)
-              : Long.MIN_VALUE;
+              : QueryOptions.NO_DEFAULT_TIMESTAMP;
       String keyspace =
           (Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE))
               ? decoder.readString(source)
@@ -232,7 +233,7 @@ public class Batch extends Message {
       int nowInSeconds =
           Flags.contains(flags, ProtocolConstants.QueryFlag.NOW_IN_SECONDS)
               ? decoder.readInt(source)
-              : Integer.MIN_VALUE;
+              : QueryOptions.NO_NOW_IN_SECONDS;
 
       return new Batch(
           flags,
