@@ -19,6 +19,7 @@ import static com.datastax.dse.protocol.internal.DseProtocolConstants.Version.DS
 
 import com.datastax.oss.protocol.internal.*;
 import com.datastax.oss.protocol.internal.request.Batch;
+import com.datastax.oss.protocol.internal.request.query.QueryOptions;
 import com.datastax.oss.protocol.internal.request.query.Values;
 import com.datastax.oss.protocol.internal.util.Flags;
 import java.nio.ByteBuffer;
@@ -124,7 +125,7 @@ public class DseBatchCodec extends Message.Codec {
     long defaultTimestamp =
         (Flags.contains(flags, ProtocolConstants.QueryFlag.DEFAULT_TIMESTAMP))
             ? decoder.readLong(source)
-            : Long.MIN_VALUE;
+            : QueryOptions.NO_DEFAULT_TIMESTAMP;
     String keyspace =
         (Flags.contains(flags, ProtocolConstants.QueryFlag.WITH_KEYSPACE))
             ? decoder.readString(source)
@@ -139,6 +140,6 @@ public class DseBatchCodec extends Message.Codec {
         serialConsistency,
         defaultTimestamp,
         keyspace,
-        Integer.MIN_VALUE);
+        QueryOptions.NO_NOW_IN_SECONDS);
   }
 }
