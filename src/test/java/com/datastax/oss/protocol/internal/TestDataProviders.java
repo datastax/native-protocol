@@ -44,6 +44,11 @@ public class TestDataProviders {
   }
 
   @DataProvider
+  public static Object[][] protocolV6OrAbove() {
+    return protocolVersions(6, null);
+  }
+
+  @DataProvider
   public static Object[][] protocolV3OrV4() {
     return protocolVersions(3, 4);
   }

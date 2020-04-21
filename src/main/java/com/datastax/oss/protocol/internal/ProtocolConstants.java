@@ -34,10 +34,11 @@ public class ProtocolConstants {
     public static final int V3 = 3;
     public static final int V4 = 4;
     public static final int V5 = 5;
+    public static final int V6 = 6;
     public static final int MIN = V3;
-    public static final int MAX = V4;
+    public static final int MAX = V5;
     /** If no beta version is currently supported, this will be negative. */
-    public static final int BETA = V5;
+    public static final int BETA = V6;
   }
 
   public static class Opcode {

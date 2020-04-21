@@ -45,7 +45,8 @@ public class FrameCodec<B> {
         compressor,
         new ProtocolV3ClientCodecs(),
         new ProtocolV4ClientCodecs(),
-        new ProtocolV5ClientCodecs());
+        new ProtocolV5ClientCodecs(),
+        new ProtocolV6ClientCodecs());
   }
 
   /**
@@ -59,7 +60,8 @@ public class FrameCodec<B> {
         compressor,
         new ProtocolV3ServerCodecs(),
         new ProtocolV4ServerCodecs(),
-        new ProtocolV5ServerCodecs());
+        new ProtocolV5ServerCodecs(),
+        new ProtocolV6ServerCodecs());
   }
 
   private final PrimitiveCodec<B> primitiveCodec;
