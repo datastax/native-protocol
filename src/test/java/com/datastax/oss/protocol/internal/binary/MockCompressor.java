@@ -15,14 +15,41 @@
  */
 package com.datastax.oss.protocol.internal.binary;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.datastax.oss.protocol.internal.Compressor;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MockCompressor implements Compressor<MockBinaryString> {
 
-  public static final String START = "start compression";
-  public static final String END = "end compression";
+  private final Map<MockBinaryString, MockBinaryString> decompressedToCompressed = new HashMap<>();
+  private final Map<MockBinaryString, MockBinaryString> compressedToDecompressed = new HashMap<>();
+
+  /**
+   * "Primes" the given decompressed<->compressed bidirectional mapping. Future attempts to compress
+   * or decompress the corresponding value will return the other value.
+   *
+   * <p>If {@code decompressed} was already primed, this method has no effect, and it returns the
+   * previously associated compressed value (that is still in effect). {@code compressed} is
+   * ignored.
+   *
+   * <p>Otherwise, the method returns {@code compressed}.
+   *
+   * @throws IllegalArgumentException if {@code compressed} was already used for another mapping.
+   */
+  public MockBinaryString prime(MockBinaryString decompressed, MockBinaryString compressed) {
+    if (decompressedToCompressed.containsKey(decompressed)) {
+      return decompressedToCompressed.get(decompressed);
+    } else if (compressedToDecompressed.containsKey(compressed)) {
+      throw new IllegalArgumentException(
+          String.format(
+              "%s is already used as the compressed form of %s",
+              compressed, compressedToDecompressed.get(compressed)));
+    } else {
+      decompressedToCompressed.put(decompressed, compressed);
+      compressedToDecompressed.put(compressed, decompressed);
+      return compressed;
+    }
+  }
 
   @Override
   public String algorithm() {
@@ -31,19 +58,21 @@ public class MockCompressor implements Compressor<MockBinaryString> {
 
   @Override
   public MockBinaryString compress(MockBinaryString uncompressed) {
-    return new MockBinaryString().string(START).append(uncompressed).string(END);
+    MockBinaryString compressed = decompressedToCompressed.get(uncompressed);
+    if (compressed == null) {
+      throw new IllegalStateException(
+          String.format("Unknown uncompressed input %s, must be primed first", uncompressed));
+    }
+    return compressed;
   }
 
   @Override
   public MockBinaryString decompress(MockBinaryString compressed) {
-    MockPrimitiveCodec decoder = MockPrimitiveCodec.INSTANCE;
-
-    assertThat(decoder.readString(compressed)).isEqualTo(START);
-
-    MockBinaryString.Element element = compressed.pollLast();
-    assertThat(element.type).isEqualTo(MockBinaryString.Element.Type.STRING);
-    assertThat(element.value).isEqualTo(END);
-
-    return compressed.copy();
+    MockBinaryString decompressed = compressedToDecompressed.get(compressed);
+    if (decompressed == null) {
+      throw new IllegalStateException(
+          String.format("Unknown compressed input %s, must be primed first", compressed));
+    }
+    return decompressed;
   }
 }

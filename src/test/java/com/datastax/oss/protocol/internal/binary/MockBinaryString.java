@@ -15,7 +15,9 @@
  */
 package com.datastax.oss.protocol.internal.binary;
 
+import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.Objects;
 
@@ -81,6 +83,48 @@ public class MockBinaryString {
 
   public MockBinaryString copy() {
     return new MockBinaryString().append(this);
+  }
+
+  public int size() {
+    int size = 0;
+    for (Element element : elements) {
+      String hexString;
+      switch (element.type) {
+        case BYTE:
+          size += 1;
+          break;
+        case INT:
+          size += PrimitiveSizes.INT;
+          break;
+        case INET:
+          size += PrimitiveSizes.sizeOfInet(((InetSocketAddress) element.value));
+          break;
+        case INETADDR:
+          size += PrimitiveSizes.sizeOfInetAddr(((InetAddress) element.value));
+          break;
+        case LONG:
+          size += PrimitiveSizes.LONG;
+          break;
+        case UNSIGNED_SHORT:
+          size += PrimitiveSizes.SHORT;
+          break;
+        case STRING:
+          size += PrimitiveSizes.sizeOfString((String) element.value);
+          break;
+        case LONG_STRING:
+          size += PrimitiveSizes.sizeOfLongString((String) element.value);
+          break;
+        case BYTES:
+          hexString = (String) element.value; // 0xabcdef
+          size += PrimitiveSizes.INT + (hexString.length() - 2) / 2;
+          break;
+        case SHORT_BYTES:
+          hexString = (String) element.value;
+          size += PrimitiveSizes.SHORT + (hexString.length() - 2) / 2;
+          break;
+      }
+    }
+    return size;
   }
 
   Element pop() {
