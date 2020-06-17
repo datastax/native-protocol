@@ -16,18 +16,20 @@
 package com.datastax.oss.protocol.internal.binary;
 
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
+import com.datastax.oss.protocol.internal.util.Bytes;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.Objects;
 
 /** A DSL that simulates a mock binary string for reading and writing, to use in our unit tests. */
+// ErrorProne issues a warning about LinkedList. The suggested alternative is ArrayDeque, but it
+// does not override equals. Keeping LinkedList here since performance is not crucial in tests.
+@SuppressWarnings("JdkObsolete")
 public class MockBinaryString {
 
-  // The suggested alternative is ArrayDeque, but it does not override equals. Keeping LinkedList
-  // here since performance is not crucial in tests.
-  @SuppressWarnings("JdkObsolete")
-  private final LinkedList<Element> elements = new LinkedList<>();
+  private LinkedList<Element> elements = new LinkedList<>();
+  private LinkedList<Element> mark;
 
   public MockBinaryString byte_(int value) {
     append(Element.Type.BYTE, (byte) value);
@@ -81,6 +83,19 @@ public class MockBinaryString {
     return this;
   }
 
+  public void markReaderIndex() {
+    mark = new LinkedList<>();
+    mark.addAll(elements);
+  }
+
+  public void resetReaderIndex() {
+    if (mark == null) {
+      throw new IllegalStateException("No mark, call markReaderIndex() first");
+    }
+    elements = mark;
+    mark = null;
+  }
+
   public MockBinaryString copy() {
     return new MockBinaryString().append(this);
   }
@@ -88,47 +103,54 @@ public class MockBinaryString {
   public int size() {
     int size = 0;
     for (Element element : elements) {
-      String hexString;
-      switch (element.type) {
-        case BYTE:
-          size += 1;
-          break;
-        case INT:
-          size += PrimitiveSizes.INT;
-          break;
-        case INET:
-          size += PrimitiveSizes.sizeOfInet(((InetSocketAddress) element.value));
-          break;
-        case INETADDR:
-          size += PrimitiveSizes.sizeOfInetAddr(((InetAddress) element.value));
-          break;
-        case LONG:
-          size += PrimitiveSizes.LONG;
-          break;
-        case UNSIGNED_SHORT:
-          size += PrimitiveSizes.SHORT;
-          break;
-        case STRING:
-          size += PrimitiveSizes.sizeOfString((String) element.value);
-          break;
-        case LONG_STRING:
-          size += PrimitiveSizes.sizeOfLongString((String) element.value);
-          break;
-        case BYTES:
-          hexString = (String) element.value; // 0xabcdef
-          size += PrimitiveSizes.INT + (hexString.length() - 2) / 2;
-          break;
-        case SHORT_BYTES:
-          hexString = (String) element.value;
-          size += PrimitiveSizes.SHORT + (hexString.length() - 2) / 2;
-          break;
-      }
+      size += element.size();
     }
     return size;
   }
 
+  MockBinaryString slice(int targetSize) {
+    // We can't write a perfect implementation for this, since our internal representation is based
+    // on primitive types (INT, LONG_STRING...), but not individual bytes.
+
+    // The code below works as long as the split happens on the boundary between two elements. We
+    // also support splitting a BYTES element, but that operation alters the contents
+    // (re-concatenating the two strings is not strictly equal to the original).
+    // This works for the tests that exercise this method so far, because they only check the
+    // length, not the actual contents.
+
+    MockBinaryString slice = new MockBinaryString();
+    while (slice.size() < targetSize) {
+      Element element = pop();
+      if (slice.size() + element.size() <= targetSize) {
+        slice.append(element.type, element.value);
+      } else if (element.type == Element.Type.BYTES) {
+        String hexString = (String) element.value;
+        // BYTES starts with an int length
+        int bytesToCopy = targetSize - slice.size() - 4;
+        // Hex strings starts with '0x' and each byte is two characters
+        int split = 2 + bytesToCopy * 2;
+        slice.append(Element.Type.BYTES, hexString.substring(0, split));
+
+        // Put the rest back in the source string. But we can't put it as a BYTES because size()
+        // would over-estimate it by 4 (for the INT size). So write byte-by-byte instead.
+        byte[] remainingBytes =
+            Bytes.getArray(Bytes.fromHexString("0x" + hexString.substring(split)));
+        for (byte b : remainingBytes) {
+          this.prepend(Element.Type.BYTE, b);
+        }
+      } else {
+        throw new UnsupportedOperationException("Can't split element other than BYTES");
+      }
+    }
+    return slice;
+  }
+
   Element pop() {
     return elements.pop();
+  }
+
+  Element pollFirst() {
+    return elements.pollFirst();
   }
 
   Element pollLast() {
@@ -137,6 +159,10 @@ public class MockBinaryString {
 
   private void append(Element.Type type, Object value) {
     this.elements.add(new Element(type, value));
+  }
+
+  private void prepend(Element.Type type, Object value) {
+    this.elements.addFirst(new Element(type, value));
   }
 
   @Override
@@ -178,6 +204,36 @@ public class MockBinaryString {
     private Element(Type type, Object value) {
       this.type = type;
       this.value = value;
+    }
+
+    int size() {
+      String hexString;
+      switch (type) {
+        case BYTE:
+          return 1;
+        case INT:
+          return PrimitiveSizes.INT;
+        case INET:
+          return PrimitiveSizes.sizeOfInet(((InetSocketAddress) value));
+        case INETADDR:
+          return PrimitiveSizes.sizeOfInetAddr(((InetAddress) value));
+        case LONG:
+          return PrimitiveSizes.LONG;
+        case UNSIGNED_SHORT:
+          return PrimitiveSizes.SHORT;
+        case STRING:
+          return PrimitiveSizes.sizeOfString((String) value);
+        case LONG_STRING:
+          return PrimitiveSizes.sizeOfLongString((String) value);
+        case BYTES:
+          hexString = (String) value; // 0xabcdef
+          return PrimitiveSizes.INT + (hexString.length() - 2) / 2;
+        case SHORT_BYTES:
+          hexString = (String) value;
+          return PrimitiveSizes.SHORT + (hexString.length() - 2) / 2;
+        default:
+          throw new IllegalStateException("Unsupported element type " + type);
+      }
     }
 
     @Override

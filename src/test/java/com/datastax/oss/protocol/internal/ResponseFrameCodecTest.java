@@ -26,6 +26,7 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -109,6 +110,72 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
     assertThat(frame.customPayload).isEqualTo(customPayload);
     assertThat(frame.warnings).isEqualTo(warnings);
     assertThat(frame.message).isInstanceOf(Ready.class);
+  }
+
+  @Test
+  public void should_decode_single_frame_from_larger_buffer() {
+    int protocolVersion = ProtocolConstants.Version.V5;
+
+    // Assemble a buffer containing two frames
+    MockBinaryString encodedFrame1 =
+        mockResponsePayload(
+            protocolVersion,
+            1,
+            Compressor.none(),
+            false,
+            Collections.emptyMap(),
+            Collections.emptyList(),
+            false);
+    MockBinaryString encodedFrame2 =
+        mockResponsePayload(
+            protocolVersion,
+            2,
+            Compressor.none(),
+            false,
+            Collections.emptyMap(),
+            Collections.emptyList(),
+            false);
+    MockBinaryString encoded =
+        MockPrimitiveCodec.INSTANCE.concat(encodedFrame1.copy(), encodedFrame2);
+
+    // Decode the first frame
+    FrameCodec<MockBinaryString> frameCodec =
+        new FrameCodec<>(
+            primitiveCodec,
+            Compressor.none(),
+            registry -> registry.addDecoder(new MockReadyCodec(protocolVersion)));
+    Frame frame = frameCodec.decode(encoded);
+    assertThat(frame.streamId).isEqualTo(1);
+
+    // The buffer should still contain the data of the second frame
+    assertThat(encoded).isEqualTo(encodedFrame2);
+  }
+
+  @Test
+  public void should_decode_body_size_from_partial_input() {
+    int protocolVersion = ProtocolConstants.Version.V5;
+
+    // Assemble just a header
+    MockBinaryString initial =
+        new MockBinaryString()
+            .byte_(protocolVersion | 0b1000_0000)
+            .byte_(0) // flags
+            .unsignedShort(0) // stream id
+            .byte_(ProtocolConstants.Opcode.READY) // opcode
+            .int_(1234) // body size
+        ;
+    MockBinaryString encoded = initial.copy();
+
+    FrameCodec<MockBinaryString> frameCodec =
+        new FrameCodec<>(
+            primitiveCodec,
+            Compressor.none(),
+            registry -> registry.addDecoder(new MockReadyCodec(protocolVersion)));
+    int bodySize = frameCodec.decodeBodySize(encoded);
+
+    assertThat(bodySize).isEqualTo(1234);
+    // This should not have changed the input
+    assertThat(encoded).isEqualTo(initial);
   }
 
   // assembles the binary string corresponding to a READY response
