@@ -26,6 +26,15 @@ import java.util.UUID;
 public class FrameCodec<B> {
 
   /**
+   * The header size for protocol v3 and above. Currently, it is the same for all supported protocol
+   * versions.
+   *
+   * <p>If you have a reference to an instance of this class, {@link #encodedHeaderSize(Frame)} is a
+   * more future-proof way to get this information.
+   */
+  public static final int V3_ENCODED_HEADER_SIZE = 9;
+
+  /**
    * Builds a new instance with the default codecs for a client (encoding requests, decoding
    * responses).
    */
@@ -94,9 +103,9 @@ public class FrameCodec<B> {
     this.decoders = decodersBuilder.build();
   }
 
+  /** Allocates a new buffer and encodes the given frame into it. */
   public B encode(Frame frame) {
     int protocolVersion = frame.protocolVersion;
-    Message request = frame.message;
 
     ProtocolErrors.check(
         protocolVersion >= ProtocolConstants.Version.V4 || frame.customPayload.isEmpty(),
@@ -107,15 +116,69 @@ public class FrameCodec<B> {
         "Warnings are not supported in protocol v%d",
         protocolVersion);
 
-    int opcode = request.opcode;
-    Message.Codec encoder = encoders.get(protocolVersion, opcode);
-    ProtocolErrors.check(
-        encoder != null, "Unsupported opcode %s in protocol v%d", opcode, protocolVersion);
+    Message.Codec messageEncoder = getMessageEncoder(frame);
 
+    int headerSize = encodedHeaderSize(frame);
+    int bodySize = encodedBodySize(frame);
+    int flags = computeFlags(frame);
+    if (!Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
+      // No compression: we can optimize and do everything with a single allocation
+      B dest = primitiveCodec.allocate(headerSize + bodySize);
+      encodeInto(frame, bodySize, flags, messageEncoder, dest);
+      return dest;
+    } else {
+      // We need to compress first in order to know the body size
+      // 1) Encode uncompressed body
+      B uncompressedBody = primitiveCodec.allocate(bodySize);
+      encodeBodyInto(frame, messageEncoder, uncompressedBody);
+
+      // 2) Compress and measure size, discard uncompressed buffer
+      B compressedBody = compressor.compress(uncompressedBody);
+      primitiveCodec.release(uncompressedBody);
+      int compressedBodySize = primitiveCodec.sizeOf(compressedBody);
+
+      // 3) Encode final frame
+      B header = primitiveCodec.allocate(headerSize);
+      encodeHeaderInto(frame, flags, compressedBodySize, header);
+      return primitiveCodec.concat(header, compressedBody);
+    }
+  }
+
+  /**
+   * Encodes the given frame into an existing buffer.
+   *
+   * <p>Note that this method never compresses the frame body; it is intended for protocol v5+,
+   * where multiple frames are concatenated into a single buffer and compressed together, instead of
+   * individually.
+   *
+   * <p>The caller is responsible for ensuring that the buffer has enough space remaining, that is:
+   * {@link #encodedHeaderSize(Frame)} + {@link #encodedBodySize(Frame)} bytes.
+   *
+   * @param bodySize the body size to use in the header, if available. This is just an optimization
+   *     because the caller may already know it if it has performed the size check above. If not,
+   *     pass a negative value, and it will be recomputed.
+   */
+  public void encodeInto(Frame frame, int bodySize, B dest) {
+    int flags = computeFlags(frame);
+    Message.Codec encoder = getMessageEncoder(frame);
+    encodeInto(frame, bodySize, flags, encoder, dest);
+  }
+
+  private Message.Codec getMessageEncoder(Frame frame) {
+    Message.Codec encoder = encoders.get(frame.protocolVersion, frame.message.opcode);
+    ProtocolErrors.check(
+        encoder != null,
+        "Unsupported opcode %s in protocol v%d",
+        frame.message.opcode,
+        frame.protocolVersion);
+    return encoder;
+  }
+
+  private int computeFlags(Frame frame) {
     int flags = 0;
     if (!(compressor instanceof NoopCompressor)
-        && opcode != ProtocolConstants.Opcode.STARTUP
-        && opcode != ProtocolConstants.Opcode.OPTIONS) {
+        && frame.message.opcode != ProtocolConstants.Opcode.STARTUP
+        && frame.message.opcode != ProtocolConstants.Opcode.OPTIONS) {
       flags = Flags.add(flags, ProtocolConstants.FrameFlag.COMPRESSED);
     }
     if (frame.tracing || frame.tracingId != null) {
@@ -127,66 +190,23 @@ public class FrameCodec<B> {
     if (!frame.warnings.isEmpty()) {
       flags = Flags.add(flags, ProtocolConstants.FrameFlag.WARNING);
     }
-    if (protocolVersion == ProtocolConstants.Version.BETA) {
+    if (frame.protocolVersion == ProtocolConstants.Version.BETA) {
       flags = Flags.add(flags, ProtocolConstants.FrameFlag.USE_BETA);
     }
+    return flags;
+  }
 
-    int headerSize = headerEncodedSize();
-    if (!Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
-      // No compression: we can optimize and do everything with a single allocation
-      int messageSize = encoder.encodedSize(request);
-      if (frame.tracingId != null) {
-        messageSize += PrimitiveSizes.UUID;
-      }
-      if (!frame.customPayload.isEmpty()) {
-        messageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
-      }
-      if (!frame.warnings.isEmpty()) {
-        messageSize += PrimitiveSizes.sizeOfStringList(frame.warnings);
-      }
-      B dest = primitiveCodec.allocate(headerSize + messageSize);
-      encodeHeader(frame, flags, messageSize, dest);
-      encodeTracingId(frame.tracingId, dest);
-      encodeCustomPayload(frame.customPayload, dest);
-      encodeWarnings(frame.warnings, dest);
-      encoder.encode(dest, request, primitiveCodec);
-      return dest;
-    } else {
-      // We need to compress first in order to know the body size
-      // 1) Encode uncompressed message
-      int uncompressedMessageSize = encoder.encodedSize(request);
-      if (frame.tracingId != null) {
-        uncompressedMessageSize += PrimitiveSizes.UUID;
-      }
-      if (!frame.customPayload.isEmpty()) {
-        uncompressedMessageSize += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
-      }
-      if (!frame.warnings.isEmpty()) {
-        uncompressedMessageSize += PrimitiveSizes.sizeOfStringList(frame.warnings);
-      }
-      B uncompressedMessage = primitiveCodec.allocate(uncompressedMessageSize);
-      encodeTracingId(frame.tracingId, uncompressedMessage);
-      encodeCustomPayload(frame.customPayload, uncompressedMessage);
-      encodeWarnings(frame.warnings, uncompressedMessage);
-      encoder.encode(uncompressedMessage, request, primitiveCodec);
+  private void encodeInto(
+      Frame frame, int bodySize, int flags, Message.Codec messageEncoder, B dest) {
+    encodeHeaderInto(frame, flags, bodySize, dest);
+    encodeBodyInto(frame, messageEncoder, dest);
+  }
 
-      // 2) Compress and measure size, discard uncompressed buffer
-      B compressedMessage = compressor.compress(uncompressedMessage);
-      primitiveCodec.release(uncompressedMessage);
-      int messageSize = primitiveCodec.sizeOf(compressedMessage);
-
-      // 3) Encode final frame
-      B header = primitiveCodec.allocate(headerSize);
-      encodeHeader(frame, flags, messageSize, header);
-      return primitiveCodec.concat(header, compressedMessage);
+  private void encodeHeaderInto(Frame frame, int flags, int bodySize, B dest) {
+    if (bodySize < 0) {
+      bodySize = encodedBodySize(frame);
     }
-  }
 
-  public static int headerEncodedSize() {
-    return 9;
-  }
-
-  private void encodeHeader(Frame frame, int flags, int messageSize, B dest) {
     int versionAndDirection = frame.protocolVersion;
     if (frame.message.isResponse) {
       versionAndDirection |= 0b1000_0000;
@@ -197,7 +217,14 @@ public class FrameCodec<B> {
         frame.streamId & 0xFFFF, // see readStreamId()
         dest);
     primitiveCodec.writeByte((byte) frame.message.opcode, dest);
-    primitiveCodec.writeInt(messageSize, dest);
+    primitiveCodec.writeInt(bodySize, dest);
+  }
+
+  private void encodeBodyInto(Frame frame, Message.Codec messageEncoder, B dest) {
+    encodeTracingId(frame.tracingId, dest);
+    encodeCustomPayload(frame.customPayload, dest);
+    encodeWarnings(frame.warnings, dest);
+    messageEncoder.encode(dest, frame.message, primitiveCodec);
   }
 
   private void encodeTracingId(UUID tracingId, B dest) {
@@ -218,6 +245,47 @@ public class FrameCodec<B> {
     }
   }
 
+  /** How many bytes are needed to encode the given frame's header. */
+  public int encodedHeaderSize(@SuppressWarnings("unused") Frame frame) {
+    return V3_ENCODED_HEADER_SIZE;
+  }
+
+  /**
+   * How many bytes are needed to encode the given frame's body (message + tracing id, custom
+   * payload and/or warnings if relevant).
+   */
+  public int encodedBodySize(Frame frame) {
+    int size = 0;
+    if (frame.tracingId != null) {
+      size += PrimitiveSizes.UUID;
+    }
+    if (!frame.customPayload.isEmpty()) {
+      size += PrimitiveSizes.sizeOfBytesMap(frame.customPayload);
+    }
+    if (!frame.warnings.isEmpty()) {
+      size += PrimitiveSizes.sizeOfStringList(frame.warnings);
+    }
+
+    Message.Codec encoder = getMessageEncoder(frame);
+    return size + encoder.encodedSize(frame.message);
+  }
+
+  /**
+   * Decodes the size of the body of the next frame contained in the given buffer.
+   *
+   * <p>The buffer must contain at least the frame's header. This method performs a relative read,
+   * it will not consume any data from the buffer.
+   */
+  public int decodeBodySize(B source) {
+    return primitiveCodec.readInt(source, V3_ENCODED_HEADER_SIZE - 4);
+  }
+
+  /**
+   * Decodes the next frame from the given buffer.
+   *
+   * <p>The buffer must contain at least one complete frame. It may be followed by additional data
+   * (which will not be consumed).
+   */
   public Frame decode(B source) {
     int directionAndVersion = primitiveCodec.readByte(source);
     boolean isResponse = (directionAndVersion & 0b1000_0000) == 0b1000_0000;
@@ -227,13 +295,6 @@ public class FrameCodec<B> {
     int streamId = readStreamId(source);
     int opcode = primitiveCodec.readByte(source);
     int length = primitiveCodec.readInt(source);
-
-    int actualLength = primitiveCodec.sizeOf(source);
-    ProtocolErrors.check(
-        length == actualLength,
-        "Declared length in header (%d) does not match actual length (%d)",
-        length,
-        actualLength);
 
     boolean decompressed = false;
     if (Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
@@ -248,10 +309,11 @@ public class FrameCodec<B> {
     int frameSize;
     int compressedFrameSize;
     if (decompressed) {
-      frameSize = headerEncodedSize() + primitiveCodec.sizeOf(source);
-      compressedFrameSize = headerEncodedSize() + length; // what we measured before decompressing
+      frameSize = V3_ENCODED_HEADER_SIZE + primitiveCodec.sizeOf(source);
+      compressedFrameSize =
+          V3_ENCODED_HEADER_SIZE + length; // what we measured before decompressing
     } else {
-      frameSize = headerEncodedSize() + length;
+      frameSize = V3_ENCODED_HEADER_SIZE + length;
       compressedFrameSize = -1;
     }
 

@@ -21,6 +21,7 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.util.Bytes;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.zip.CRC32;
 
 public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   public static final MockPrimitiveCodec INSTANCE = new MockPrimitiveCodec();
@@ -41,6 +42,16 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   }
 
   @Override
+  public void markReaderIndex(MockBinaryString source) {
+    source.markReaderIndex();
+  }
+
+  @Override
+  public void resetReaderIndex(MockBinaryString source) {
+    source.resetReaderIndex();
+  }
+
+  @Override
   public MockBinaryString concat(MockBinaryString left, MockBinaryString right) {
     return left.append(right);
   }
@@ -53,6 +64,20 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   @Override
   public int readInt(MockBinaryString source) {
     return (Integer) pop(source, MockBinaryString.Element.Type.INT);
+  }
+
+  @Override
+  public int readInt(MockBinaryString source, int offset) {
+    MockBinaryString copy = source.copy();
+    int skipped = 0;
+    while (skipped < offset) {
+      MockBinaryString.Element element = copy.pop();
+      skipped += element.size();
+    }
+    if (skipped != offset) {
+      throw new IllegalArgumentException("Offset must match an exact number of elements");
+    }
+    return readInt(copy);
   }
 
   @Override
@@ -90,6 +115,27 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   @Override
   public String readLongString(MockBinaryString source) {
     return (String) pop(source, MockBinaryString.Element.Type.LONG_STRING);
+  }
+
+  @Override
+  public MockBinaryString readRetainedSlice(MockBinaryString source, int sliceLength) {
+    return source.slice(sliceLength);
+  }
+
+  @Override
+  public void updateCrc(MockBinaryString source, CRC32 crc) {
+    source = source.copy(); // don't consume the input
+    MockBinaryString.Element element;
+    while ((element = source.pollFirst()) != null) {
+      if (element.type == MockBinaryString.Element.Type.BYTE) {
+        crc.update(((byte) element.value) & 0xFF);
+      } else {
+        throw new IllegalArgumentException(
+            "PrimitiveCodec.updateCrc() is only supported on MockBinaryStrings that were assembled byte-by-byte. "
+                + "Unexpected type "
+                + element.type);
+      }
+    }
   }
 
   @Override

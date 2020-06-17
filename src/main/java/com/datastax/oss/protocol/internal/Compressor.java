@@ -29,7 +29,25 @@ public interface Compressor<B> {
    */
   String algorithm();
 
+  /**
+   * Compresses a payload using the "legacy" format of protocol v4- frame bodies.
+   *
+   * <p>The resulting payload encodes the uncompressed length, and is therefore self-sufficient for
+   * decompression.
+   */
   B compress(B uncompressed);
 
+  /** Decompresses a payload that was compressed with {@link #compress(Object)}. */
   B decompress(B compressed);
+
+  /**
+   * Compresses a payload using the "modern" format of protocol v5+ segments.
+   *
+   * <p>The resulting payload does not encode the uncompressed length. It must be stored separately,
+   * and provided to the decompression method.
+   */
+  B compressWithoutLength(B uncompressed);
+
+  /** Decompresses a payload that was compressed with {@link #compressWithoutLength(Object)}. */
+  B decompressWithoutLength(B compressed, int uncompressedLength);
 }
