@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.CRC32;
 
 /**
  * Reads and writes the protocol's primitive types (as defined in section 3 of the protocol
@@ -37,18 +38,29 @@ public interface PrimitiveCodec<B> {
   B allocate(int size);
 
   /**
-   * "Releases" an element if the underlying implementation uses memory allocation. Otherwise, this
-   * can simply be a no-op.
+   * "Releases" an element if the underlying implementation uses reference counting to manage memory
+   * allocation. Otherwise, this can simply be a no-op.
    */
   void release(B toRelease);
 
+  /** The number of <b>readable</b> bytes in the given element. */
   int sizeOf(B toMeasure);
 
   B concat(B left, B right);
 
+  void markReaderIndex(B source);
+
+  void resetReaderIndex(B source);
+
   byte readByte(B source);
 
   int readInt(B source);
+
+  /**
+   * Reads an int at the given offset (relative to the current read index). This method does not
+   * consume any data.
+   */
+  int readInt(B source, int offset);
 
   InetAddress readInetAddr(B source);
 
@@ -63,6 +75,17 @@ public interface PrimitiveCodec<B> {
   String readString(B source);
 
   String readLongString(B source);
+
+  /**
+   * Returns a view of the next {@code sliceLength} bytes. This consumes the bytes (the next reads
+   * must return the data after the slice). If the underlying implementation uses reference counting
+   * to manage memory allocation, this must also "retain" the slice, so that it doesn't get recycled
+   * if {@code source} is released.
+   */
+  B readRetainedSlice(B source, int sliceLength);
+
+  /** Feeds all available bytes into the given CRC. This should not "consume" the bytes. */
+  void updateCrc(B source, CRC32 crc);
 
   default UUID readUuid(B source) {
     long msb = readLong(source);

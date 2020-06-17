@@ -15,30 +15,12 @@
  */
 package com.datastax.oss.protocol.internal;
 
-public class NoopCompressor<B> implements Compressor<B> {
+/** Thrown when the checksums in an incoming {@link Segment} don't match (protocol v5 or above). */
+public class CrcMismatchException extends Exception {
 
-  @Override
-  public String algorithm() {
-    return null;
-  }
+  private static final long serialVersionUID = 0;
 
-  @Override
-  public B compress(B uncompressed) {
-    return uncompressed;
-  }
-
-  @Override
-  public B decompress(B compressed) {
-    return compressed;
-  }
-
-  @Override
-  public B compressWithoutLength(B uncompressed) {
-    return uncompressed;
-  }
-
-  @Override
-  public B decompressWithoutLength(B compressed, int uncompressedLength) {
-    return compressed;
+  public CrcMismatchException(String message) {
+    super(message);
   }
 }

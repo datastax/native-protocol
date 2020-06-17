@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.binary;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.datastax.oss.protocol.internal.Compressor;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +65,7 @@ public class MockCompressor implements Compressor<MockBinaryString> {
       throw new IllegalStateException(
           String.format("Unknown uncompressed input %s, must be primed first", uncompressed));
     }
-    return compressed;
+    return compressed.copy();
   }
 
   @Override
@@ -73,6 +75,21 @@ public class MockCompressor implements Compressor<MockBinaryString> {
       throw new IllegalStateException(
           String.format("Unknown compressed input %s, must be primed first", compressed));
     }
-    return decompressed;
+    return decompressed.copy();
+  }
+
+  @Override
+  public MockBinaryString compressWithoutLength(MockBinaryString uncompressed) {
+    // The two sets of methods are used in different contexts, for tests it doesn't matter if they
+    // use the same implementation
+    return compress(uncompressed);
+  }
+
+  @Override
+  public MockBinaryString decompressWithoutLength(
+      MockBinaryString compressed, int uncompressedLength) {
+    MockBinaryString uncompressed = decompress(compressed);
+    assertThat(uncompressed.size()).isEqualTo(uncompressedLength);
+    return uncompressed;
   }
 }
