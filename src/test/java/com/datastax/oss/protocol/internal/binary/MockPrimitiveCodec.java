@@ -25,9 +25,6 @@ import java.nio.ByteBuffer;
 public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
   public static final MockPrimitiveCodec INSTANCE = new MockPrimitiveCodec();
 
-  /** In this implementation, {@link #sizeOf(MockBinaryString)} always returns this value. */
-  public static final int MOCK_SIZE = 42;
-
   @Override
   public MockBinaryString allocate(int size) {
     return new MockBinaryString();
@@ -40,8 +37,7 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
 
   @Override
   public int sizeOf(MockBinaryString toMeasure) {
-    // return a mocked value, that should be enough for our tests
-    return MOCK_SIZE;
+    return toMeasure.size();
   }
 
   @Override
