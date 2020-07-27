@@ -20,7 +20,7 @@
 
   <groupId>com.datastax.oss</groupId>
   <artifactId>native-protocol</artifactId>
-  <version>1.4.11-SNAPSHOT</version>
+  <version>1.4.11</version>
   <packaging>bundle</packaging>
 
   <name>An implementation of the Apache Cassandra® native protocol</name>
@@ -321,7 +321,7 @@ limitations under the License.]]>
     <connection>scm:git:git@github.com:datastax/native-protocol.git</connection>
     <developerConnection>scm:git:git@github.com:datastax/native-protocol.git</developerConnection>
     <url>https://github.com/datastax/native-protocol</url>
-    <tag>HEAD</tag>
+    <tag>1.4.11</tag>
   </scm>
   <developers>
     <developer>
