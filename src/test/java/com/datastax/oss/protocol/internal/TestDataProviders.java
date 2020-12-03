@@ -135,6 +135,6 @@ public class TestDataProviders {
     Object[][] provider3 = fromList(true, false);
 
     Object[][] combined = combine(provider1, provider2, provider3);
-    assertThat(combined).hasSize(8);
+    assertThat(combined).hasDimensions(8, 4);
   }
 }
