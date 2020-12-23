@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.datastax.oss.protocol.internal.util.SerializationHelper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.Test;
 
 public class NullAllowingImmutableSetTest {
@@ -95,4 +97,15 @@ public class NullAllowingImmutableSetTest {
     NullAllowingImmutableSet<Integer> s2 = NullAllowingImmutableSet.of();
     assertThat(s1).isSameAs(s2);
   }
+
+  @Test
+  public void should_resize_builder_internal_capacity() {
+    // will resize once
+    assertThat(NullAllowingImmutableSet.builder(10)
+        .addAll(IntStream.range(0, 20).boxed().collect(Collectors.toList())).build()).hasSize(20);
+    // will resize twice
+    assertThat(NullAllowingImmutableSet.builder(10)
+        .addAll(IntStream.range(0, 30).boxed().collect(Collectors.toList())).build()).hasSize(30);
+  }
+
 }
