@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.datastax.oss.protocol.internal.util.SerializationHelper;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.Test;
 
 public class NullAllowingImmutableMapTest {
@@ -99,5 +101,21 @@ public class NullAllowingImmutableMapTest {
     NullAllowingImmutableMap<String, Integer> m1 = NullAllowingImmutableMap.of();
     NullAllowingImmutableMap<String, Integer> m2 = NullAllowingImmutableMap.of();
     assertThat(m1).isSameAs(m2);
+  }
+
+  @Test
+  public void should_resize_builder_internal_capacity() {
+    // will resize once
+    assertThat(
+            NullAllowingImmutableMap.builder(10)
+                .putAll(IntStream.range(0, 20).boxed().collect(Collectors.toMap(i -> i, i -> i)))
+                .build())
+        .hasSize(20);
+    // will resize twice
+    assertThat(
+            NullAllowingImmutableMap.builder(10)
+                .putAll(IntStream.range(0, 30).boxed().collect(Collectors.toMap(i -> i, i -> i)))
+                .build())
+        .hasSize(30);
   }
 }

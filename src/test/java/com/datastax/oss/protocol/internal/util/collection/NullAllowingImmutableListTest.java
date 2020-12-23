@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.datastax.oss.protocol.internal.util.SerializationHelper;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.Test;
 
 public class NullAllowingImmutableListTest {
@@ -65,5 +67,15 @@ public class NullAllowingImmutableListTest {
     NullAllowingImmutableList<Integer> l1 = NullAllowingImmutableList.of();
     NullAllowingImmutableList<Integer> l2 = NullAllowingImmutableList.of();
     assertThat(l1).isSameAs(l2);
+  }
+
+  @Test
+  public void should_resize_builder_internal_capacity() {
+    // will resize once
+    assertThat(NullAllowingImmutableList.builder(10)
+        .addAll(IntStream.range(0, 20).boxed().collect(Collectors.toList())).build()).hasSize(20);
+    // will resize twice
+    assertThat(NullAllowingImmutableList.builder(10)
+        .addAll(IntStream.range(0, 30).boxed().collect(Collectors.toList())).build()).hasSize(30);
   }
 }

@@ -234,7 +234,7 @@ public class NullAllowingImmutableSet<E> extends AbstractSet<E> implements Seria
       if (neededSize < 0) { // overflow
         throw new OutOfMemoryError();
       }
-      if (neededSize > elements.length) {
+      while (neededSize > elements.length) {
         int newLength = elements.length * 2;
         if (newLength < 0) { // overflow
           newLength = neededSize;

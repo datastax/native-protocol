@@ -206,7 +206,7 @@ public class NullAllowingImmutableMap<K, V> extends AbstractMap<K, V> implements
       if (neededSize < 0) { // overflow
         throw new OutOfMemoryError();
       }
-      if (neededSize > entries.length) {
+      while (neededSize > entries.length) {
         int newLength = entries.length * 2;
         if (newLength < 0) { // overflow
           newLength = neededSize;

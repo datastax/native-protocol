@@ -153,7 +153,7 @@ public class NullAllowingImmutableList<E> extends AbstractList<E> implements Ser
       if (neededSize < 0) { // overflow
         throw new OutOfMemoryError();
       }
-      if (neededSize > elements.length) {
+      while (neededSize > elements.length) {
         int newLength = elements.length * 2;
         if (newLength < 0) { // overflow
           newLength = neededSize;
