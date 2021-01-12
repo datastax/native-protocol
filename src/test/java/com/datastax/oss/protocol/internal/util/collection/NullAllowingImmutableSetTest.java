@@ -101,11 +101,16 @@ public class NullAllowingImmutableSetTest {
   @Test
   public void should_resize_builder_internal_capacity() {
     // will resize once
-    assertThat(NullAllowingImmutableSet.builder(10)
-        .addAll(IntStream.range(0, 20).boxed().collect(Collectors.toList())).build()).hasSize(20);
+    assertThat(
+            NullAllowingImmutableSet.builder(10)
+                .addAll(IntStream.range(0, 20).boxed().collect(Collectors.toList()))
+                .build())
+        .hasSize(20);
     // will resize twice
-    assertThat(NullAllowingImmutableSet.builder(10)
-        .addAll(IntStream.range(0, 30).boxed().collect(Collectors.toList())).build()).hasSize(30);
+    assertThat(
+            NullAllowingImmutableSet.builder(10)
+                .addAll(IntStream.range(0, 30).boxed().collect(Collectors.toList()))
+                .build())
+        .hasSize(30);
   }
-
 }
