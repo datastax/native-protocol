@@ -132,28 +132,4 @@ public class Frame {
     this.warnings = warnings;
     this.message = message;
   }
-
-  /** @deprecated maintain compatibility while Simulacron upgrades to the latest native-protocol. */
-  @Deprecated
-  public Frame(
-      int protocolVersion,
-      boolean beta,
-      int streamId,
-      boolean tracing,
-      UUID tracingId,
-      Map<String, ByteBuffer> customPayload,
-      List<String> warnings,
-      Message message) {
-    this(
-        protocolVersion,
-        beta,
-        streamId,
-        tracing,
-        tracingId,
-        -1,
-        -1,
-        customPayload,
-        warnings,
-        message);
-  }
 }
