@@ -51,10 +51,14 @@ public class AuthResponse extends Message {
     public <B> void encode(B dest, Message message, PrimitiveCodec<B> encoder) {
       AuthResponse authResponse = (AuthResponse) message;
       ByteBuffer token = authResponse.token;
-      token.mark();
-      encoder.writeBytes(token, dest);
-      token.reset();
-      Bytes.erase(token);
+      if (token == null) {
+        encoder.writeBytes(token, dest);
+      } else {
+        token.mark();
+        encoder.writeBytes(token, dest);
+        token.reset();
+        Bytes.erase(token);
+      }
     }
 
     @Override

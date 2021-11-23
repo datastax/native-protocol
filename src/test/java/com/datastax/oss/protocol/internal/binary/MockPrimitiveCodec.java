@@ -175,7 +175,7 @@ public class MockPrimitiveCodec implements PrimitiveCodec<MockBinaryString> {
 
   @Override
   public void writeBytes(ByteBuffer bytes, MockBinaryString dest) {
-    dest.bytes(Bytes.toHexString(bytes));
+    dest.bytes(bytes == null ? "0x" : Bytes.toHexString(bytes));
   }
 
   @Override

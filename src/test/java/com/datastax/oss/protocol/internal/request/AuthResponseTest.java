@@ -70,4 +70,16 @@ public class AuthResponseTest extends MessageTestBase<AuthResponse> {
     // Check that the contents are still intact
     assertThat(tokenBytes).containsExactly(0xca, 0xfe, 0xba, 0xbe);
   }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
+  public void should_encode_and_decode_null_token(int protocolVersion) {
+    AuthResponse initial = new AuthResponse(null);
+    int encodedSize = encodedSize(initial, protocolVersion);
+    MockBinaryString encoded = encode(initial, protocolVersion);
+    assertThat(encoded).isEqualTo(new MockBinaryString().bytes("0x"));
+    assertThat(encodedSize).isEqualTo(PrimitiveSizes.INT);
+    AuthResponse decoded = decode(encoded, protocolVersion);
+    assertThat(Bytes.toHexString(decoded.token)).isEqualTo("0x");
+  }
 }
