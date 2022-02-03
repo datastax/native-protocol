@@ -24,6 +24,7 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.TestDataProviders;
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.response.error.AlreadyExists;
+import com.datastax.oss.protocol.internal.response.error.CASWriteUnknown;
 import com.datastax.oss.protocol.internal.response.error.FunctionFailure;
 import com.datastax.oss.protocol.internal.response.error.ReadFailure;
 import com.datastax.oss.protocol.internal.response.error.ReadTimeout;
@@ -69,7 +70,8 @@ public class ErrorTest extends MessageTestBase<Error> {
       ProtocolConstants.ErrorCode.SYNTAX_ERROR,
       ProtocolConstants.ErrorCode.UNAUTHORIZED,
       ProtocolConstants.ErrorCode.INVALID,
-      ProtocolConstants.ErrorCode.CONFIG_ERROR
+      ProtocolConstants.ErrorCode.CONFIG_ERROR,
+      ProtocolConstants.ErrorCode.CDC_WRITE_FAILURE
     };
     for (int errorCode : simpleErrorCodes) {
       Error initial = new Error(errorCode, MOCK_MESSAGE);
@@ -502,5 +504,41 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(functionFailure.keyspace).isEqualTo("keyspace");
     assertThat(functionFailure.function).isEqualTo("function");
     assertThat(functionFailure.argTypes).containsExactly("int", "varchar");
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_cas_write_unknown(int protocolVersion) {
+    CASWriteUnknown initial =
+        new CASWriteUnknown(MOCK_MESSAGE, ProtocolConstants.ConsistencyLevel.QUORUM, 2, 3);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(ProtocolConstants.ErrorCode.CAS_WRITE_UNKNOWN)
+                .string(MOCK_MESSAGE)
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.QUORUM)
+                .int_(2)
+                .int_(3));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT);
+
+    Error decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded.code).isEqualTo(ProtocolConstants.ErrorCode.CAS_WRITE_UNKNOWN);
+    assertThat(decoded).isInstanceOf(CASWriteUnknown.class);
+    CASWriteUnknown casWriteUnknown = (CASWriteUnknown) decoded;
+    assertThat(casWriteUnknown.message).isEqualTo(MOCK_MESSAGE);
+    assertThat(casWriteUnknown.consistencyLevel)
+        .isEqualTo(ProtocolConstants.ConsistencyLevel.QUORUM);
+    assertThat(casWriteUnknown.received).isEqualTo(2);
+    assertThat(casWriteUnknown.blockFor).isEqualTo(3);
   }
 }
