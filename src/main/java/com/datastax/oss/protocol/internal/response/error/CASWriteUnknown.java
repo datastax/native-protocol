@@ -29,10 +29,6 @@ public class CASWriteUnknown extends Error {
   public final int received;
   /**
    * The number of replicas whose response is required to achieve {@code consistencyLevel}.
-   *
-   * <p>It is possible to have {@code received >= blockFor} if {@code data_present} is false. Also
-   * in the (unlikely) case where {@code consistencyLevel} is achieved but the coordinator node
-   * times out while waiting for read-repair acknowledgement.
    */
   public final int blockFor;
 
