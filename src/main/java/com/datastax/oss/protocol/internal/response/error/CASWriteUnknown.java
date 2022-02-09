@@ -27,9 +27,7 @@ public class CASWriteUnknown extends Error {
   public final int consistencyLevel;
   /** The number of nodes having answered the request. */
   public final int received;
-  /**
-   * The number of replicas whose response is required to achieve {@code consistencyLevel}.
-   */
+  /** The number of replicas whose response is required to achieve {@code consistencyLevel}. */
   public final int blockFor;
 
   public CASWriteUnknown(String message, int consistencyLevel, int received, int blockFor) {
