@@ -81,6 +81,8 @@ public class ProtocolConstants {
     public static final int READ_FAILURE = 0x1300;
     public static final int FUNCTION_FAILURE = 0x1400;
     public static final int WRITE_FAILURE = 0x1500;
+    public static final int CDC_WRITE_FAILURE = 0x1600;
+    public static final int CAS_WRITE_UNKNOWN = 0x1700;
     public static final int SYNTAX_ERROR = 0x2000;
     public static final int UNAUTHORIZED = 0x2100;
     public static final int INVALID = 0x2200;
