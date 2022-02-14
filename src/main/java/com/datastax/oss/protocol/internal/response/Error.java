@@ -22,6 +22,7 @@ import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.ProtocolConstants.ErrorCode;
 import com.datastax.oss.protocol.internal.ProtocolErrors;
 import com.datastax.oss.protocol.internal.response.error.AlreadyExists;
+import com.datastax.oss.protocol.internal.response.error.CASWriteUnknown;
 import com.datastax.oss.protocol.internal.response.error.FunctionFailure;
 import com.datastax.oss.protocol.internal.response.error.ReadFailure;
 import com.datastax.oss.protocol.internal.response.error.ReadTimeout;
@@ -80,6 +81,7 @@ public class Error extends Message {
           new SingleMessageSubCodec(ErrorCode.UNAUTHORIZED, protocolVersion),
           new SingleMessageSubCodec(ErrorCode.INVALID, protocolVersion),
           new SingleMessageSubCodec(ErrorCode.CONFIG_ERROR, protocolVersion),
+          new SingleMessageSubCodec(ErrorCode.CDC_WRITE_FAILURE, protocolVersion),
           new Unavailable.SubCodec(protocolVersion),
           new WriteTimeout.SubCodec(protocolVersion),
           new ReadTimeout.SubCodec(protocolVersion),
@@ -87,7 +89,8 @@ public class Error extends Message {
           new FunctionFailure.SubCodec(protocolVersion),
           new WriteFailure.SubCodec(protocolVersion),
           new AlreadyExists.SubCodec(protocolVersion),
-          new Unprepared.SubCodec(protocolVersion));
+          new Unprepared.SubCodec(protocolVersion),
+          new CASWriteUnknown.SubCodec(protocolVersion));
     }
 
     @Override
