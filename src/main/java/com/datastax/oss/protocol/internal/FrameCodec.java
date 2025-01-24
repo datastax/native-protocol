@@ -224,8 +224,8 @@ public class FrameCodec<B> {
 
   private void encodeBodyInto(Frame frame, Message.Codec messageEncoder, B dest) {
     encodeTracingId(frame.tracingId, dest);
-    encodeCustomPayload(frame.customPayload, dest);
     encodeWarnings(frame.warnings, dest);
+    encodeCustomPayload(frame.customPayload, dest);
     messageEncoder.encode(dest, frame.message, primitiveCodec);
   }
 
@@ -322,15 +322,15 @@ public class FrameCodec<B> {
     boolean isTracing = Flags.contains(flags, ProtocolConstants.FrameFlag.TRACING);
     UUID tracingId = (isResponse && isTracing) ? primitiveCodec.readUuid(source) : null;
 
-    Map<String, ByteBuffer> customPayload =
-        (Flags.contains(flags, ProtocolConstants.FrameFlag.CUSTOM_PAYLOAD))
-            ? primitiveCodec.readBytesMap(source)
-            : Collections.emptyMap();
-
     List<String> warnings =
         (isResponse && Flags.contains(flags, ProtocolConstants.FrameFlag.WARNING))
             ? primitiveCodec.readStringList(source)
             : Collections.emptyList();
+
+    Map<String, ByteBuffer> customPayload =
+        (Flags.contains(flags, ProtocolConstants.FrameFlag.CUSTOM_PAYLOAD))
+            ? primitiveCodec.readBytesMap(source)
+            : Collections.emptyMap();
 
     Message.Codec decoder = decoders.get(protocolVersion, opcode);
     ProtocolErrors.check(

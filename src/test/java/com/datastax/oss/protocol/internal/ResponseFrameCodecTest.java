@@ -220,11 +220,11 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
           .long_(TRACING_ID.getMostSignificantBits())
           .long_(TRACING_ID.getLeastSignificantBits());
     }
-    if (customPayload.size() > 0) {
-      uncompressedBody.unsignedShort(2).string("foo").bytes("0x0a").string("bar").bytes("0x0b");
-    }
     if (warnings.size() > 0) {
       uncompressedBody.unsignedShort(2).string("warning 1").string("warning 2");
+    }
+    if (customPayload.size() > 0) {
+      uncompressedBody.unsignedShort(2).string("foo").bytes("0x0a").string("bar").bytes("0x0b");
     }
     uncompressedBody.string(MockReadyCodec.MOCK_ENCODED);
 
