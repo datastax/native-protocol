@@ -148,6 +148,7 @@ public class ProtocolConstants {
     public static final String TOPOLOGY_CHANGE = "TOPOLOGY_CHANGE";
     public static final String STATUS_CHANGE = "STATUS_CHANGE";
     public static final String SCHEMA_CHANGE = "SCHEMA_CHANGE";
+    public static final String GRACEFUL_DISCONNECT = "GRACEFUL_DISCONNECT";
   }
 
   public static class SchemaChangeType {
