@@ -42,7 +42,7 @@ public class GracefulDisconnectEventTest extends MessageTestBase<GracefulDisconn
   }
 
   @Test
-  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrAbove")
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
   public void should_encode_and_decode(int protocolVersion) {
     GracefulDisconnectEvent initial = new GracefulDisconnectEvent();
 
