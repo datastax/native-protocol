@@ -20,7 +20,7 @@
 
   <groupId>com.datastax.oss</groupId>
   <artifactId>native-protocol</artifactId>
-  <version>1.5.2</version>
+  <version>1.5.3</version>
   <packaging>bundle</packaging>
 
   <name>An implementation of the Apache Cassandra® native protocol</name>
