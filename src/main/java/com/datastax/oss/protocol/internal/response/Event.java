@@ -20,6 +20,7 @@ import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import com.datastax.oss.protocol.internal.ProtocolErrors;
+import com.datastax.oss.protocol.internal.response.event.GracefulDisconnectEvent;
 import com.datastax.oss.protocol.internal.response.event.SchemaChangeEvent;
 import com.datastax.oss.protocol.internal.response.event.StatusChangeEvent;
 import com.datastax.oss.protocol.internal.response.event.TopologyChangeEvent;
@@ -54,7 +55,8 @@ public abstract class Event extends Message {
           protocolVersion,
           new TopologyChangeEvent.SubCodec(protocolVersion),
           new StatusChangeEvent.SubCodec(protocolVersion),
-          new SchemaChangeEvent.SubCodec(protocolVersion));
+          new SchemaChangeEvent.SubCodec(protocolVersion),
+          new GracefulDisconnectEvent.SubCodec(protocolVersion));
     }
 
     @Override
