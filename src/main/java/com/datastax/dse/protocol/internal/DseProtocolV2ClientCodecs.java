@@ -33,6 +33,7 @@ import com.datastax.dse.protocol.internal.request.DseExecuteCodec;
 import com.datastax.dse.protocol.internal.request.DsePrepareCodec;
 import com.datastax.dse.protocol.internal.request.DseQueryCodec;
 import com.datastax.dse.protocol.internal.request.Revise;
+import com.datastax.dse.protocol.internal.response.error.DseWriteTimeoutSubCodec;
 import com.datastax.dse.protocol.internal.response.result.DsePreparedSubCodec;
 import com.datastax.dse.protocol.internal.response.result.DseRowsSubCodec;
 import com.datastax.oss.protocol.internal.FrameCodec;
@@ -56,7 +57,6 @@ import com.datastax.oss.protocol.internal.response.error.ReadTimeout;
 import com.datastax.oss.protocol.internal.response.error.Unavailable;
 import com.datastax.oss.protocol.internal.response.error.Unprepared;
 import com.datastax.oss.protocol.internal.response.error.WriteFailure;
-import com.datastax.oss.protocol.internal.response.error.WriteTimeout;
 import com.datastax.oss.protocol.internal.response.result.SchemaChange;
 import com.datastax.oss.protocol.internal.response.result.SetKeyspace;
 import com.datastax.oss.protocol.internal.response.result.Void;
@@ -94,7 +94,7 @@ public class DseProtocolV2ClientCodecs implements FrameCodec.CodecGroup {
                 new SingleMessageSubCodec(INVALID, DSE_V2),
                 new SingleMessageSubCodec(CONFIG_ERROR, DSE_V2),
                 new Unavailable.SubCodec(DSE_V2),
-                new WriteTimeout.SubCodec(DSE_V2),
+                new DseWriteTimeoutSubCodec(DSE_V2),
                 new ReadTimeout.SubCodec(DSE_V2),
                 new ReadFailure.SubCodec(DSE_V2),
                 new FunctionFailure.SubCodec(DSE_V2),
