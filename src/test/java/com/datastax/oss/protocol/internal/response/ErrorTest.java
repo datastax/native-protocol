@@ -325,7 +325,7 @@ public class ErrorTest extends MessageTestBase<Error> {
             2,
             3,
             ProtocolConstants.WriteType.SIMPLE,
-            WriteTimeout.UNKNOWN_CONTENTIONS);
+            null);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -357,7 +357,7 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(writeTimeout.received).isEqualTo(2);
     assertThat(writeTimeout.blockFor).isEqualTo(3);
     assertThat(writeTimeout.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
-    assertThat(writeTimeout.contentions).isEqualTo(WriteTimeout.UNKNOWN_CONTENTIONS);
+    assertThat(writeTimeout.contentions).isEqualTo(null);
   }
 
   @Test
@@ -395,7 +395,7 @@ public class ErrorTest extends MessageTestBase<Error> {
     WriteTimeout decoded = (WriteTimeout) decode(encoded, protocolVersion);
 
     assertThat(decoded.writeType).isEqualTo(ProtocolConstants.WriteType.CAS);
-    assertThat(decoded.contentions).isEqualTo(WriteTimeout.UNKNOWN_CONTENTIONS);
+    assertThat(decoded.contentions).isEqualTo(null);
   }
 
   @Test
@@ -455,7 +455,7 @@ public class ErrorTest extends MessageTestBase<Error> {
             0,
             1,
             ProtocolConstants.WriteType.CAS,
-            WriteTimeout.UNKNOWN_CONTENTIONS);
+            null);
 
     WriteTimeout decoded = (WriteTimeout) decode(encode(initial, protocolVersion), protocolVersion);
 
