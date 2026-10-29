@@ -324,7 +324,8 @@ public class ErrorTest extends MessageTestBase<Error> {
             ProtocolConstants.ConsistencyLevel.QUORUM,
             2,
             3,
-            ProtocolConstants.WriteType.SIMPLE);
+            ProtocolConstants.WriteType.SIMPLE,
+            null);
 
     MockBinaryString encoded = encode(initial, protocolVersion);
 
@@ -356,6 +357,109 @@ public class ErrorTest extends MessageTestBase<Error> {
     assertThat(writeTimeout.received).isEqualTo(2);
     assertThat(writeTimeout.blockFor).isEqualTo(3);
     assertThat(writeTimeout.writeType).isEqualTo(ProtocolConstants.WriteType.SIMPLE);
+    assertThat(writeTimeout.contentions).isEqualTo(null);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV3OrV4")
+  public void should_encode_and_decode_cas_write_timeout_v3_v4(int protocolVersion) {
+    WriteTimeout initial =
+        new WriteTimeout(
+            MOCK_MESSAGE,
+            ProtocolConstants.ConsistencyLevel.SERIAL,
+            0,
+            1,
+            ProtocolConstants.WriteType.CAS,
+            3);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(ProtocolConstants.ErrorCode.WRITE_TIMEOUT)
+                .string(MOCK_MESSAGE)
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.SERIAL)
+                .int_(0)
+                .int_(1)
+                .string(ProtocolConstants.WriteType.CAS));
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length())
+                + PrimitiveSizes.SHORT
+                + PrimitiveSizes.INT
+                + PrimitiveSizes.INT
+                + (PrimitiveSizes.SHORT + ProtocolConstants.WriteType.CAS.length()));
+
+    WriteTimeout decoded = (WriteTimeout) decode(encoded, protocolVersion);
+
+    assertThat(decoded.writeType).isEqualTo(ProtocolConstants.WriteType.CAS);
+    assertThat(decoded.contentions).isEqualTo(null);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_and_decode_cas_write_timeout_v5(int protocolVersion) {
+    WriteTimeout initial =
+        new WriteTimeout(
+            MOCK_MESSAGE,
+            ProtocolConstants.ConsistencyLevel.SERIAL,
+            0,
+            1,
+            ProtocolConstants.WriteType.CAS,
+            3);
+
+    MockBinaryString encoded = encode(initial, protocolVersion);
+
+    assertThat(encoded)
+        .isEqualTo(
+            new MockBinaryString()
+                .int_(ProtocolConstants.ErrorCode.WRITE_TIMEOUT)
+                .string(MOCK_MESSAGE)
+                .unsignedShort(ProtocolConstants.ConsistencyLevel.SERIAL)
+                .int_(0) // received
+                .int_(1) // blockFor
+                .string(ProtocolConstants.WriteType.CAS) // writeType
+                .unsignedShort(3)); // contentions
+    assertThat(encodedSize(initial, protocolVersion))
+        .isEqualTo(
+            PrimitiveSizes.INT // error code
+                + (PrimitiveSizes.SHORT + MOCK_MESSAGE.length()) // message
+                + PrimitiveSizes.SHORT // consistencyLevel
+                + PrimitiveSizes.INT // received
+                + PrimitiveSizes.INT // blockFor
+                + (PrimitiveSizes.SHORT + ProtocolConstants.WriteType.CAS.length()) // writeType
+                + PrimitiveSizes.SHORT); // contentions
+
+    Error decoded = decode(encoded, protocolVersion);
+
+    assertThat(decoded).isInstanceOf(WriteTimeout.class);
+    WriteTimeout writeTimeout = (WriteTimeout) decoded;
+    assertThat(writeTimeout.message).isEqualTo(MOCK_MESSAGE);
+    assertThat(writeTimeout.consistencyLevel).isEqualTo(ProtocolConstants.ConsistencyLevel.SERIAL);
+    assertThat(writeTimeout.received).isEqualTo(0);
+    assertThat(writeTimeout.blockFor).isEqualTo(1);
+    assertThat(writeTimeout.writeType).isEqualTo(ProtocolConstants.WriteType.CAS);
+    assertThat(writeTimeout.contentions).isEqualTo(3);
+  }
+
+  @Test
+  @UseDataProvider(location = TestDataProviders.class, value = "protocolV5OrAbove")
+  public void should_encode_cas_write_timeout_with_unknown_contentions_as_zero(
+      int protocolVersion) {
+    WriteTimeout initial =
+        new WriteTimeout(
+            MOCK_MESSAGE,
+            ProtocolConstants.ConsistencyLevel.SERIAL,
+            0,
+            1,
+            ProtocolConstants.WriteType.CAS,
+            null);
+
+    WriteTimeout decoded = (WriteTimeout) decode(encode(initial, protocolVersion), protocolVersion);
+
+    assertThat(decoded.contentions).isEqualTo(0);
   }
 
   @Test

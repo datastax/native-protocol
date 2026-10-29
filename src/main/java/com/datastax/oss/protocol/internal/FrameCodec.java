@@ -297,6 +297,7 @@ public class FrameCodec<B> {
     int streamId = readStreamId(source);
     int opcode = primitiveCodec.readByte(source);
     int length = primitiveCodec.readInt(source);
+    int expectedSizeAfterBody = primitiveCodec.sizeOf(source) - length;
 
     boolean decompressed = false;
     if (Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
@@ -339,6 +340,12 @@ public class FrameCodec<B> {
 
     if (decompressed) {
       primitiveCodec.release(source);
+    } else {
+      // skips any trailing bytes (so they aren't treated as the start of the next frame)
+      int unread = primitiveCodec.sizeOf(source) - expectedSizeAfterBody;
+      if (unread > 0) {
+        primitiveCodec.release(primitiveCodec.readRetainedSlice(source, unread));
+      }
     }
 
     return new Frame(
