@@ -15,6 +15,8 @@
  */
 package com.datastax.oss.protocol.internal.response.error;
 
+import static com.datastax.oss.protocol.internal.ProtocolConstants.Version.V5;
+
 import com.datastax.oss.protocol.internal.Message;
 import com.datastax.oss.protocol.internal.PrimitiveCodec;
 import com.datastax.oss.protocol.internal.PrimitiveSizes;
@@ -32,14 +34,35 @@ public class WriteTimeout extends Error {
   public final int blockFor;
   /** The type of the write that timed out. */
   public final String writeType;
+  /**
+   * The number of contentions that occurred during the CAS operation, or {@code null} if
+   * the server did not send it (protocol v4 or below, or a {@code writeType} other than {@code
+   * CAS}).
+   */
+  public final Integer contentions;
 
   public WriteTimeout(
-      String message, int consistencyLevel, int received, int blockFor, String writeType) {
+      String message,
+      int consistencyLevel,
+      int received,
+      int blockFor,
+      String writeType) {
+    this(message, consistencyLevel, received, blockFor, writeType, null);
+  }
+
+  public WriteTimeout(
+      String message,
+      int consistencyLevel,
+      int received,
+      int blockFor,
+      String writeType,
+      Integer contentions) {
     super(ProtocolConstants.ErrorCode.WRITE_TIMEOUT, message);
     this.consistencyLevel = consistencyLevel;
     this.received = received;
     this.blockFor = blockFor;
     this.writeType = writeType;
+    this.contentions = contentions;
   }
 
   public static class SubCodec extends Error.SubCodec {
@@ -55,6 +78,11 @@ public class WriteTimeout extends Error {
       encoder.writeInt(writeTimeout.received, dest);
       encoder.writeInt(writeTimeout.blockFor, dest);
       encoder.writeString(writeTimeout.writeType, dest);
+
+      if (hasContentions(writeTimeout.writeType)) {
+        int s = writeTimeout.contentions == null ? 0 : writeTimeout.contentions;
+        encoder.writeUnsignedShort(s, dest);
+      }
     }
 
     @Override
@@ -64,7 +92,8 @@ public class WriteTimeout extends Error {
           + PrimitiveSizes.SHORT
           + PrimitiveSizes.INT
           + PrimitiveSizes.INT
-          + PrimitiveSizes.sizeOfString(writeTimeout.writeType);
+          + PrimitiveSizes.sizeOfString(writeTimeout.writeType)
+          + (hasContentions(writeTimeout.writeType) ? PrimitiveSizes.SHORT : 0);
     }
 
     @Override
@@ -74,7 +103,16 @@ public class WriteTimeout extends Error {
       int received = decoder.readInt(source);
       int blockFor = decoder.readInt(source);
       String writeType = decoder.readString(source);
-      return new WriteTimeout(message, consistencyLevel, received, blockFor, writeType);
+
+      Integer contentions = hasContentions(writeType)
+          ? decoder.readUnsignedShort(source)
+          : null;
+
+      return new WriteTimeout(message, consistencyLevel, received, blockFor, writeType, contentions);
+    }
+
+    private boolean hasContentions(String writeType) {
+      return protocolVersion >= V5 && ProtocolConstants.WriteType.CAS.equals(writeType);
     }
   }
 }
