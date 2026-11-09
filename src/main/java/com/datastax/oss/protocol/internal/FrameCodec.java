@@ -297,68 +297,62 @@ public class FrameCodec<B> {
     int streamId = readStreamId(source);
     int opcode = primitiveCodec.readByte(source);
     int length = primitiveCodec.readInt(source);
-    int expectedSizeAfterBody = primitiveCodec.sizeOf(source) - length;
 
+    B maybeCompressedBody = primitiveCodec.readRetainedSlice(source, length);
+    B body = maybeCompressedBody;
     boolean decompressed = false;
-    if (Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
-      B newSource = compressor.decompress(source);
-      // if decompress returns a different object, track this so we know to release it when done.
-      if (newSource != source) {
-        decompressed = true;
-        source = newSource;
+    try {
+      if (Flags.contains(flags, ProtocolConstants.FrameFlag.COMPRESSED)) {
+        body = compressor.decompress(maybeCompressedBody);
+        decompressed = (body != maybeCompressedBody);
       }
-    }
 
-    int frameSize;
-    int compressedFrameSize;
-    if (decompressed) {
-      frameSize = V3_ENCODED_HEADER_SIZE + primitiveCodec.sizeOf(source);
-      compressedFrameSize =
-          V3_ENCODED_HEADER_SIZE + length; // what we measured before decompressing
-    } else {
-      frameSize = V3_ENCODED_HEADER_SIZE + length;
-      compressedFrameSize = -1;
-    }
-
-    boolean isTracing = Flags.contains(flags, ProtocolConstants.FrameFlag.TRACING);
-    UUID tracingId = (isResponse && isTracing) ? primitiveCodec.readUuid(source) : null;
-
-    List<String> warnings =
-        (isResponse && Flags.contains(flags, ProtocolConstants.FrameFlag.WARNING))
-            ? primitiveCodec.readStringList(source)
-            : Collections.emptyList();
-
-    Map<String, ByteBuffer> customPayload =
-        (Flags.contains(flags, ProtocolConstants.FrameFlag.CUSTOM_PAYLOAD))
-            ? primitiveCodec.readBytesMap(source)
-            : Collections.emptyMap();
-
-    Message.Codec decoder = decoders.get(protocolVersion, opcode);
-    ProtocolErrors.check(
-        decoder != null, "Unsupported request opcode: %s in protocol %d", opcode, protocolVersion);
-    Message response = decoder.decode(source, primitiveCodec);
-
-    if (decompressed) {
-      primitiveCodec.release(source);
-    } else {
-      // skips any trailing bytes (so they aren't treated as the start of the next frame)
-      int unread = primitiveCodec.sizeOf(source) - expectedSizeAfterBody;
-      if (unread > 0) {
-        primitiveCodec.release(primitiveCodec.readRetainedSlice(source, unread));
+      int frameSize;
+      int compressedFrameSize;
+      if (decompressed) {
+        frameSize = V3_ENCODED_HEADER_SIZE + primitiveCodec.sizeOf(body);
+        compressedFrameSize =
+            V3_ENCODED_HEADER_SIZE + length; // what we measured before decompressing
+      } else {
+        frameSize = V3_ENCODED_HEADER_SIZE + length;
+        compressedFrameSize = -1;
       }
-    }
 
-    return new Frame(
-        protocolVersion,
-        beta,
-        streamId,
-        isTracing,
-        tracingId,
-        frameSize,
-        compressedFrameSize,
-        customPayload,
-        warnings,
-        response);
+      boolean isTracing = Flags.contains(flags, ProtocolConstants.FrameFlag.TRACING);
+      UUID tracingId = (isResponse && isTracing) ? primitiveCodec.readUuid(body) : null;
+
+      List<String> warnings =
+          (isResponse && Flags.contains(flags, ProtocolConstants.FrameFlag.WARNING))
+              ? primitiveCodec.readStringList(body)
+              : Collections.emptyList();
+
+      Map<String, ByteBuffer> customPayload =
+          (Flags.contains(flags, ProtocolConstants.FrameFlag.CUSTOM_PAYLOAD))
+              ? primitiveCodec.readBytesMap(body)
+              : Collections.emptyMap();
+
+      Message.Codec decoder = decoders.get(protocolVersion, opcode);
+      ProtocolErrors.check(
+          decoder != null, "Unsupported request opcode: %s in protocol %d", opcode, protocolVersion);
+      Message response = decoder.decode(body, primitiveCodec);
+
+      return new Frame(
+          protocolVersion,
+          beta,
+          streamId,
+          isTracing,
+          tracingId,
+          frameSize,
+          compressedFrameSize,
+          customPayload,
+          warnings,
+          response);
+    } finally {
+      if (decompressed) {
+        primitiveCodec.release(body);
+      }
+      primitiveCodec.release(maybeCompressedBody);
+    }
   }
 
   private int readStreamId(B source) {
