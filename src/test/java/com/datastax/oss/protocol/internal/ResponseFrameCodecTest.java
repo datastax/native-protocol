@@ -16,6 +16,7 @@
 package com.datastax.oss.protocol.internal;
 
 import static com.datastax.oss.protocol.internal.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.datastax.oss.protocol.internal.binary.MockBinaryString;
 import com.datastax.oss.protocol.internal.binary.MockCompressor;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
@@ -149,6 +151,81 @@ public class ResponseFrameCodecTest extends FrameCodecTestBase {
 
     // The buffer should still contain the data of the second frame
     assertThat(encoded).isEqualTo(encodedFrame2);
+  }
+
+  @Test
+  public void should_skip_unread_body_bytes_before_next_frame() {
+    int protocolVersion = ProtocolConstants.Version.V5;
+
+    // A frame whose body has a trailing field that the message codec doesn't know about
+    MockBinaryString body =
+        new MockBinaryString().string(MockReadyCodec.MOCK_ENCODED).unsignedShort(42);
+    MockBinaryString encodedFrame1 =
+        new MockBinaryString()
+            .byte_(protocolVersion | 0b1000_0000)
+            .byte_(0)
+            .unsignedShort(1)
+            .byte_(ProtocolConstants.Opcode.READY)
+            .int_(body.size())
+            .append(body);
+    MockBinaryString encodedFrame2 =
+        mockResponsePayload(
+            protocolVersion,
+            2,
+            Compressor.none(),
+            false,
+            Collections.emptyMap(),
+            Collections.emptyList(),
+            false);
+    MockBinaryString encoded =
+        MockPrimitiveCodec.INSTANCE.concat(encodedFrame1, encodedFrame2.copy());
+
+    FrameCodec<MockBinaryString> frameCodec =
+        new FrameCodec<>(
+            primitiveCodec,
+            Compressor.none(),
+            registry -> registry.addDecoder(new MockReadyCodec(protocolVersion)));
+
+    assertThat(frameCodec.decode(encoded).streamId).isEqualTo(1);
+    assertThat(encoded).isEqualTo(encodedFrame2);
+    assertThat(frameCodec.decode(encoded).streamId).isEqualTo(2);
+    assertThat(primitiveCodec.sizeOf(encoded)).isEqualTo(0);
+  }
+
+  @Test
+  public void should_not_read_past_declared_body_length() {
+    int protocolVersion = ProtocolConstants.Version.V5;
+
+    // A frame that declares an empty body, but whose message codec expects one
+    MockBinaryString encodedFrame1 =
+        new MockBinaryString()
+            .byte_(protocolVersion | 0b1000_0000)
+            .byte_(0)
+            .unsignedShort(1)
+            .byte_(ProtocolConstants.Opcode.READY)
+            .int_(0);
+    MockBinaryString encodedFrame2 =
+        mockResponsePayload(
+            protocolVersion,
+            2,
+            Compressor.none(),
+            false,
+            Collections.emptyMap(),
+            Collections.emptyList(),
+            false);
+    MockBinaryString encoded =
+        MockPrimitiveCodec.INSTANCE.concat(encodedFrame1, encodedFrame2.copy());
+
+    FrameCodec<MockBinaryString> frameCodec =
+        new FrameCodec<>(
+            primitiveCodec,
+            Compressor.none(),
+            registry -> registry.addDecoder(new MockReadyCodec(protocolVersion)));
+
+    assertThrows(NoSuchElementException.class, () -> frameCodec.decode(encoded));
+    // The failed decode must not have consumed the next frame
+    assertThat(encoded).isEqualTo(encodedFrame2);
+    assertThat(frameCodec.decode(encoded).streamId).isEqualTo(2);
   }
 
   @Test
